@@ -1,0 +1,114 @@
+---
+const title = "Size My Generator";
+const desc = "Fast, simple generator sizing calculator (informational only).";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="canonical" href="https://sizemygenerator.com/" />
+<!-- Favicon / icons -->
+<link rel="icon" type="image/svg+xml" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 2rem; line-height: 1.5; }
+      .box { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; max-width: 680px; }
+      label { display:block; margin-top: .75rem; font-weight:600; }
+      input, select { width: 100%; padding: .6rem; margin-top: .25rem; border:1px solid #ccc; border-radius:6px; }
+      .result { margin-top: 1rem; padding: 1rem; background:#f7f7f7; border-radius:8px; font-size:1.1rem; }
+      .footer { margin-top: 2rem; font-size:.9rem; color:#444; }
+      a { color:#0b6; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+
+    <!-- Basic schema (Website + Organization) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://sizemygenerator.com/#website",
+          "url": "https://sizemygenerator.com/",
+          "name": "Size My Generator",
+          "inLanguage": "en"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://sizemygenerator.com/#org",
+          "name": "Size My Generator",
+          "url": "https://sizemygenerator.com/"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Calculator schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": ["WebApplication","SoftwareApplication"],
+      "name": "Generator Sizing Calculator",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "All",
+      "isAccessibleForFree": true,
+      "url": "https://sizemygenerator.com/",
+      "description": "Enter running watts and a surge factor to get a recommended generator size.",
+      "publisher": { "@id": "https://sizemygenerator.com/#org" },
+      "potentialAction": {
+        "@type": "CalculateAction",
+        "name": "Calculate recommended generator size",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://sizemygenerator.com/?running={runningWatts}&surge={surgeFactor}" },
+        "result": { "@type": "QuantitativeValue", "name": "Recommended generator size", "unitText": "Watt" }
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <h1>Size My Generator</h1>
+    <p>Enter your total running watts. We’ll estimate surge and round up to a safe recommendation.</p>
+
+    <div class="box">
+      <label>Total running watts (add up your appliances)</label>
+      <input id="running" type="number" min="0" placeholder="e.g., 3500" />
+
+      <label>Surge factor (start-up)</label>
+      <select id="surge">
+        <option value="1.2">1.2× (light)</option>
+        <option value="1.5">1.5× (typical mixed)</option>
+        <option value="2.0">2.0× (heavy motors)</option>
+      </select>
+
+      <div class="result" id="out">Recommended generator size: —</div>
+    </div>
+
+    <div class="footer">
+      <p><strong>Heads up:</strong> This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.</p>
+      <p><a href="/disclaimer">Disclaimer</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></p>
+    </div>
+
+    <script>
+      const runningEl = document.getElementById('running');
+      const surgeEl = document.getElementById('surge');
+      const outEl = document.getElementById('out');
+
+      function recommend() {
+        const running = Number(runningEl.value || 0);
+        const surgeFactor = Number(surgeEl.value || 1.2);
+        const surge = Math.ceil(running * surgeFactor);
+        const rec = Math.ceil(surge / 100) * 100; // round up to nearest 100 W
+        outEl.textContent = running > 0
+          ? `Recommended generator size: ~${rec.toLocaleString()} watts (surge est. ${surge.toLocaleString()} W)`
+          : 'Recommended generator size: —';
+      }
+      runningEl.addEventListener('input', recommend);
+      surgeEl.addEventListener('change', recommend);
+    </script>
+  </body>
+</html>
