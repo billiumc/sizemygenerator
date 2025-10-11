@@ -1,114 +1,166 @@
 ---
-const title = "Size My Generator";
-const desc = "Fast, simple generator sizing calculator (informational only).";
+const title = "Size My Generator | Home Generator Sizing Calculator";
+const desc =
+  "Quickly find out what size generator you need to power essentials, most of your house, or your whole home (informational only).";
 ---
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={desc} />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="canonical" href="https://sizemygenerator.com/" />
-<!-- Favicon / icons -->
-<link rel="icon" type="image/svg+xml" href="/favicon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Icons -->
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+    <link rel="icon" href="/favicon-16.png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 2rem; line-height: 1.5; }
-      .box { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; max-width: 680px; }
-      label { display:block; margin-top: .75rem; font-weight:600; }
-      input, select { width: 100%; padding: .6rem; margin-top: .25rem; border:1px solid #ccc; border-radius:6px; }
-      .result { margin-top: 1rem; padding: 1rem; background:#f7f7f7; border-radius:8px; font-size:1.1rem; }
-      .footer { margin-top: 2rem; font-size:.9rem; color:#444; }
-      a { color:#0b6; text-decoration: none; }
-      a:hover { text-decoration: underline; }
-    </style>
+      :root { --card:#fff; --bg:#f6f8fb; --text:#222; --muted:#667; --brand:#0b6; }
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, Helvetica, Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
+      header { padding: 2rem 1rem 0; max-width: 900px; margin: 0 auto; }
+      h1 { margin: 0 0 .5rem; font-size: clamp(1.6rem, 2.8vw, 2.2rem); }
+      p.lead { margin: 0 0 1.5rem; color: var(--muted); }
 
-    <!-- Basic schema (Website + Organization) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": "https://sizemygenerator.com/#website",
-          "url": "https://sizemygenerator.com/",
-          "name": "Size My Generator",
-          "inLanguage": "en"
-        },
-        {
-          "@type": "Organization",
-          "@id": "https://sizemygenerator.com/#org",
-          "name": "Size My Generator",
-          "url": "https://sizemygenerator.com/"
-        }
-      ]
-    }
-    </script>
-
-    <!-- Calculator schema -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": ["WebApplication","SoftwareApplication"],
-      "name": "Generator Sizing Calculator",
-      "applicationCategory": "UtilitiesApplication",
-      "operatingSystem": "All",
-      "isAccessibleForFree": true,
-      "url": "https://sizemygenerator.com/",
-      "description": "Enter running watts and a surge factor to get a recommended generator size.",
-      "publisher": { "@id": "https://sizemygenerator.com/#org" },
-      "potentialAction": {
-        "@type": "CalculateAction",
-        "name": "Calculate recommended generator size",
-        "target": { "@type": "EntryPoint", "urlTemplate": "https://sizemygenerator.com/?running={runningWatts}&surge={surgeFactor}" },
-        "result": { "@type": "QuantitativeValue", "name": "Recommended generator size", "unitText": "Watt" }
+      .box {
+        background: var(--card);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 3px 14px rgba(0,0,0,.06);
+        max-width: 720px;
+        margin: 0 auto 1.5rem;
       }
-    }
-    </script>
+      label { display:block; margin-top: 1rem; font-weight: 600; }
+      input, select {
+        width: 100%; padding: .6rem .7rem; margin-top: .35rem;
+        border: 1px solid #cfd6df; border-radius: 8px; font-size: 1rem; background:#fff;
+      }
+      .result {
+        margin-top: 1.25rem; padding: 1rem;
+        background:#f0f9ff; border:1px solid #b3e0ff; border-radius:10px; font-weight:600;
+      }
+      footer { text-align:center; padding: 1.5rem 1rem 3rem; color: var(--muted); }
+      footer a { color: var(--brand); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+    </style>
   </head>
   <body>
-    <h1>Size My Generator</h1>
-    <p>Enter your total running watts. We’ll estimate surge and round up to a safe recommendation.</p>
+    <header>
+      <h1>Size My Generator</h1>
+      <p class="lead">Enter a few details. We’ll estimate running &amp; startup load and round up to a safe recommendation.</p>
+    </header>
 
-    <div class="box">
-      <label>Total running watts (add up your appliances)</label>
-      <input id="running" type="number" min="0" placeholder="e.g., 3500" />
-
-      <label>Surge factor (start-up)</label>
-      <select id="surge">
-        <option value="1.2">1.2× (light)</option>
-        <option value="1.5">1.5× (typical mixed)</option>
-        <option value="2.0">2.0× (heavy motors)</option>
+    <main class="box">
+      <label>What do you want to power?</label>
+      <select id="scope">
+        <option value="essentials">Essentials (fridge, lights, Wi-Fi, furnace blower)</option>
+        <option value="most">Most of house (kitchen + some HVAC)</option>
+        <option value="whole">Whole house (near normal living)</option>
       </select>
 
-      <div class="result" id="out">Recommended generator size: —</div>
-    </div>
+      <label>Central A/C size (tons)</label>
+      <input id="tons" type="number" min="0" max="5" step="0.5" placeholder="e.g., 2.5" />
 
-    <div class="footer">
-      <p><strong>Heads up:</strong> This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.</p>
-      <p><a href="/disclaimer">Disclaimer</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></p>
-    </div>
+      <label>Well pump (horsepower)</label>
+      <select id="pump">
+        <option value="0">None</option>
+        <option value="0.33">1/3 HP</option>
+        <option value="0.5">1/2 HP</option>
+        <option value="0.75">3/4 HP</option>
+        <option value="1">1 HP</option>
+      </select>
+
+      <label>Refrigerators / Freezers (count)</label>
+      <input id="fridges" type="number" min="0" step="1" placeholder="e.g., 2" />
+
+      <label>Sump pumps (count)</label>
+      <input id="sumps" type="number" min="0" step="1" placeholder="e.g., 1" />
+
+            <div class="result" id="out">Recommended generator size: —</div>
+      <div style="margin-top:0.75rem;font-size:0.9rem;color:#666;text-align:center;">
+        (Includes startup surge and a conservative safety buffer.)
+      </div>
+    </main>
+
+    <section style="text-align:center;margin-top:1.5rem;color:#777;font-size:0.9rem;">
+      <strong>Heads up:</strong> This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
+    </section>
+
+    <footer>
+      <div><a href="/disclaimer">Disclaimer</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></div>
+    </footer>
 
     <script>
-      const runningEl = document.getElementById('running');
-      const surgeEl = document.getElementById('surge');
-      const outEl = document.getElementById('out');
+      const $ = (id) => document.getElementById(id);
+      const scopeEl = $('scope'), tonsEl = $('tons'), pumpEl = $('pump'), fridgesEl = $('fridges'), sumpsEl = $('sumps'), outEl = $('out');
+
+      // Conservative assumptions
+      const DIVERSITY = { essentials: 0.55, most: 0.7, whole: 0.9 };
+      const FRIDGE = { run: 180, surge: 1200 };
+      const SUMP   = { run: 800, surge: 1600 };
+      const FURNACE_BLOWER = { run: 600, surge: 1200 };
+      const SMALL_BASELOAD = 250;
+
+      function acWatts(tons) {
+        const run = Math.max(0, tons) * 1200; // ~1.2kW per ton
+        const surge = run * 4;                // conservative start
+        return { run, surge };
+      }
+      function pumpWatts(hp) {
+        const map = {
+          0:{run:0, surge:0}, 0.33:{run:450, surge:1200}, 0.5:{run:700, surge:1800},
+          0.75:{run:900, surge:2200}, 1:{run:1100, surge:2600}
+        };
+        return map[hp] || map[0];
+      }
 
       function recommend() {
-        const running = Number(runningEl.value || 0);
-        const surgeFactor = Number(surgeEl.value || 1.2);
-        const surge = Math.ceil(running * surgeFactor);
-        const rec = Math.ceil(surge / 100) * 100; // round up to nearest 100 W
-        outEl.textContent = running > 0
-          ? `Recommended generator size: ~${rec.toLocaleString()} watts (surge est. ${surge.toLocaleString()} W)`
-          : 'Recommended generator size: —';
+        const scope = scopeEl.value;
+        const tons = Number(tonsEl.value || 0);
+        const fridges = Math.max(0, Number(fridgesEl.value || 0));
+        const sumps = Math.max(0, Number(sumpsEl.value || 0));
+        const pumpHP = Number(pumpEl.value || 0);
+
+        let run = SMALL_BASELOAD;
+        let surge = 0;
+
+        if (scope !== 'whole') {
+          run += FURNACE_BLOWER.run;
+          surge = Math.max(surge, FURNACE_BLOWER.surge);
+        }
+
+        run += fridges * FRIDGE.run;
+        surge = Math.max(surge, fridges > 0 ? FRIDGE.surge : 0);
+
+        run += sumps * SUMP.run;
+        surge = Math.max(surge, sumps > 0 ? SUMP.surge : surge);
+
+        const ac = acWatts(tons);
+        run += ac.run;
+        surge = Math.max(surge, ac.surge);
+
+        const pump = pumpWatts(pumpHP);
+        run += pump.run;
+        surge = Math.max(surge, pump.surge);
+
+        const diversifiedRun = Math.ceil(run * (DIVERSITY[scope] || 0.7));
+        const peak = diversifiedRun + surge;
+
+        const sizes = [3500, 5000, 7500, 10000, 12000, 14000, 20000, 24000];
+        const recommended = sizes.find(s => s >= peak) || 24000;
+
+        outEl.textContent = `Recommended generator: ~${recommended.toLocaleString()} watts. ` +
+          `Running est.: ${diversifiedRun.toLocaleString()} W · Peak (with startup): ${peak.toLocaleString()} W`;
       }
-      runningEl.addEventListener('input', recommend);
-      surgeEl.addEventListener('change', recommend);
+
+      [scopeEl, tonsEl, pumpEl, fridgesEl, sumpsEl].forEach(el => {
+        el.addEventListener('input', recommend);
+        el.addEventListener('change', recommend);
+      });
+      recommend();
     </script>
   </body>
 </html>
