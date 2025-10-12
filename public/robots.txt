@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://sizemygenerator.com/sitemap.xml
+Sitemap: https://sizemygenerator.com/sitemap-index.xml
