@@ -45,6 +45,20 @@ const desc =
       footer { text-align:center; padding: 1.5rem 1rem 3rem; color: var(--muted); }
       footer a { color: var(--brand); text-decoration: none; }
       footer a:hover { text-decoration: underline; }
+
+      /* Compact, mobile-first control row for surge + load policy */
+      .controls-row {
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap:.5rem .75rem;
+        margin-top:1rem;
+        align-items:center;
+      }
+      .controls-row .lbl { font-weight:600; margin:0; }
+      .controls-row .fld { width:100%; min-width:0; }
+      @media (max-width:560px){
+        .controls-row { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
@@ -54,67 +68,63 @@ const desc =
     </header>
 
     <div class="box" id="gen-calculator">
-  <label for="scope"><strong>What do you want to power?</strong></label>
-  <select id="scope">
-    <option value="essentials">Essentials (fridge, lights, Wi-Fi, furnace blower)</option>
-    <option value="most">Most of house (kitchen + some HVAC)</option>
-    <option value="whole">Whole house (unrestricted typical use)</option>
-  </select>
+      <label for="scope"><strong>What do you want to power?</strong></label>
+      <select id="scope">
+        <option value="essentials">Essentials (fridge, lights, Wi-Fi, furnace blower)</option>
+        <option value="most">Most of house (kitchen + some HVAC)</option>
+        <option value="whole">Whole house (unrestricted typical use)</option>
+      </select>
 
-  <!-- Collapsible appliance section -->
-  <div id="appliance-header" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
-    <div id="appliance-summary" style="font-size:.95rem;color:#555">
-      ✅ Preset applied. <span id="summary-count">0</span> items selected.
-      <button id="toggle-appliances" type="button" style="margin-left:.5rem;border:0;background:transparent;color:#0b6;font-weight:600;cursor:pointer;">Show details ▾</button>
+      <!-- Collapsible appliance section -->
+      <div id="appliance-header" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
+        <div id="appliance-summary" style="font-size:.95rem;color:#555">
+          ✅ Preset applied. <span id="summary-count">0</span> items selected.
+          <button id="toggle-appliances" type="button" style="margin-left:.5rem;border:0;background:transparent;color:#0b6;font-weight:600;cursor:pointer;">Show details ▾</button>
+        </div>
+      </div>
+      <div id="appliance-panel" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
+        <p style="margin:.25rem 0 .5rem;color:#666">Toggle what you’ll run at the same time:</p>
+        <div id="appliance-list" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
+      </div>
+
+      <hr style="margin:1rem 0">
+
+      <!-- AC module -->
+      <div id="ac-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+          <strong>Air conditioning (optional)</strong>
+          <button id="add-ac" type="button">+ Add AC system</button>
+        </div>
+        <small style="color:#555">Add one row per condenser (e.g., 3-ton up, 2-ton down).</small>
+        <div id="ac-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"></div>
+      </div>
+
+      <!-- Surge + Load usage (dropdown) -->
+      <div class="controls-row">
+        <label for="surgeWatts" class="lbl">Custom temporary surge (W)</label>
+        <input id="surgeWatts" type="number" min="0" step="100" value="0" class="fld">
+
+        <label for="loadPolicy" class="lbl">Load usage</label>
+        <select id="loadPolicy" class="fld">
+          <option value="conservative">Assume everything could run</option>
+          <option value="managed">I’ll manage loads (stagger use)</option>
+        </select>
+      </div>
+
+      <hr>
+      <div id="results">
+        <p><strong>Running load:</strong> <span id="runW">0</span> W</p>
+        <p><strong>Starting surge considered:</strong> <span id="startW">0</span> W</p>
+        <p style="margin:.75rem 0 0 0"><strong>Recommended generator size:</strong> <span id="rec">—</span></p>
+        <small id="assumption-note" style="color:#666">Assumes all selected items could run at once.</small>
+      </div>
+
+      <p style="margin-top:1rem;color:#555">
+        Heads up: This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
+      </p>
     </div>
-  </div>
-  <div id="appliance-panel" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
-    <p style="margin:.25rem 0 .5rem;color:#666">Toggle what you’ll run at the same time:</p>
-    <div id="appliance-list" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
-  </div>
 
-  <hr style="margin:1rem 0">
-
-  <!-- AC module -->
-  <div id="ac-section">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-      <strong>Air conditioning (optional)</strong>
-      <button id="add-ac" type="button">+ Add AC system</button>
-    </div>
-    <small style="color:#555">Add one row per condenser (e.g., 3-ton up, 2-ton down).</small>
-    <div id="ac-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"></div>
-  </div>
-
-  <!-- Inline surge + load management -->
- <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:1rem;">
-  <label for="surgeWatts" style="margin:0;font-weight:600;">Add custom temporary surge (W)</label>
-  <input id="surgeWatts" type="number" min="0" step="100" value="0" style="max-width:110px;">
-  <span style="flex:1 1 auto"></span>
-  <label style="display:flex;align-items:center;gap:.5rem;margin:0;">
-    <input type="checkbox" id="smartUse">
-    <span>I’ll manage loads (not everything at once)</span>
-  </label>
-</div>
-
-
-  <div style="margin-top:1rem">
-    <button id="recalc" type="button">Recalculate</button>
-  </div>
-
-  <hr>
-  <div id="results">
-    <p><strong>Running load:</strong> <span id="runW">0</span> W</p>
-    <p><strong>Starting surge considered:</strong> <span id="startW">0</span> W</p>
-    <p style="margin:.75rem 0 0 0"><strong>Recommended generator size:</strong> <span id="rec">—</span></p>
-    <small id="assumption-note" style="color:#666">Assumes all selected items could run at once.</small>
-  </div>
-
-  <p style="margin-top:1rem;color:#555">
-    Heads up: This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
-  </p>
-</div>
-
-<script>
+    <script>
 (() => {
   // ---------- APPLIANCES (non-AC) ----------
   const APPLIANCES = [
@@ -132,7 +142,7 @@ const desc =
     { id:'dishwasher',     name:'Dishwasher (heat dry)',        run:1200, start:1200, defaultScopes:['most','whole'] },
     { id:'elecDryer',      name:'Electric clothes dryer',       run:2500, start:5000, defaultScopes:['whole'] },
     { id:'waterHeater',    name:'Electric water heater (tank)', run:4500, start:4500, defaultScopes:['whole'] },
-    { id:'freezer',        name:'Chest freezer',                 run:100,  start:600,  defaultScopes:['most','whole'] },
+    { id:'freezer',        name:'Chest freezer',                run:100,  start:600,  defaultScopes:['most','whole'] },
     { id:'tv',             name:'TV + streaming box',           run:150,  start:0,    defaultScopes:['most','whole'] },
   ];
 
@@ -152,22 +162,23 @@ const desc =
     { size:20000, label:'~20 kW standby (near-normal whole-home)' },
   ];
 
-  // ---------- Helpers / elements ----------
+  // ---------- Elements ----------
   const el = (id) => document.getElementById(id);
-  const scopeEl  = el('scope');
-  const listEl   = el('appliance-list');
-  const runWEl   = el('runW');
-  const startWEl = el('startW');
-  const recEl    = el('rec');
-  const surgeWatts  = el('surgeWatts');
-  const smartUse = el('smartUse');
-  const acRowsEl = el('ac-rows');
-  const addAcBtn = el('add-ac');
+  const scopeEl   = el('scope');
+  const listEl    = el('appliance-list');
+  const runWEl    = el('runW');
+  const startWEl  = el('startW');
+  const recEl     = el('rec');
+  const surgeWatts= el('surgeWatts');
+  const loadPolicy= el('loadPolicy'); // 'conservative' | 'managed'
 
-  const panel = el('appliance-panel');
-  const toggleBtn = el('toggle-appliances');
-  const summaryCount = el('summary-count');
   const assumptionNote = el('assumption-note');
+  const acRowsEl   = el('ac-rows');
+  const addAcBtn   = el('add-ac');
+
+  const panel      = el('appliance-panel');
+  const toggleBtn  = el('toggle-appliances');
+  const summaryCount = el('summary-count');
 
   // Build appliance checkboxes
   APPLIANCES.forEach(a => {
@@ -175,26 +186,30 @@ const desc =
     wrap.style.display = 'flex';
     wrap.style.alignItems = 'center';
     wrap.style.gap = '.5rem';
+
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.id = 'cb_' + a.id;
     cb.dataset.run = a.run;
     cb.dataset.start = a.start;
+
     const txt = document.createElement('span');
     txt.textContent = `${a.name} — ${a.run}W run${a.start ? ` / ${a.start}W start` : ''}`;
+
     wrap.appendChild(cb);
     wrap.appendChild(txt);
     listEl.appendChild(wrap);
   });
 
-  // Responsive tweak: single column on narrow screens
+  // Responsive grid for appliance list
   const media = window.matchMedia('(max-width: 520px)');
   function applyGrid() {
     listEl.style.gridTemplateColumns = media.matches ? '1fr' : '1fr 1fr';
   }
-  applyGrid(); media.addEventListener?.('change', applyGrid);
+  applyGrid();
+  media.addEventListener?.('change', applyGrid);
 
-  // Collapsible logic
+  // Collapsible panel
   let open = false;
   function setPanel(openNow) {
     open = openNow;
@@ -211,6 +226,7 @@ const desc =
   // AC rows (0–3)
   function addAcRow(preset = { tons: 2.5, type: 'standard', soft: false }) {
     if (acRowsEl.children.length >= 3) return;
+
     const row = document.createElement('div');
     row.className = 'ac-row';
     row.style.display = 'grid';
@@ -230,13 +246,14 @@ const desc =
     typeWrap.style.display = 'flex';
     typeWrap.style.alignItems = 'center';
     typeWrap.style.gap = '.5rem';
+
     const typeSel = document.createElement('select');
     [{v:'standard', n:'Standard (single-stage)'},{v:'inverter', n:'High-efficiency (inverter)'}]
       .forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.n; typeSel.appendChild(opt); });
     typeSel.value = preset.type;
 
     const softLbl = document.createElement('label');
-    const softCb = document.createElement('input');
+    const softCb  = document.createElement('input');
     softCb.type = 'checkbox';
     softCb.checked = !!preset.soft;
     softLbl.appendChild(softCb);
@@ -246,7 +263,9 @@ const desc =
     typeWrap.appendChild(softLbl);
 
     const delBtn = document.createElement('button');
-    delBtn.type = 'button'; delBtn.textContent = '✕'; delBtn.title = 'Remove';
+    delBtn.type = 'button';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove';
     delBtn.style.minWidth = '2rem';
 
     row.appendChild(tonSel);
@@ -287,10 +306,12 @@ const desc =
     summaryCount.textContent = count;
   }
 
+  // Presets
   function applyPreset(scope) {
-    // Clear appliance checks
+    // Clear checks
     APPLIANCES.forEach(a => el('cb_' + a.id).checked = false);
-    // Apply defaults by scope
+
+    // Defaults by scope
     APPLIANCES.filter(a => a.defaultScopes.includes(scope))
               .forEach(a => el('cb_' + a.id).checked = true);
 
@@ -302,7 +323,7 @@ const desc =
       ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = el('cb_'+id); if (c) c.checked = false; });
     }
 
-    // Seed AC rows
+    // Seed AC
     acRowsEl.innerHTML = '';
     if (scope === 'most')  addAcRow({ tons: 2.5, type: 'standard', soft: false });
     if (scope === 'whole') addAcRow({ tons: 4.0, type: 'standard', soft: false });
@@ -312,15 +333,22 @@ const desc =
     recalc();
   }
 
+  // Core calc
   function recalc() {
+    // Non-AC running
     const checked = APPLIANCES.filter(a => el('cb_'+a.id).checked);
     const runSumNonAC = checked.reduce((s,a)=> s + a.run, 0);
+
+    // AC running
     const acLoads = getAcLoads();
     const runSumAC = acLoads.reduce((s,a)=> s + a.run, 0);
 
-    // Diversity: if "smart use" is on, reduce NON-AC running by ~20%.
-    const smart = smartUse.checked;
-    const adjustedRunNonAC = smart ? Math.round(runSumNonAC * 0.8) : runSumNonAC;
+    // Diversity via dropdown
+    const policy = loadPolicy ? loadPolicy.value : 'conservative';
+    const adjustedRunNonAC = (policy === 'managed')
+      ? Math.round(runSumNonAC * 0.8)
+      : runSumNonAC;
+
     const runSum = adjustedRunNonAC + runSumAC;
 
     // Surge: largest single start + running of everything else
@@ -332,18 +360,19 @@ const desc =
 
     let runWithoutLargestStarter = runSum;
     const largestFromAC = acLoads.find(a => a.start === largestStart);
-    if (largestFromAC) runWithoutLargestStarter -= largestFromAC.run;
-    else {
+    if (largestFromAC) {
+      runWithoutLargestStarter -= largestFromAC.run;
+    } else {
       const largestFromApp = checked.find(a => (a.start||0) === largestStart);
       if (largestFromApp) runWithoutLargestStarter -= largestFromApp.run;
     }
 
-    // Extra surge from the inline field (defaults to 0)
-    const extra = parseInt(surgeWatts.value || '0', 10) || 0;
+    // Extra surge (defaults to 0)
+    const extra = parseInt((surgeWatts && surgeWatts.value) ? surgeWatts.value : '0', 10) || 0;
 
     let surgeNeed = Math.max(runSum, runWithoutLargestStarter + largestStart) + extra;
 
-    // Recommend so surgeNeed ≈ 80% of rating (headroom)
+    // Recommend so surgeNeed ≈ 80% of rating
     const neededContinuous = Math.ceil(surgeNeed / 0.8);
     const tier = TIERS.find(t => t.size >= neededContinuous)
             || { size: Math.ceil(neededContinuous/1000)*1000, label: `~${Math.ceil(neededContinuous/1000)*1000} W (custom)` };
@@ -352,33 +381,37 @@ const desc =
     startWEl.textContent = surgeNeed.toLocaleString();
     recEl.textContent = `${tier.label}`;
 
-    assumptionNote.textContent = smart
-      ? 'Assumes you’ll manage loads (some items won’t run simultaneously).'
-      : 'Assumes all selected items could run at once.';
+    if (assumptionNote) {
+      assumptionNote.textContent = (policy === 'managed')
+        ? 'Assumes you’ll manage loads (some items won’t run simultaneously).'
+        : 'Assumes all selected items could run at once.';
+    }
+
     updateSummary();
 
-    // Keep panel height correct if open (for smooth animation after list changes)
+    // Keep panel height correct if open
     if (open) panel.style.maxHeight = panel.scrollHeight + 'px';
   }
 
   // Wire-up
   scopeEl.addEventListener('change', e => applyPreset(e.target.value));
-  document.getElementById('recalc').addEventListener('click', recalc);
   listEl.addEventListener('change', recalc);
-  surgeWatts.addEventListener('input', recalc);
-  smartUse.addEventListener('change', recalc);
+  if (surgeWatts) surgeWatts.addEventListener('input', recalc);
+  if (loadPolicy) loadPolicy.addEventListener('change', recalc);
+  addAcBtn.addEventListener('click', () => { addAcRow(); setPanel(open); recalc(); });
 
   // Initial
   applyPreset(scopeEl.value);
 })();
-</script>
-<footer>
-  <div style="text-align:center;padding:1.5rem 1rem 3rem;color:#667;">
-    <a href="/disclaimer" style="color:#0b6;text-decoration:none;">Disclaimer</a> ·
-    <a href="/terms" style="color:#0b6;text-decoration:none;">Terms</a> ·
-    <a href="/privacy" style="color:#0b6;text-decoration:none;">Privacy</a>
-  </div>
-</footer>
+    </script>
+
+    <footer>
+      <div style="text-align:center;padding:1.5rem 1rem 3rem;color:#667;">
+        <a href="/disclaimer" style="color:#0b6;text-decoration:none;">Disclaimer</a> ·
+        <a href="/terms" style="color:#0b6;text-decoration:none;">Terms</a> ·
+        <a href="/privacy" style="color:#0b6;text-decoration:none;">Privacy</a>
+      </div>
+    </footer>
 
   </body>
 </html>
