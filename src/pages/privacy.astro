@@ -1,38 +1,47 @@
 ---
-title: "Privacy Policy"
+import SiteLayout from "../layouts/SiteLayout.astro";
+const title = "Privacy Policy | Size My Generator";
+const desc  = "What we collect, how we use it, and your choices.";
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Privacy Policy | Size My Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
-  <body style="font-family: system-ui; margin: 2rem; line-height: 1.5;">
+
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/privacy">
+  <section class="page-hero">
     <h1>Privacy Policy</h1>
-    <p><em>Last updated: 2025-10-11</em></p>
+    <p class="lead"><em>Last updated: 2025-10-11</em></p>
+  </section>
 
-    <p>
-      We collect minimal information necessary to operate this website.
-      Anonymous analytics data (such as pages visited and time on page) may be collected
-      through services like Google Analytics to help us improve the site.
-    </p>
+  <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
+    <h2>Overview</h2>
+    <p>We collect only the information needed to operate this website and improve the calculator experience.</p>
 
-    <p>
-      If you contact us directly or submit a form, any personal information you provide
-      will be used only to respond to your request and will not be sold or shared.
-    </p>
+    <h2>Information we collect</h2>
+    <ul>
+      <li><strong>Usage & analytics:</strong> Anonymous data such as pages visited, device type, and time on page (via tools like Google Analytics).</li>
+      <li><strong>Voluntary submissions:</strong> If you email us or submit a form, we use the information only to respond to your request.</li>
+      <li><strong>Cookies:</strong> Third-party services (analytics/ads) may set their own cookies. You can disable cookies in your browser.</li>
+    </ul>
 
-    <p>
-      Third-party services such as Google Analytics or advertising networks may set their own
-      cookies. You can disable cookies in your browser if you prefer.
-    </p>
+    <h2>How we use information</h2>
+    <ul>
+      <li>Operate and maintain the site.</li>
+      <li>Understand aggregate usage to make improvements.</li>
+      <li>Respond to inquiries you send us.</li>
+    </ul>
 
-    <p>
-      For questions about this policy, please contact us through the information listed
-      on the website.
-    </p>
+    <h2>Sharing</h2>
+    <p>We do not sell personal information. Limited data may be processed by trusted third parties that help us run the site (e.g., analytics). They may only use it to provide their service to us.</p>
 
-    <p><a href="/">← Back to home</a></p>
-  </body>
-</html>
+    <h2>Your choices</h2>
+    <ul>
+      <li>Disable or clear cookies in your browser settings.</li>
+      <li>Use browser add-ons to block analytics if you prefer.</li>
+      <li>Contact us to ask questions about this policy.</li>
+    </ul>
 
+    <h2>Contact</h2>
+    <p>Email: <a class="link" href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a></p>
+    <p>PA HIC License # PA 073102</p>
+
+    <p><a class="link" href="/">← Back to home</a></p>
+  </main>
+</SiteLayout>

@@ -1,0 +1,56 @@
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="logo" href="/" aria-label="SizeMyGenerator home">
+      <img src="/favicon.png" alt="" />
+      <span>SizeMyGenerator</span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="Primary">
+      <a href="/">Calculator</a>
+      <div class="dropdown">
+        <button aria-haspopup="true" aria-expanded="false">Guides ▾</button>
+        <div class="menu" role="menu" aria-label="Guides">
+          <a role="menuitem" href="/guides/whole-house-vs-portable">Whole-house vs Portable</a>
+          <a role="menuitem" href="/guides/transfer-switch">Transfer Switches & Interlocks</a>
+          <a role="menuitem" href="/guides/surge-watts">Starting (Surge) Watts Explained</a>
+          <a role="menuitem" href="/guides/fuel-types">Fuel Types & Run Time</a>
+          <a role="menuitem" href="/guides/quiet-generators">Quiet Generators for RV/Camping</a>
+        </div>
+      </div>
+      <a href="/faqs">FAQs</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+
+    <a class="cta" href="/">Open Calculator</a>
+    <button class="hamburger" aria-label="Menu" aria-controls="mnav" aria-expanded="false">☰</button>
+  </div>
+
+  <nav id="mnav" class="nav-mobile" hidden aria-label="Mobile">
+    <a href="/">Calculator</a>
+    <details>
+      <summary>Guides</summary>
+      <a href="/guides/whole-house-vs-portable">Whole-house vs Portable</a>
+      <a href="/guides/transfer-switch">Transfer Switches & Interlocks</a>
+      <a href="/guides/surge-watts">Starting (Surge) Watts Explained</a>
+      <a href="/guides/fuel-types">Fuel Types & Run Time</a>
+      <a href="/guides/quiet-generators">Quiet Generators for RV/Camping</a>
+    </details>
+    <a href="/faqs">FAQs</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+  </nav>
+
+  <script>
+    // mobile menu toggle (runs once on load)
+    (function(){
+      const btn = document.querySelector('.hamburger');
+      const mnav = document.getElementById('mnav');
+      btn?.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        mnav.hidden = open;
+      });
+    })();
+  </script>
+</header>

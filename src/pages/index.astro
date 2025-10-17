@@ -1,72 +1,17 @@
 ---
+import SiteLayout from "../layouts/SiteLayout.astro";
 const title = "Size My Generator | Home Generator Sizing Calculator";
-const desc =
-  "Quickly find out what size generator you need to power essentials, most of your house, or your whole home (informational only).";
+const desc  = "Quickly find out what size generator you need to power essentials, most of your house, or your whole home (informational only).";
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
-    <meta name="description" content={desc} />
-    <link rel="canonical" href="https://sizemygenerator.com/" />
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/">
+  <section class="page-hero">
+    <h1>Size My Generator</h1>
+    <p class="lead">Enter a few details. We’ll estimate running &amp; startup load and round up to a safe recommendation.</p>
+  </section>
 
-    <!-- Icons -->
-    <link rel="icon" href="/favicon-32.png" sizes="32x32" />
-    <link rel="icon" href="/favicon-16.png" sizes="16x16" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-    <style>
-      :root { --card:#fff; --bg:#f6f8fb; --text:#222; --muted:#667; --brand:#0b6; }
-      * { box-sizing: border-box; }
-      body { font-family: system-ui, -apple-system, Helvetica, Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
-      header { padding: 2rem 1rem 0; max-width: 900px; margin: 0 auto; }
-      h1 { margin: 0 0 .5rem; font-size: clamp(1.6rem, 2.8vw, 2.2rem); }
-      p.lead { margin: 0 0 1.5rem; color: var(--muted); }
-
-      .box {
-        background: var(--card);
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 3px 14px rgba(0,0,0,.06);
-        max-width: 720px;
-        margin: 0 auto 1.5rem;
-      }
-      label { display:block; margin-top: 1rem; font-weight: 600; }
-      input, select {
-        width: 100%; padding: .6rem .7rem; margin-top: .35rem;
-        border: 1px solid #cfd6df; border-radius: 8px; font-size: 1rem; background:#fff;
-      }
-      .result {
-        margin-top: 1.25rem; padding: 1rem;
-        background:#f0f9ff; border:1px solid #b3e0ff; border-radius:10px; font-weight:600;
-      }
-      footer { text-align:center; padding: 1.5rem 1rem 3rem; color: var(--muted); }
-      footer a { color: var(--brand); text-decoration: none; }
-      footer a:hover { text-decoration: underline; }
-
-      /* Compact, mobile-first control row for surge + load policy */
-      .controls-row {
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        gap:.5rem .75rem;
-        margin-top:1rem;
-        align-items:center;
-      }
-      .controls-row .lbl { font-weight:600; margin:0; }
-      .controls-row .fld { width:100%; min-width:0; }
-      @media (max-width:560px){
-        .controls-row { grid-template-columns: 1fr; }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>Size My Generator</h1>
-      <p class="lead">Enter a few details. We’ll estimate running &amp; startup load and round up to a safe recommendation.</p>
-    </header>
-
+  <!-- ========= Calculator ========= -->
+  <main>
     <div class="box" id="gen-calculator">
       <label for="scope"><strong>What do you want to power?</strong></label>
       <select id="scope">
@@ -79,17 +24,26 @@ const desc =
       <div id="appliance-header" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
         <div id="appliance-summary" style="font-size:.95rem;color:#555">
           ✅ Preset applied. <span id="summary-count">0</span> items selected.
-          <button id="toggle-appliances" type="button" style="margin-left:.5rem;border:0;background:transparent;color:#0b6;font-weight:600;cursor:pointer;">Show details ▾</button>
+          <button id="toggle-appliances"
+                  type="button"
+                  aria-controls="appliance-panel"
+                  aria-expanded="false"
+                  style="margin-left:.5rem;border:0;background:transparent;color:#0b6;font-weight:600;cursor:pointer;">
+            Show details ▾
+          </button>
         </div>
       </div>
-      <div id="appliance-panel" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
+
+      <div id="appliance-panel"
+           data-open="0"
+           style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
         <p style="margin:.25rem 0 .5rem;color:#666">Toggle what you’ll run at the same time:</p>
         <div id="appliance-list" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
       </div>
 
       <hr style="margin:1rem 0">
 
-      <!-- AC module -->
+      <!-- AC module (add rows dynamically) -->
       <div id="ac-section">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
           <strong>Air conditioning (optional)</strong>
@@ -99,7 +53,7 @@ const desc =
         <div id="ac-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"></div>
       </div>
 
-      <!-- Surge + Load usage (dropdown) -->
+      <!-- Surge + load usage -->
       <div class="controls-row">
         <label for="surgeWatts" class="lbl">Custom temporary surge (W)</label>
         <input id="surgeWatts" type="number" min="0" step="100" value="0" class="fld">
@@ -123,8 +77,39 @@ const desc =
         Heads up: This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
       </p>
     </div>
+  </main>
 
-    <script>
+  <!-- Page-scoped styles to match your theme -->
+  <style>
+    .box {
+      background: var(--card, #fff);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 3px 14px rgba(0,0,0,.06);
+      max-width: 720px;
+      margin: 0 auto 1.5rem;
+    }
+    label { display:block; margin-top: 1rem; font-weight: 600; }
+    input, select {
+      width: 100%; padding: .6rem .7rem; margin-top: .35rem;
+      border: 1px solid #cfd6df; border-radius: 8px; font-size: 1rem; background:#fff;
+    }
+    .controls-row {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:.5rem .75rem;
+      margin-top:1rem;
+      align-items:center;
+    }
+    .controls-row .lbl { font-weight:600; margin:0; }
+    .controls-row .fld { width:100%; min-width:0; }
+    @media (max-width:560px){
+      .controls-row { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <!-- ========= Calculator Logic ========= -->
+  <script>
 (() => {
   // ---------- APPLIANCES (non-AC) ----------
   const APPLIANCES = [
@@ -170,7 +155,7 @@ const desc =
   const startWEl  = el('startW');
   const recEl     = el('rec');
   const surgeWatts= el('surgeWatts');
-  const loadPolicy= el('loadPolicy'); // 'conservative' | 'managed'
+  const loadPolicy= el('loadPolicy');
 
   const assumptionNote = el('assumption-note');
   const acRowsEl   = el('ac-rows');
@@ -180,7 +165,7 @@ const desc =
   const toggleBtn  = el('toggle-appliances');
   const summaryCount = el('summary-count');
 
-  // Build appliance checkboxes
+  // Build appliance checkboxes (fixed list; checks vary by scope)
   APPLIANCES.forEach(a => {
     const wrap = document.createElement('label');
     wrap.style.display = 'flex';
@@ -201,7 +186,7 @@ const desc =
     listEl.appendChild(wrap);
   });
 
-  // Responsive grid for appliance list
+  // Responsive grid
   const media = window.matchMedia('(max-width: 520px)');
   function applyGrid() {
     listEl.style.gridTemplateColumns = media.matches ? '1fr' : '1fr 1fr';
@@ -213,13 +198,10 @@ const desc =
   let open = false;
   function setPanel(openNow) {
     open = openNow;
-    if (open) {
-      panel.style.maxHeight = panel.scrollHeight + 'px';
-      toggleBtn.textContent = 'Hide details ▴';
-    } else {
-      panel.style.maxHeight = '0';
-      toggleBtn.textContent = 'Show details ▾';
-    }
+    panel.setAttribute('data-open', open ? '1' : '0');
+    toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    panel.style.maxHeight = open ? panel.scrollHeight + 'px' : '0';
+    toggleBtn.textContent = open ? 'Hide details ▴' : 'Show details ▾';
   }
   toggleBtn.addEventListener('click', () => setPanel(!open));
 
@@ -248,7 +230,8 @@ const desc =
     typeWrap.style.gap = '.5rem';
 
     const typeSel = document.createElement('select');
-    [{v:'standard', n:'Standard (single-stage)'},{v:'inverter', n:'High-efficiency (inverter)'}]
+    [{v:'standard', n:'Standard (single-stage)'},
+     {v:'inverter', n:'High-efficiency (inverter)'}]
       .forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.n; typeSel.appendChild(opt); });
     typeSel.value = preset.type;
 
@@ -279,9 +262,7 @@ const desc =
     softCb.addEventListener('change', recalcBound);
     delBtn.addEventListener('click', ()=>{ row.remove(); recalc(); });
   }
-
-  addAcBtn.addEventListener('click', () => { addAcRow(); setPanel(open); recalc(); });
-
+  
   function getAcLoads() {
     const rows = Array.from(acRowsEl.querySelectorAll('.ac-row'));
     return rows.map(row => {
@@ -295,35 +276,35 @@ const desc =
 
       let start = Math.round(run * START_MULT[type]);
       if (type === 'standard' && soft) start = Math.round(start * SOFT_START_FACTOR);
-      start = Math.min(start, 10000); // cap unrealistic spikes
+      start = Math.min(start, 10000);
 
       return { run, start };
     });
   }
 
   function updateSummary() {
-    const count = APPLIANCES.filter(a => el('cb_'+a.id).checked).length;
+    const count = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked).length;
     summaryCount.textContent = count;
   }
 
   // Presets
   function applyPreset(scope) {
     // Clear checks
-    APPLIANCES.forEach(a => el('cb_' + a.id).checked = false);
+    APPLIANCES.forEach(a => document.getElementById('cb_' + a.id).checked = false);
 
-    // Defaults by scope
+    // Defaults by scope (checks vary; list remains constant)
     APPLIANCES.filter(a => a.defaultScopes.includes(scope))
-              .forEach(a => el('cb_' + a.id).checked = true);
+              .forEach(a => document.getElementById('cb_' + a.id).checked = true);
 
     // Scope nudges
     if (scope === 'essentials') {
-      ['spaceHeat','waterHeater','elecRange','elecDryer'].forEach(id=>{ const c = el('cb_'+id); if (c) c.checked = false; });
+      ['spaceHeat','waterHeater','elecRange','elecDryer'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; });
     }
     if (scope === 'most') {
-      ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = el('cb_'+id); if (c) c.checked = false; });
+      ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; });
     }
 
-    // Seed AC
+    // Seed AC rows
     acRowsEl.innerHTML = '';
     if (scope === 'most')  addAcRow({ tons: 2.5, type: 'standard', soft: false });
     if (scope === 'whole') addAcRow({ tons: 4.0, type: 'standard', soft: false });
@@ -336,7 +317,7 @@ const desc =
   // Core calc
   function recalc() {
     // Non-AC running
-    const checked = APPLIANCES.filter(a => el('cb_'+a.id).checked);
+    const checked = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked);
     const runSumNonAC = checked.reduce((s,a)=> s + a.run, 0);
 
     // AC running
@@ -351,7 +332,7 @@ const desc =
 
     const runSum = adjustedRunNonAC + runSumAC;
 
-    // Surge: largest single start + running of everything else
+    // Surge: largest starter + running of everything else
     const starts = [
       ...checked.map(a => a.start||0),
       ...acLoads.map(a => a.start||0)
@@ -377,9 +358,9 @@ const desc =
     const tier = TIERS.find(t => t.size >= neededContinuous)
             || { size: Math.ceil(neededContinuous/1000)*1000, label: `~${Math.ceil(neededContinuous/1000)*1000} W (custom)` };
 
-    runWEl.textContent = runSum.toLocaleString();
+    runWEl.textContent   = runSum.toLocaleString();
     startWEl.textContent = surgeNeed.toLocaleString();
-    recEl.textContent = `${tier.label}`;
+    recEl.textContent    = `${tier.label}`;
 
     if (assumptionNote) {
       assumptionNote.textContent = (policy === 'managed')
@@ -387,31 +368,21 @@ const desc =
         : 'Assumes all selected items could run at once.';
     }
 
-    updateSummary();
-
-    // Keep panel height correct if open
-    if (open) panel.style.maxHeight = panel.scrollHeight + 'px';
+    // Maintain panel height if open
+    if (panel && panel.getAttribute('data-open') === '1') {
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+    }
   }
 
   // Wire-up
   scopeEl.addEventListener('change', e => applyPreset(e.target.value));
   listEl.addEventListener('change', recalc);
-  if (surgeWatts) surgeWatts.addEventListener('input', recalc);
-  if (loadPolicy) loadPolicy.addEventListener('change', recalc);
-  addAcBtn.addEventListener('click', () => { addAcRow(); setPanel(open); recalc(); });
+  surgeWatts?.addEventListener('input', recalc);
+  loadPolicy?.addEventListener('change', recalc);
+  addAcBtn.addEventListener('click', () => { addAcRow(); recalc(); });
 
   // Initial
   applyPreset(scopeEl.value);
 })();
-    </script>
-
-    <footer>
-      <div style="text-align:center;padding:1.5rem 1rem 3rem;color:#667;">
-        <a href="/disclaimer" style="color:#0b6;text-decoration:none;">Disclaimer</a> ·
-        <a href="/terms" style="color:#0b6;text-decoration:none;">Terms</a> ·
-        <a href="/privacy" style="color:#0b6;text-decoration:none;">Privacy</a>
-      </div>
-    </footer>
-
-  </body>
-</html>
+  </script>
+</SiteLayout>

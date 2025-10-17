@@ -1,0 +1,86 @@
+---
+const {
+  title = "Size My Generator",
+  desc = "Home generator sizing calculator (informational only).",
+  canonical = "https://sizemygenerator.com/",
+} = Astro.props;
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Icons -->
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+    <link rel="icon" href="/favicon-16.png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Global styles moved here so all pages share them -->
+    <style is:global>
+      :root { --card:#fff; --bg:#f6f8fb; --text:#222; --muted:#667; --brand:#0b6; }
+      * { box-sizing:border-box; }
+      body { font-family: system-ui, -apple-system, Helvetica, Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
+      [hidden]{display:none !important;}
+      a { color: inherit; }
+      .link { color: var(--brand); text-decoration: none; }
+      .link:hover { text-decoration: underline; }
+
+      /* Header/Nav */
+      .site-header { position:sticky; top:0; z-index:50; backdrop-filter:saturate(180%) blur(8px); background:#fff8; border-bottom:1px solid #eee; }
+      .nav-wrap { display:flex; align-items:center; gap:1rem; padding:.75rem 1rem; max-width:1100px; margin:0 auto; }
+      .logo { display:flex; align-items:center; gap:.55rem; text-decoration:none; font-weight:800; letter-spacing:.2px; color:#0b6; }
+      .logo img{ width:28px; height:28px; display:block; }
+      .nav-desktop { display:flex; gap:1rem; margin-left:auto; align-items:center; }
+      .nav-desktop a { text-decoration:none; color:#222; padding:.3rem .4rem; border-radius:.4rem; }
+      .nav-desktop a:hover { background:#f3f5f7; }
+      .dropdown { position:relative; }
+      .dropdown > button { background:none; border:0; padding:.3rem .4rem; border-radius:.4rem; cursor:pointer; }
+      .dropdown > button:hover { background:#f3f5f7; }
+      .dropdown .menu { position:absolute; top:calc(100% + 6px); left:0; background:#fff; border:1px solid #eee; border-radius:.6rem; padding:.5rem; display:none; min-width:260px; box-shadow:0 8px 22px rgba(0,0,0,.08); }
+      .dropdown .menu a { display:block; padding:.45rem .6rem; border-radius:.4rem; text-decoration:none; color:#222; }
+      .dropdown .menu a:hover { background:#f6f8fb; }
+      .dropdown:focus-within .menu, .dropdown:hover .menu { display:block; }
+      .cta { margin-left:.5rem; padding:.5rem .9rem; border-radius:.6rem; border:1px solid #cfe5da; text-decoration:none; font-weight:700; color:#0b6; background:#e9fff6; }
+      .cta:hover { background:#ddfff0; }
+      .hamburger { display:none; margin-left:auto; font-size:1.25rem; background:none; border:none; padding:.35rem .5rem; border-radius:.4rem; }
+      .hamburger:hover { background:#f3f5f7; }
+      .nav-mobile{display:none;}
+      @media (max-width: 880px) {
+        .nav-desktop, .cta { display:none; }
+        .hamburger { display:block; }
+        .nav-mobile{display:flex; flex-direction:column; gap:.5rem; padding:.75rem 1rem 1rem; border-top:1px solid #eee; background:#fff;}
+        .nav-mobile a { text-decoration:none; color:#222; padding:.4rem 0; }
+      }
+
+      /* Page hero (optional shared style) */
+      .page-hero { padding: 2rem 1rem 0; max-width: 900px; margin: 0 auto; }
+      .page-hero h1 { margin: 0 0 .5rem; font-size: clamp(1.6rem, 2.8vw, 2.2rem); }
+      .lead { margin: 0 0 1.5rem; color: var(--muted); }
+
+      /* Footer */
+      footer { background:#fff; border-top:1px solid #eee; margin-top:2rem; }
+      .footer-wrap { max-width:1100px; margin:0 auto; padding:1.25rem 1rem 2.5rem; color:var(--muted); }
+      .footer-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:1rem; }
+      .footer-grid h4 { margin:.25rem 0 .4rem; font-size:.95rem; color:#333; }
+      .footer-grid a { color:var(--brand); text-decoration:none; display:block; padding:.2rem 0; }
+      .footer-grid a:hover { text-decoration:underline; }
+      .foot-meta { margin-top:1rem; font-size:.9rem; color:#576; display:flex; flex-wrap:wrap; gap:.75rem 1.25rem; align-items:center; }
+      @media (max-width: 780px){ .footer-grid { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 520px){ .footer-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <Header />
+
+    <!-- Page content goes here -->
+    <slot />
+
+    <Footer />
+  </body>
+</html>

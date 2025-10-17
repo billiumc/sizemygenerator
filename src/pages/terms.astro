@@ -1,31 +1,47 @@
 ---
-title: "Terms of Use"
+import SiteLayout from "../layouts/SiteLayout.astro";
+const title = "Terms of Use | Size My Generator";
+const desc  = "The rules for using Size My Generator and our calculators.";
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Terms of Use | Size My Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
-  <body style="font-family: system-ui; margin: 2rem; line-height: 1.5;">
+
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/terms">
+  <section class="page-hero">
     <h1>Terms of Use</h1>
-    <p><em>Last updated: 2025-10-11</em></p>
+    <p class="lead"><em>Last updated: 2025-10-11</em></p>
+  </section>
 
-    <p>
-      By using this site, you agree to the following terms:
-    </p>
+  <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
+    <h2>1) Acceptance of terms</h2>
+    <p>By using this site, you agree to these Terms. If you do not agree, please do not use the site.</p>
 
-    <ol>
-      <li>The calculators and tools are provided “as is,” without warranties of any kind.</li>
-      <li>You are responsible for verifying results with a qualified professional before making
-          purchasing or installation decisions.</li>
-      <li>We may change or remove content at any time without notice.</li>
-      <li>These terms are governed by the laws of Pennsylvania, USA.</li>
-    </ol>
+    <h2>2) Informational use only (no professional advice)</h2>
+    <p>This website and its calculators are provided for general informational purposes only and are not a substitute for advice from a licensed electrician or other qualified professional.</p>
 
-    <p>If you do not agree with these terms, please do not use the site.</p>
+    <h2>3) Your responsibilities</h2>
+    <ul>
+      <li>Verify results with a qualified professional before buying or installing any equipment.</li>
+      <li>Use the site in compliance with all applicable laws and regulations.</li>
+    </ul>
 
-    <p><a href="/">← Back to home</a></p>
-  </body>
-</html>
+    <h2>4) Third-party links &amp; affiliates</h2>
+    <p>We may link to third-party sites or products. We do not control or endorse third-party content and are not responsible for it. We may receive a commission if you purchase through some links; this does not affect our recommendations.</p>
 
+    <h2>5) Warranty disclaimer</h2>
+    <p>The site is provided “as is” and “as available,” without warranties of any kind, express or implied, including fitness for a particular purpose and non-infringement.</p>
+
+    <h2>6) Limitation of liability</h2>
+    <p>To the fullest extent permitted by law, Size My Generator and its owners will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or data, arising from your use of the site.</p>
+
+    <h2>7) Changes to the site or terms</h2>
+    <p>We may update content or these Terms at any time. Changes take effect when posted. Your continued use after changes means you accept the updated Terms.</p>
+
+    <h2>8) Governing law</h2>
+    <p>These Terms are governed by the laws of the Commonwealth of Pennsylvania, USA, without regard to its conflict-of-laws rules.</p>
+
+    <h2>9) Contact</h2>
+    <p>Email: <a class="link" href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a></p>
+    <p>PA HIC License # PA 073102</p>
+
+    <p><a class="link" href="/">← Back to home</a></p>
+  </main>
+</SiteLayout>

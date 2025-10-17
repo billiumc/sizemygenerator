@@ -1,30 +1,35 @@
 ---
-title: "Disclaimer"
+import SiteLayout from "../layouts/SiteLayout.astro";
+const title = "Disclaimer | Size My Generator";
+const desc  = "Important notices about calculator accuracy and professional advice.";
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Disclaimer | Size My Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
-  <body style="font-family: system-ui; margin: 2rem; line-height: 1.5;">
-    <h1>Disclaimer</h1>
-    <p><em>Last updated: 2025-10-11</em></p>
 
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/disclaimer">
+  <section class="page-hero">
+    <h1>Disclaimer</h1>
+    <p class="lead"><em>Last updated: 2025-10-11</em></p>
+  </section>
+
+  <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
+    <h2>Informational use only</h2>
     <p>
       The information and tools on this site are for general informational purposes only.
-      Results from any calculator are approximate and not a substitute for professional advice.
-      We make no guarantees of accuracy or suitability.
+      Results from any calculator are approximate and not a substitute for professional advice. 
+      Always consult a licensed electrician before purchasing or installing any generator or electrical equipment.
     </p>
 
+    <h2>No warranties</h2>
     <p>
-      By using this site, you agree that sizemygenerator.com and its contributors are not
-      liable for any damages or losses arising from reliance on this information.
-      Always consult a licensed electrician before purchasing or installing any generator
-      or electrical equipment.
+      The site is provided “as is” and “as available,” without warranties of any kind, express or implied,
+      including accuracy, fitness for a particular purpose, or non-infringement.
     </p>
 
-    <p><a href="/">← Back to home</a></p>
-  </body>
-</html>
+    <h2>Limitation of liability</h2>
+    <p>
+      To the fullest extent permitted by law, sizemygenerator.com and its contributors will not be liable for
+      any losses or damages arising from reliance on the information or tools provided here.
+    </p>
 
+    <p><a class="link" href="/">← Back to home</a></p>
+  </main>
+</SiteLayout>

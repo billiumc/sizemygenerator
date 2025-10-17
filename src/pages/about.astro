@@ -1,0 +1,121 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+const title = "About | Size My Generator";
+const desc  = "Who we are and how this calculator works.";
+---
+
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/about">
+  <section class="page-hero">
+    <h1>About Size My Generator</h1>
+    <p class="lead">A simple, practical tool from a licensed HVAC pro to help you think through backup power—without the fluff.</p>
+  </section>
+
+<main style="max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6;">
+  <header style="margin-bottom: 1.5rem;">
+    <h1 style="margin: 0 0 .5rem 0;">About SizeMyGenerator.com</h1>
+    <p style="color:#555;margin:0;">
+      Practical, no-nonsense generator sizing guidance—free to use and updated as assumptions improve.
+    </p>
+  </header>
+
+  {/*
+  OPTIONAL HEADSHOT / PHOTO BLOCK
+  Replace src with your file (e.g., /images/bill-headshot.jpg). Keep alt descriptive.
+  If you don’t want a photo yet, leave this commented out.
+  */}
+  {/*
+  <figure style="display:flex; gap:1rem; align-items:center; margin: 1.25rem 0;">
+    <img src="/images/bill-headshot.jpg" alt="Bill C., creator of SizeMyGenerator.com"
+         width="120" height="120"
+         style="border-radius: 999px; width:120px; height:120px; object-fit: cover; border:1px solid #eee;" />
+    <figcaption style="color:#555;">
+      Hi, I’m Bill—an HVAC professional who built this tool to make right-sizing simple and transparent.
+    </figcaption>
+  </figure>
+  */}
+
+  <section style="margin: 1.5rem 0;">
+    <h2 style="margin-bottom:.5rem;">Who’s behind this</h2>
+    <p>
+      I’m an HVAC professional with hands-on experience sizing, installing, and servicing residential systems.
+      I built this calculator so families who don’t speak kilowatts all day can quickly get to a sensible starting point—before talking to a pro.
+    </p>
+  </section>
+
+  <section style="margin: 1.5rem 0;">
+    <h2 style="margin-bottom:.5rem;">How the calculator works</h2>
+    <ul style="padding-left:1.25rem; margin: .5rem 0;">
+      <li>Uses typical <strong>running watts</strong> for common home loads and, where relevant, their <strong>starting (inrush) watts</strong>.</li>
+      <li><strong>Air conditioning:</strong> run ≈ <code>1100&nbsp;W/ton</code> (standard) or <code>750&nbsp;W/ton</code> (inverter);
+          startup ≈ <code>4.0×</code> (standard) or <code>1.5×</code> (inverter).
+          If a soft-starter is toggled for a standard unit, we reduce surge by ~40%.</li>
+      <li><strong>Managed loads:</strong> checking “I’ll manage loads” trims <em>non-AC running</em> by 20% to reflect staggered usage (AC running is unchanged).</li>
+      <li><strong>Surge model:</strong> we take the <em>largest single start</em> and add it to the <em>running watts of everything else</em>, compare that to total running, and size to the higher number.</li>
+      <li><strong>Custom extra surge:</strong> you can add a one-off temporary surge (defaults to 0&nbsp;W) for unique appliances.</li>
+      <li><strong>Recommendation rule:</strong> we recommend a generator whose continuous rating keeps the calculated surge at ~<strong>80%</strong> of nameplate
+          (≈<strong>125%</strong> headroom), then map to practical size tiers.</li>
+    </ul>
+    <p style="color:#666; margin-top:.5rem;">
+      Note: AC surge per condenser is safety-capped in the model. Assumptions are periodically reviewed and adjusted as equipment standards evolve.
+    </p>
+  </section>
+
+  <section style="margin: 1.5rem 0;">
+    <h2 style="margin-bottom:.5rem;">What this site is (and isn’t)</h2>
+    <p>
+      This is <strong>planning guidance</strong>, not a site survey. Homes vary, nameplates can surprise, and inrush currents can be quirky.
+      Before purchasing or installing a generator, <strong>consult a licensed electrician/contractor</strong> to confirm sizing, transfer hardware, and code compliance.
+    </p>
+  </section>
+
+  <section style="margin: 1.5rem 0;">
+    <h2 style="margin-bottom:.5rem;">Monetization &amp; independence</h2>
+    <p>
+      SizeMyGenerator.com is free to use. We fund the site with display ads and <strong>affiliate links</strong>.
+      If you buy through a link, we may earn a commission at no extra cost to you. Our recommendations are driven by practical assumptions and field experience—never pay-to-play.
+    </p>
+    <p style="margin:.5rem 0 0 0;">
+      See our <a href="/affiliate-disclosure">Affiliate Disclosure</a> and <a href="/privacy">Privacy Policy</a> for details.
+    </p>
+  </section>
+
+  <section style="margin: 1.5rem 0;">
+    <h2 style="margin-bottom:.5rem;">Ownership &amp; compliance</h2>
+    <p style="margin:0;">
+      SizeMyGenerator.com is owned by <strong>Atacama Cooling &amp; Heating, LLC</strong> (Pennsylvania).
+      <br />
+      <strong>PA HIC#: PA 073102</strong>
+      <br />
+      Contact: <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>
+    </p>
+  </section>
+
+  <section style="margin: 1.5rem 0;">
+    <h2 style="margin-bottom:.5rem;">Corrections &amp; updates</h2>
+    <p>
+      We periodically review load tables and assumptions. If you spot anything off—or have a suggestion—please email us.
+    </p>
+  </section>
+</main>
+</SiteLayout>
+<!-- JSON-LD: neutral editorial brand with transparent ownership -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "SizeMyGenerator",
+  "url": "https://sizemygenerator.com",
+  "description": "A free home generator sizing calculator and guides.",
+  "email": "bill@atacamahvac.com",
+  "owns": {
+    "@type": "Organization",
+    "name": "Atacama Cooling & Heating, LLC",
+    "identifier": "PA HIC#: PA 073102"
+  },
+  "contactPoint": [{
+    "@type": "ContactPoint",
+    "contactType": "Customer support",
+    "email": "bill@atacamahvac.com"
+  }]
+}
+</script>
