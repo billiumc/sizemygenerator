@@ -1,121 +1,75 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 const title = "About | Size My Generator";
-const desc  = "Who we are and how this calculator works.";
+const desc  = "Methodology, scope, and assumptions behind the residential generator sizing calculator.";
 ---
 
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/about">
-  <section class="page-hero">
+  <main class="prose">
     <h1>About Size My Generator</h1>
-    <p class="lead">A simple, practical tool from a licensed HVAC pro to help you think through backup power—without the fluff.</p>
-  </section>
+    <p>A simple, practical tool from a licensed HVAC pro to help you think through backup power—without the fluff.</p>
 
-<main style="max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6;">
-  <header style="margin-bottom: 1.5rem;">
-    <h1 style="margin: 0 0 .5rem 0;">About SizeMyGenerator.com</h1>
-    <p style="color:#555;margin:0;">
-      Practical, no-nonsense generator sizing guidance—free to use and updated as assumptions improve.
-    </p>
-  </header>
+    <h2 style="margin-bottom:.25rem;">About SizeMyGenerator.com</h2>
+    <p>Practical, no-nonsense generator sizing guidance—free to use and updated as assumptions improve.</p>
 
-  {/*
-  OPTIONAL HEADSHOT / PHOTO BLOCK
-  Replace src with your file (e.g., /images/bill-headshot.jpg). Keep alt descriptive.
-  If you don’t want a photo yet, leave this commented out.
-  */}
-  {/*
-  <figure style="display:flex; gap:1rem; align-items:center; margin: 1.25rem 0;">
-    <img src="/images/bill-headshot.jpg" alt="Bill C., creator of SizeMyGenerator.com"
-         width="120" height="120"
-         style="border-radius: 999px; width:120px; height:120px; object-fit: cover; border:1px solid #eee;" />
-    <figcaption style="color:#555;">
-      Hi, I’m Bill—an HVAC professional who built this tool to make right-sizing simple and transparent.
-    </figcaption>
-  </figure>
-  */}
+    <h2 style="margin-bottom:.25rem;">Who’s behind this</h2>
+    <p>I’m an HVAC professional with hands-on experience sizing, installing, and servicing residential systems. I built this calculator so families who don’t speak kilowatts all day can quickly get to a sensible starting point—before talking to a pro.</p>
 
-  <section style="margin: 1.5rem 0;">
-    <h2 style="margin-bottom:.5rem;">Who’s behind this</h2>
+    
+    <h1>About this calculator</h1>
     <p>
-      I’m an HVAC professional with hands-on experience sizing, installing, and servicing residential systems.
-      I built this calculator so families who don’t speak kilowatts all day can quickly get to a sensible starting point—before talking to a pro.
+      This site helps homeowners ballpark a generator size using a simplified interpretation of the
+      National Electrical Code (NEC) dwelling load method, tailored for <strong>residential optional standby systems</strong>.
     </p>
-  </section>
 
-  <section style="margin: 1.5rem 0;">
+    <section style="margin: 1.5rem 0;">
     <h2 style="margin-bottom:.5rem;">How the calculator works</h2>
     <ul style="padding-left:1.25rem; margin: .5rem 0;">
-      <li>Uses typical <strong>running watts</strong> for common home loads and, where relevant, their <strong>starting (inrush) watts</strong>.</li>
-      <li><strong>Air conditioning:</strong> run ≈ <code>1100&nbsp;W/ton</code> (standard) or <code>750&nbsp;W/ton</code> (inverter);
-          startup ≈ <code>4.0×</code> (standard) or <code>1.5×</code> (inverter).
-          If a soft-starter is toggled for a standard unit, we reduce surge by ~40%.</li>
-      <li><strong>Managed loads:</strong> checking “I’ll manage loads” trims <em>non-AC running</em> by 20% to reflect staggered usage (AC running is unchanged).</li>
-      <li><strong>Surge model:</strong> we take the <em>largest single start</em> and add it to the <em>running watts of everything else</em>, compare that to total running, and size to the higher number.</li>
-      <li><strong>Custom extra surge:</strong> you can add a one-off temporary surge (defaults to 0&nbsp;W) for unique appliances.</li>
-      <li><strong>Recommendation rule:</strong> we recommend a generator whose continuous rating keeps the calculated surge at ~<strong>80%</strong> of nameplate
-          (≈<strong>125%</strong> headroom), then map to practical size tiers.</li>
+      <li><strong>Square‑footage general load:</strong> <code>3&nbsp;VA/ft²</code> based on the area you enter (NEC&nbsp;2023 approach includes garage &amp; basement).</li>
+      <li><strong>Required small‑appliance &amp; laundry circuits:</strong> <code>1,500&nbsp;VA</code> each × quantity.</li>
+      <li><strong>Fixed appliances:</strong> user‑selected nameplate running watts at <strong>100%</strong> (well, sump, dishwasher, range, etc.).</li>
+      <li><strong>Demand factor:</strong> apply <strong>first 10&nbsp;kVA at 100%</strong>, then <strong>the remainder at 40%</strong> to the non‑A/C portion.</li>
+      <li><strong>Seasonal maximum (heating vs cooling):</strong> add <strong>100% of the larger</strong> of A/C or heating. For heat pumps with electric supplemental heat we add the A/C run plus <strong>65%</strong> of supplemental kW.</li>
+      <li><strong>EV charging (Level 2):</strong> added at <strong>100%</strong> based on selected amperage (32/40/48/60/80A @240V) or a custom kW.</li>
+      <li><strong>Headroom buffer:</strong> default <strong>20%</strong>. We divide by <code>(1 − buffer)</code> and round up to the next common generator size (10/14/18/22/24/26&nbsp;kW air‑cooled).</li>
     </ul>
     <p style="color:#666; margin-top:.5rem;">
-      Note: AC surge per condenser is safety-capped in the model. Assumptions are periodically reviewed and adjusted as equipment standards evolve.
+      Assumptions reflect typical residential equipment and are updated periodically. Always verify against nameplates and local code amendments.
     </p>
   </section>
 
-  <section style="margin: 1.5rem 0;">
+    <section style="margin: 1.5rem 0;">
     <h2 style="margin-bottom:.5rem;">What this site is (and isn’t)</h2>
     <p>
-      This is <strong>planning guidance</strong>, not a site survey. Homes vary, nameplates can surprise, and inrush currents can be quirky.
-      Before purchasing or installing a generator, <strong>consult a licensed electrician/contractor</strong> to confirm sizing, transfer hardware, and code compliance.
+      This tool is oriented to <strong>residential optional standby systems</strong> (NEC Article&nbsp;702). It is <em>not</em> intended for
+      <strong>emergency systems</strong> (Article&nbsp;700), <strong>legally required standby</strong> (Article&nbsp;701), or
+      <strong>critical operations power systems</strong> (Article&nbsp;708), which have different design, reliability, and code requirements.
     </p>
-  </section>
-
-  <section style="margin: 1.5rem 0;">
-    <h2 style="margin-bottom:.5rem;">Monetization &amp; independence</h2>
     <p>
-      SizeMyGenerator.com is free to use. We fund the site with display ads and <strong>affiliate links</strong>.
-      If you buy through a link, we may earn a commission at no extra cost to you. Our recommendations are driven by practical assumptions and field experience—never pay-to-play.
-    </p>
-    <p style="margin:.5rem 0 0 0;">
-      See our <a href="/affiliate-disclosure">Affiliate Disclosure</a> and <a href="/privacy">Privacy Policy</a> for details.
+      This is <strong>planning guidance</strong>, not a site survey. Homes vary, nameplates can surprise, and local AHJs may amend the NEC.
+      Before purchasing or installing a generator, <strong>consult a licensed electrician/contractor</strong> and your utility to confirm sizing,
+      transfer equipment, interconnection rules, and code compliance.
     </p>
   </section>
+    <section style="margin: 2rem 0; border-top:1px solid #e8edf3; padding-top:1rem;">
+    <h2 style="margin-bottom:.25rem;">Monetization &amp; independence</h2>
+    <p>SizeMyGenerator.com is free to use. We fund the site with display ads and affiliate links. If you buy through a link, we may earn a commission at no extra cost to you. Our recommendations are driven by practical assumptions and field experience—never pay-to-play.</p>
+    <p>See our <a href="/affiliate-disclosure">Affiliate Disclosure</a> and <a href="/privacy">Privacy Policy</a> for details.</p>
 
-  <section style="margin: 1.5rem 0;">
-    <h2 style="margin-bottom:.5rem;">Ownership &amp; compliance</h2>
-    <p style="margin:0;">
-      SizeMyGenerator.com is owned by <strong>Atacama Cooling &amp; Heating, LLC</strong> (Pennsylvania).
-      <br />
-      <strong>PA HIC#: PA 073102</strong>
-      <br />
-      Contact: <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>
-    </p>
-  </section>
+    <h2 style="margin:.75rem 0 .25rem;">Ownership &amp; compliance</h2>
+    <p>SizeMyGenerator.com is owned by Atacama Cooling &amp; Heating, LLC (Pennsylvania).<br>
+    PA HIC#: PA 073102<br>
+    Contact: <a href=\"mailto:bill@atacamahvac.com\">bill@atacamahvac.com</a></p>
 
-  <section style="margin: 1.5rem 0;">
-    <h2 style="margin-bottom:.5rem;">Corrections &amp; updates</h2>
-    <p>
-      We periodically review load tables and assumptions. If you spot anything off—or have a suggestion—please email us.
-    </p>
+    <h2 style="margin:.75rem 0 .25rem;">Corrections &amp; updates</h2>
+    <p>We periodically review load tables and assumptions. If you spot anything off—or have a suggestion—please <a href="mailto:bill@atacamahvac.com">email us</a>.</p>
   </section>
 </main>
+
+  <style>
+    .prose { max-width: 720px; margin: 0 auto; }
+    .prose h1 { margin-bottom: .5rem; }
+    .prose h2 { margin-top: 1.25rem; }
+    .prose ul li { margin:.25rem 0; }
+  </style>
 </SiteLayout>
-<!-- JSON-LD: neutral editorial brand with transparent ownership -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "SizeMyGenerator",
-  "url": "https://sizemygenerator.com",
-  "description": "A free home generator sizing calculator and guides.",
-  "email": "bill@atacamahvac.com",
-  "owns": {
-    "@type": "Organization",
-    "name": "Atacama Cooling & Heating, LLC",
-    "identifier": "PA HIC#: PA 073102"
-  },
-  "contactPoint": [{
-    "@type": "ContactPoint",
-    "contactType": "Customer support",
-    "email": "bill@atacamahvac.com"
-  }]
-}
-</script>

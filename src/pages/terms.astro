@@ -1,30 +1,34 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 const title = "Terms of Use | Size My Generator";
-const desc  = "The rules for using Size My Generator and our calculators.";
+const desc  = "Terms of Use for Size My Generator (NEC Article 702 scope, responsibilities, affiliates, warranty).";
 ---
 
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/terms">
-  <section class="page-hero">
+  <main class="prose">
     <h1>Terms of Use</h1>
-    <p class="lead"><em>Last updated: 2025-10-11</em></p>
-  </section>
+    <p><strong>Last updated:</strong> 2025-10-17</p>
 
-  <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
     <h2>1) Acceptance of terms</h2>
     <p>By using this site, you agree to these Terms. If you do not agree, please do not use the site.</p>
 
     <h2>2) Informational use only (no professional advice)</h2>
     <p>This website and its calculators are provided for general informational purposes only and are not a substitute for advice from a licensed electrician or other qualified professional.</p>
 
+    <h3>2a) Scope</h3>
+    <p>This site and its calculator are intended for <strong>residential optional standby systems</strong> under NEC Article&nbsp;702. They are <strong>not</strong> designed to size <strong>emergency systems</strong> (Article&nbsp;700), <strong>legally required standby</strong> (Article&nbsp;701), or <strong>critical operations power</strong> (Article&nbsp;708).</p>
+
     <h2>3) Your responsibilities</h2>
     <ul>
       <li>Verify results with a qualified professional before buying or installing any equipment.</li>
       <li>Use the site in compliance with all applicable laws and regulations.</li>
+      <li>Ensure compliance with <strong>NEC/NFPA&nbsp;70</strong>, local amendments, manufacturer instructions, utility interconnection rules, and AHJ requirements.</li>
+      <li>Obtain all required permits and inspections for electrical work.</li>
+      <li>Contractors are responsible for job-site safety and <strong>OSHA</strong> compliance; this site does not address workplace safety regulations.</li>
     </ul>
 
     <h2>4) Third-party links &amp; affiliates</h2>
-    <p>We may link to third-party sites or products. We do not control or endorse third-party content and are not responsible for it. We may receive a commission if you purchase through some links; this does not affect our recommendations.</p>
+    <p>We may link to third-party sites or products. We do not control or endorse third-party content and are not responsible for it. We may receive a commission if you purchase through some links; this does not affect our recommendations. See our <a class="link" href="/affiliate-disclosure">Affiliate Disclosure</a> and <a class="link" href="/privacy">Privacy Policy</a> for details.</p>
 
     <h2>5) Warranty disclaimer</h2>
     <p>The site is provided “as is” and “as available,” without warranties of any kind, express or implied, including fitness for a particular purpose and non-infringement.</p>
@@ -39,9 +43,17 @@ const desc  = "The rules for using Size My Generator and our calculators.";
     <p>These Terms are governed by the laws of the Commonwealth of Pennsylvania, USA, without regard to its conflict-of-laws rules.</p>
 
     <h2>9) Contact</h2>
-    <p>Email: <a class="link" href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a></p>
-    <p>PA HIC License # PA 073102</p>
+    <p>Email: <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a><br>
+    PA HIC License #: <strong>PA 073102</strong></p>
 
-    <p><a class="link" href="/">← Back to home</a></p>
+    <p><a href="/">← Back to home</a></p>
   </main>
+
+  <style>
+    .prose { max-width: 720px; margin: 0 auto; }
+    .prose h1 { margin-bottom: .25rem; }
+    .prose h2 { margin-top: 1.25rem; }
+    .prose ul li { margin:.25rem 0; }
+    .link { text-decoration: underline; }
+  </style>
 </SiteLayout>

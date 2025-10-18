@@ -13,12 +13,22 @@ const desc  = "Quickly find out what size generator you need to power essentials
   <!-- ========= Calculator ========= -->
   <main>
     <div class="box" id="gen-calculator">
+      <div class="calc-grid">
+      <div class="inputs">
       <label for="scope"><strong>What do you want to power?</strong></label>
       <select id="scope">
         <option value="essentials">Essentials (fridge, lights, Wi-Fi, furnace blower)</option>
         <option value="most">Most of house (kitchen + some HVAC)</option>
         <option value="whole">Whole house (unrestricted typical use)</option>
       </select>
+
+      <div class="controls-row" style="margin-top:.5rem;align-items:end;">
+        <div>
+          <label for="sqft" class="lbl">Home square footage (incl. garage & basement)</label>
+          <input id="sqft" class="fld" type="number" min="0" step="50" placeholder="e.g., 2400">
+          <small style="color:#666">NEC general lighting load = 3 watts per sq ft × this number. (NEC 2023 includes garage & basement.)</small>
+        </div>
+      </div>
 
       <!-- Collapsible appliance section -->
       <div id="appliance-header" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
@@ -37,7 +47,18 @@ const desc  = "Quickly find out what size generator you need to power essentials
       <div id="appliance-panel"
            data-open="0"
            style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
-        <p style="margin:.25rem 0 .5rem;color:#666">Toggle what you’ll run at the same time:</p>
+        <p style="margin:.25rem 0 .5rem;color:#666">Toggle what you’ll run at the same time. Edit <em>running watts</em> if you have the rating plate; defaults are typical values.</p>
+        <!-- NEC required small-appliance and laundry circuits -->
+        <div id="nec-circuits" style="display:grid;grid-template-columns:1fr auto auto;gap:.5rem 1rem;align-items:center;margin:.5rem 0 .75rem;">
+          <div><strong>Small-appliance circuits</strong> <small style="color:#666">(NEC, 1500 W each)</small></div>
+          <label for="smallQty" style="justify-self:end;color:#555">Qty</label>
+          <input id="smallQty" type="number" min="0" step="1" value="2" style="width:7ch;text-align:right;">
+
+          <div><strong>Laundry circuits</strong> <small style="color:#666">(NEC, 1500 W each)</small></div>
+          <label for="laundryQty" style="justify-self:end;color:#555">Qty</label>
+          <input id="laundryQty" type="number" min="0" step="1" value="1" style="width:7ch;text-align:right;">
+        </div>
+
         <div id="appliance-list" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
       </div>
 
@@ -47,31 +68,69 @@ const desc  = "Quickly find out what size generator you need to power essentials
       <div id="ac-section">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
           <strong>Air conditioning (optional)</strong>
-          <button id="add-ac" type="button">+ Add AC system</button>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <button id="toggle-ac" type="button" aria-controls="ac-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
+            <button id="add-ac" type="button">+ Add AC system</button>
+          </div>
         </div>
         <small style="color:#555">Add one row per condenser (e.g., 3-ton up, 2-ton down).</small>
-        <div id="ac-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"></div>
+        <div id="ac-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
+          <div id="ac-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"></div>
+        </div>
       </div>
 
-      <!-- Surge + load usage -->
-      <div class="controls-row">
-        <label for="surgeWatts" class="lbl">Custom temporary surge (W)</label>
-        <input id="surgeWatts" type="number" min="0" step="100" value="0" class="fld">
+      <!-- EV charging (optional) -->
+      <div id="ev-section" style="margin-top:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+          <strong>EV charging (optional)</strong>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <button id="toggle-ev" type="button" aria-controls="ev-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
+            <button id="add-ev" type="button">+ Add EV charger</button>
+          </div>
+        </div>
+        <div id="ev-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
+          <div id="ev-rows" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+        </div>
+      </div>
 
-        <label for="loadPolicy" class="lbl">Load usage</label>
-        <select id="loadPolicy" class="fld">
-          <option value="conservative">Assume everything could run</option>
-          <option value="managed">I’ll manage loads (stagger use)</option>
-        </select>
+      <!-- Heating (optional) -->
+      <div id="heat-section" style="margin-top:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+          <strong>Heating (optional)</strong>
+          <button id="toggle-heat" type="button" aria-controls="heat-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
+        </div>
+        <div id="heat-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;align-items:center">
+            <label for="heat-type">Type</label>
+            <select id="heat-type">
+              <option value="none">None</option>
+              <option value="resistance">Electric resistance (furnace/baseboards)</option>
+              <option value="hp_supp">Heat pump + electric supplemental</option>
+            </select>
+            <label for="heat-kw">kW (if applicable)</label>
+            <input id="heat-kw" type="number" min="0" step="0.5" placeholder="e.g., 10">
+          </div>
+          <small style="color:#555">Per NEC, we use the larger of heating or A/C. For heat pumps, we add 65% of supplemental heat.</small>
+        </div>
+      </div>
+
+      <!-- Buffer (headroom) input -->
+      <div class="controls-row">
+        <label for="bufferPct" class="lbl">Headroom buffer (%)</label>
+        <input id="bufferPct" type="number" min="0" max="50" step="1" value="20" class="fld">
       </div>
 
       <hr>
-      <div id="results">
-        <p><strong>Running load:</strong> <span id="runW">0</span> W</p>
-        <p><strong>Starting surge considered:</strong> <span id="startW">0</span> W</p>
-        <p style="margin:.75rem 0 0 0"><strong>Recommended generator size:</strong> <span id="rec">—</span></p>
-        <small id="assumption-note" style="color:#666">Assumes all selected items could run at once.</small>
-      </div>
+      </div><!-- /inputs -->
+      <aside class="summary-card" aria-live="polite">
+        <div id="results">
+          <h3 class="summary-title" style="margin:.25rem 0 .5rem">Recommended generator size</h3>
+          <p class="summary-big" style="font-size:1.4rem;line-height:1.2;margin:.25rem 0 .75rem"><span id="rec">—</span></p>
+          <p style="margin:.25rem 0"><strong>Planning load:</strong> <span id="runW">0</span> W</p>
+          <small id="assumption-note" style="color:#666;display:block;margin-top:.25rem">NEC demand factors: first 10 kVA @ 100%, remainder @ 40% (non‑AC) + 100% of A/C. Recommendation includes headroom buffer.</small>
+        </div>
+      </aside>
+      </div><!-- /calc-grid -->
 
       <p style="margin-top:1rem;color:#555">
         Heads up: This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
@@ -106,29 +165,50 @@ const desc  = "Quickly find out what size generator you need to power essentials
     @media (max-width:560px){
       .controls-row { grid-template-columns: 1fr; }
     }
+
+    /* Inline watt input next to each appliance */
+    .watt-input { width: 7ch; min-width: 7ch; text-align: right; padding:.35rem .5rem; margin:0; }
+    .appliance-row { display:flex; align-items:center; gap:.5rem; }
+    .appliance-row small { color:#666; }
+    .appliance-row .name { flex: 1 1 auto; min-width: 0; }
+  .calc-grid{display:grid;gap:1rem}
+    @media(min-width:900px){.calc-grid{grid-template-columns:1fr 320px}}
+    .summary-card{position:sticky;top:1rem;align-self:start;background:var(--card,#fff);border:1px solid #e6ebf2;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.06);padding:1rem}
+    .summary-card p{margin:.25rem 0}
+    .summary-card strong{font-weight:700}
+    .page-hero h1{letter-spacing:.2px}
+    /* nicer toggle link */
+    #toggle-appliances{color:#0a7e51}
+    #toggle-appliances:hover{text-decoration:underline}
   </style>
 
   <!-- ========= Calculator Logic ========= -->
   <script>
-(() => {
+window.addEventListener('DOMContentLoaded', () => {
   // ---------- APPLIANCES (non-AC) ----------
   const APPLIANCES = [
-    { id:'fridge',         name:'Refrigerator',                 run:150,  start:1200, defaultScopes:['essentials','most','whole'] },
-    { id:'lights',         name:'LED lights (whole house)',     run:200,  start:0,    defaultScopes:['essentials','most','whole'] },
-    { id:'wifi',           name:'Wi-Fi/router',                 run:15,   start:0,    defaultScopes:['essentials','most','whole'] },
-    { id:'furnace',        name:'Furnace blower (gas/propane)', run:600,  start:1200, defaultScopes:['essentials','most','whole'] },
-    { id:'sump',           name:'Sump pump (1/2 hp)',           run:800,  start:2000, defaultScopes:['essentials','most','whole'] },
-    { id:'well',           name:'Well pump (3/4 hp)',           run:1000, start:3000, defaultScopes:['most','whole'] },
-    { id:'microwave',      name:'Microwave (1.2 kW)',           run:1200, start:1200, defaultScopes:['most','whole'] },
-    { id:'toaster',        name:'Toaster (2-slice)',            run:1200, start:1200, defaultScopes:['most','whole'] },
-    { id:'hair',           name:'Hair dryer',                   run:1500, start:1500, defaultScopes:['most','whole'] },
-    { id:'spaceHeat',      name:'Space heater (1500 W)',        run:1500, start:1500, defaultScopes:['most','whole'] },
-    { id:'elecRange',      name:'Electric range (1 burner)',    run:1800, start:1800, defaultScopes:['whole'] },
-    { id:'dishwasher',     name:'Dishwasher (heat dry)',        run:1200, start:1200, defaultScopes:['most','whole'] },
-    { id:'elecDryer',      name:'Electric clothes dryer',       run:2500, start:5000, defaultScopes:['whole'] },
-    { id:'waterHeater',    name:'Electric water heater (tank)', run:4500, start:4500, defaultScopes:['whole'] },
-    { id:'freezer',        name:'Chest freezer',                run:100,  start:600,  defaultScopes:['most','whole'] },
-    { id:'tv',             name:'TV + streaming box',           run:150,  start:0,    defaultScopes:['most','whole'] },
+    // --- User-requested items ---
+    { id:'well',        name:'Well pump (3/4 hp)',              run:1500, defaultScopes:['most','whole'] }, // 3/4 hp ≈ 1500W run
+    { id:'sump',        name:'Sump pump (1/2 hp)',              run:900,  defaultScopes:['essentials','most','whole'] },
+    { id:'freezer',     name:'Chest freezer',                   run:120,  defaultScopes:['most','whole'] },
+    { id:'microwave',   name:'Microwave (1.0–1.2 kW)',          run:1200, defaultScopes:['most','whole'] },
+    { id:'disposal',    name:'Garbage disposal',                run:700,  defaultScopes:['most','whole'] },
+    { id:'dishwasher',  name:'Dishwasher',                      run:1500, defaultScopes:['most','whole'] },
+    { id:'elecRange',   name:'Electric range (cooktop+oven)',   run:8000, defaultScopes:['whole'] },
+    { id:'wallOven',    name:'Wall-mounted oven (single)',      run:3000, defaultScopes:['whole'] },
+    { id:'cooktop',     name:'Counter cooktop (electric)',      run:3500, defaultScopes:['whole'] },
+    { id:'waterHeater', name:'Electric water heater (tank)',    run:4500, defaultScopes:['whole'] },
+    { id:'elecDryer',   name:'Electric clothes dryer',          run:5500, defaultScopes:['whole'] },
+    { id:'gdoor',       name:'Garage door opener',              run:500,  defaultScopes:['most','whole'] },
+    { id:'septic',      name:'Septic grinder pump',             run:1000, defaultScopes:['most','whole'] },
+    { id:'hottub',      name:'Hot tub / spa',                   run:10000,defaultScopes:['whole'] },
+    { id:'other',       name:'Other (enter watts)',             run:0,    defaultScopes:['essentials','most','whole'] },
+
+    // --- Helpful basics kept from earlier ---
+    { id:'fridge',      name:'Refrigerator',                    run:150,  defaultScopes:['essentials','most','whole'] },
+    { id:'lights',      name:'LED lights (whole house)',        run:200,  defaultScopes:['essentials','most','whole'] },
+    { id:'wifi',        name:'Wi‑Fi/router',                    run:15,   defaultScopes:['essentials','most','whole'] },
+    { id:'furnace',     name:'Furnace blower (gas/propane)',    run:600,  defaultScopes:['essentials','most','whole'] }
   ];
 
   // ---------- AC sizing ----------
@@ -138,52 +218,92 @@ const desc  = "Quickly find out what size generator you need to power essentials
 
   // ---------- Generator tiers (continuous ratings) ----------
   const TIERS = [
-    { size:2000,  label:'~2 kW portable (120 V only, light loads)' },
+    // Portable (for very small plans)
+    { size:2000,  label:'~2 kW portable (120 V light loads)' },
     { size:3500,  label:'~3.5 kW portable (basic essentials)' },
     { size:5000,  label:'~5 kW portable (essentials + kitchen basics)' },
     { size:7500,  label:'~7.5 kW portable (most of a small home)' },
-    { size:10000, label:'~10 kW standby/large portable (some A/C)' },
-    { size:13000, label:'~13 kW standby (A/C + kitchen, managed)' },
-    { size:20000, label:'~20 kW standby (near-normal whole-home)' },
+    { size:10000, label:'~10 kW standby (entry Guardian)' },
+    // Generac 2025 air‑cooled Guardian standby sizes
+    { size:14000, label:'~14 kW standby' },
+    { size:18000, label:'~18 kW standby' },
+    { size:22000, label:'~22 kW standby' },
+    { size:24000, label:'~24 kW standby' },
+    { size:26000, label:'~26 kW standby' },
   ];
 
   // ---------- Elements ----------
   const el = (id) => document.getElementById(id);
-  const scopeEl   = el('scope');
-  const listEl    = el('appliance-list');
-  const runWEl    = el('runW');
-  const startWEl  = el('startW');
-  const recEl     = el('rec');
-  const surgeWatts= el('surgeWatts');
-  const loadPolicy= el('loadPolicy');
+  const scopeEl      = el('scope');
+  const listEl       = el('appliance-list');
+  const runWEl       = el('runW');
+  const sqftEl       = el('sqft');
+  const smallQtyEl   = el('smallQty');
+  const laundryQtyEl = el('laundryQty');
+  const recEl        = el('rec');
+  const bufferPctEl  = el('bufferPct');
+  const surgeWatts   = el('surgeWatts');
+  const loadPolicy   = el('loadPolicy');
 
   const assumptionNote = el('assumption-note');
   const acRowsEl   = el('ac-rows');
   const addAcBtn   = el('add-ac');
+  // EV elements
+  const evAmpsEl   = el('ev-amps'); // deprecated single-select (no longer in DOM)
+  const evQtyEl    = el('ev-qty');  // deprecated single qty (no longer in DOM)
+  const evRowsEl   = el('ev-rows');
+  const addEvBtn   = el('add-ev');
+  // Heating elements
+  const heatTypeEl = el('heat-type');
+  const heatKwEl   = el('heat-kw');
+  // Section toggles
+  const acPanel    = document.getElementById('ac-panel');
+  const evPanel    = document.getElementById('ev-panel');
+  const heatPanel  = document.getElementById('heat-panel');
+  const toggleAc   = document.getElementById('toggle-ac');
+  const toggleEv   = document.getElementById('toggle-ev');
+  const toggleHeat = document.getElementById('toggle-heat');
 
   const panel      = el('appliance-panel');
   const toggleBtn  = el('toggle-appliances');
   const summaryCount = el('summary-count');
 
-  // Build appliance checkboxes (fixed list; checks vary by scope)
+  // Build appliance rows (checkbox + editable running watts)
   APPLIANCES.forEach(a => {
     const wrap = document.createElement('label');
-    wrap.style.display = 'flex';
-    wrap.style.alignItems = 'center';
-    wrap.style.gap = '.5rem';
+    wrap.className = 'appliance-row';
 
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.id = 'cb_' + a.id;
-    cb.dataset.run = a.run;
-    cb.dataset.start = a.start;
 
-    const txt = document.createElement('span');
-    txt.textContent = `${a.name} — ${a.run}W run${a.start ? ` / ${a.start}W start` : ''}`;
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.textContent = a.name;
 
+    const runInput = document.createElement('input');
+    runInput.type = 'number';
+    runInput.id = 'run_' + a.id;
+    runInput.className = 'watt-input';
+    runInput.min = '0';
+    runInput.step = '10';
+    runInput.value = a.run; // pre-populated
+    runInput.setAttribute('aria-label', a.name + ' running watts');
+    runInput.title = 'Running watts';
+
+    const runUnit = document.createElement('span');
+    runUnit.textContent = 'W run';
+
+    // append in order: [checkbox] [name] [input] [unit]
     wrap.appendChild(cb);
-    wrap.appendChild(txt);
+    wrap.appendChild(nameSpan);
+    wrap.appendChild(runInput);
+    wrap.appendChild(runUnit);
+
     listEl.appendChild(wrap);
+
+    // Recalc when user edits running watts
+    runInput.addEventListener('input', recalc);
   });
 
   // Responsive grid
@@ -192,7 +312,7 @@ const desc  = "Quickly find out what size generator you need to power essentials
     listEl.style.gridTemplateColumns = media.matches ? '1fr' : '1fr 1fr';
   }
   applyGrid();
-  media.addEventListener?.('change', applyGrid);
+  if (media.addEventListener) { media.addEventListener('change', applyGrid); } else if (media.addListener) { media.addListener(applyGrid); }
 
   // Collapsible panel
   let open = false;
@@ -203,7 +323,18 @@ const desc  = "Quickly find out what size generator you need to power essentials
     panel.style.maxHeight = open ? panel.scrollHeight + 'px' : '0';
     toggleBtn.textContent = open ? 'Hide details ▴' : 'Show details ▾';
   }
+
+  function setSection(panelEl, toggleEl, openNow){
+    if (!panelEl || !toggleEl) return;
+    panelEl.setAttribute('data-open', openNow ? '1' : '0');
+    toggleEl.setAttribute('aria-expanded', openNow ? 'true' : 'false');
+    panelEl.style.maxHeight = openNow ? panelEl.scrollHeight + 'px' : '0';
+    toggleEl.textContent = openNow ? 'Hide details ▴' : 'Show details ▾';
+  }
   toggleBtn.addEventListener('click', () => setPanel(!open));
+  toggleAc?.addEventListener('click', ()=> setSection(acPanel, toggleAc, (acPanel?.getAttribute('data-open')!=='1')));
+  toggleEv?.addEventListener('click', ()=> setSection(evPanel, toggleEv, (evPanel?.getAttribute('data-open')!=='1')));
+  toggleHeat?.addEventListener('click', ()=> setSection(heatPanel, toggleHeat, (heatPanel?.getAttribute('data-open')!=='1')));
 
   // AC rows (0–3)
   function addAcRow(preset = { tons: 2.5, type: 'standard', soft: false }) {
@@ -282,6 +413,69 @@ const desc  = "Quickly find out what size generator you need to power essentials
     });
   }
 
+  function addEvRow(preset = { amps: 40, kw: 0 }) {
+    const row = document.createElement('div');
+    row.className = 'ev-row';
+    row.style.display = 'grid';
+    row.style.gridTemplateColumns = '1fr 1fr auto';
+    row.style.gap = '.5rem';
+    row.style.alignItems = 'center';
+
+    const sel = document.createElement('select');
+    ['32','40','48','60','80','custom'].forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = (v==='custom') ? 'Custom kW' : `${v}A @240V`;
+      sel.appendChild(opt);
+    });
+    sel.value = preset.kw ? 'custom' : String(preset.amps);
+
+    const kwInput = document.createElement('input');
+    kwInput.type = 'number'; kwInput.min = '0'; kwInput.step = '0.5';
+    kwInput.placeholder = 'kW';
+    kwInput.value = preset.kw ? String(preset.kw) : '';
+    kwInput.disabled = sel.value !== 'custom';
+    kwInput.style.display = (sel.value === 'custom') ? '' : 'none';
+
+    const del = document.createElement('button');
+    del.type = 'button'; del.textContent = '✕'; del.title = 'Remove'; del.style.minWidth = '2rem';
+
+    row.appendChild(sel);
+    row.appendChild(kwInput);
+    row.appendChild(del);
+    evRowsEl.appendChild(row);
+
+    function onChange(){ kwInput.disabled = (sel.value !== 'custom'); kwInput.style.display = (sel.value === 'custom') ? '' : 'none'; recalc(); }
+    sel.addEventListener('change', onChange);
+    kwInput.addEventListener('input', recalc);
+    del.addEventListener('click', ()=>{ row.remove(); recalc(); });
+  }
+
+  function getEvLoadW(){
+    const rows = Array.from(evRowsEl?.querySelectorAll('.ev-row') || []);
+    return rows.reduce((sum,row)=>{
+      const sel = row.querySelector('select');
+      const kwInput = row.querySelector('input[type="number"]');
+      if (!sel) return sum;
+      if (sel.value === 'custom') {
+        const kw = parseFloat(kwInput?.value||'0')||0; return sum + Math.round(kw*1000);
+      }
+      const amps = parseInt(sel.value,10)||0; const kw = (amps*240)/1000; return sum + Math.round(kw*1000);
+    },0);
+  }
+
+  function getHeatCandidateW(acRun) {
+    const type = heatTypeEl ? heatTypeEl.value : 'none';
+    const kw   = parseFloat(heatKwEl && heatKwEl.value ? heatKwEl.value : '0') || 0;
+    if (type === 'resistance') {
+      return Math.round(kw * 1000); // electric furnace/baseboards at 100%
+    }
+    if (type === 'hp_supp') {
+      const supp = Math.round(kw * 1000 * 0.65); // 65% supplemental heat
+      return acRun + supp; // heating scenario = HP compressor (≈AC run) + 65% strip
+    }
+    return 0; // none
+  }
+
   function updateSummary() {
     const count = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked).length;
     summaryCount.textContent = count;
@@ -304,10 +498,19 @@ const desc  = "Quickly find out what size generator you need to power essentials
       ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; });
     }
 
-    // Seed AC rows
+    // Always default hot tub/spa to unchecked regardless of preset
+    { const c = document.getElementById('cb_hottub'); if (c) c.checked = false; }
+
+    // Do NOT auto-add AC/EV rows; keep sections collapsed by default
     acRowsEl.innerHTML = '';
-    if (scope === 'most')  addAcRow({ tons: 2.5, type: 'standard', soft: false });
-    if (scope === 'whole') addAcRow({ tons: 4.0, type: 'standard', soft: false });
+    evRowsEl.innerHTML = '';
+    setSection(acPanel, toggleAc, false);
+    setSection(evPanel, toggleEv, false);
+    setSection(heatPanel, toggleHeat, false);
+
+    // Reset NEC circuit defaults per preset
+    if (smallQtyEl) smallQtyEl.value = '2';
+    if (laundryQtyEl) laundryQtyEl.value = '1';
 
     updateSummary();
     setPanel(false);
@@ -316,56 +519,55 @@ const desc  = "Quickly find out what size generator you need to power essentials
 
   // Core calc
   function recalc() {
-    // Non-AC running
-    const checked = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked);
-    const runSumNonAC = checked.reduce((s,a)=> s + a.run, 0);
+    // Non-AC running (use user-entered run watts when present)
+    let runSumNonAC = 0;
+    const appRunsById = {};
+    const startsFromApps = [];
+
+    // NEC general lighting/receptacle load: 3 W per square foot (incl. garage & basement)
+    const sqft = parseInt(sqftEl && sqftEl.value ? sqftEl.value : '0', 10) || 0;
+    const necLighting = Math.max(0, Math.round(sqft * 3));
+    runSumNonAC += necLighting;
+
+    APPLIANCES.forEach(a => {
+      const cb = document.getElementById('cb_'+a.id);
+      if (!cb || !cb.checked) return;
+      const runEl = document.getElementById('run_'+a.id);
+      const v = parseInt(runEl?.value, 10);
+      const run = Number.isFinite(v) ? v : a.run;
+      appRunsById[a.id] = run;
+      runSumNonAC += run;
+      startsFromApps.push(a.start || 0);
+    });
 
     // AC running
     const acLoads = getAcLoads();
-    const runSumAC = acLoads.reduce((s,a)=> s + a.run, 0);
+    const acRun = acLoads.reduce((s,a)=> s + a.run, 0);
+    const evRun = getEvLoadW();
+    const heatCandidate = getHeatCandidateW(acRun);
+    const seasonalMax = Math.max(acRun, heatCandidate);
 
-    // Diversity via dropdown
-    const policy = loadPolicy ? loadPolicy.value : 'conservative';
-    const adjustedRunNonAC = (policy === 'managed')
-      ? Math.round(runSumNonAC * 0.8)
-      : runSumNonAC;
+    // NEC demand: first 10 kVA at 100%, remainder at 40% (non‑AC only)
+    const totalGeneral = runSumNonAC; // includes 3 W/ft² + small/laundry circuits + fixed appliances
+    const first10k = Math.min(totalGeneral, 10000);
+    const remainder = Math.max(totalGeneral - 10000, 0);
+    const weightedGeneral = first10k + Math.round(remainder * 0.40);
 
-    const runSum = adjustedRunNonAC + runSumAC;
+    // Final planning load = NEC weighted general + seasonal max (heat vs A/C) + EV at 100%
+    const runSum = weightedGeneral + seasonalMax + evRun;
+    // No separate surge modeling. Total planning load is runSum.
 
-    // Surge: largest starter + running of everything else
-    const starts = [
-      ...checked.map(a => a.start||0),
-      ...acLoads.map(a => a.start||0)
-    ];
-    const largestStart = starts.length ? Math.max(...starts) : 0;
-
-    let runWithoutLargestStarter = runSum;
-    const largestFromAC = acLoads.find(a => a.start === largestStart);
-    if (largestFromAC) {
-      runWithoutLargestStarter -= largestFromAC.run;
-    } else {
-      const largestFromApp = checked.find(a => (a.start||0) === largestStart);
-      if (largestFromApp) runWithoutLargestStarter -= largestFromApp.run;
-    }
-
-    // Extra surge (defaults to 0)
-    const extra = parseInt((surgeWatts && surgeWatts.value) ? surgeWatts.value : '0', 10) || 0;
-
-    let surgeNeed = Math.max(runSum, runWithoutLargestStarter + largestStart) + extra;
-
-    // Recommend so surgeNeed ≈ 80% of rating
-    const neededContinuous = Math.ceil(surgeNeed / 0.8);
+    // Apply headroom buffer to planning load
+    const buf = Math.max(0, Math.min(50, parseInt(bufferPctEl && bufferPctEl.value ? bufferPctEl.value : '20', 10) || 20));
+    const neededContinuous = Math.ceil(runSum / (1 - buf/100));
     const tier = TIERS.find(t => t.size >= neededContinuous)
             || { size: Math.ceil(neededContinuous/1000)*1000, label: `~${Math.ceil(neededContinuous/1000)*1000} W (custom)` };
 
     runWEl.textContent   = runSum.toLocaleString();
-    startWEl.textContent = surgeNeed.toLocaleString();
     recEl.textContent    = `${tier.label}`;
 
     if (assumptionNote) {
-      assumptionNote.textContent = (policy === 'managed')
-        ? 'Assumes you’ll manage loads (some items won’t run simultaneously).'
-        : 'Assumes all selected items could run at once.';
+      assumptionNote.textContent = 'NEC demand factors: first 10 kVA @ 100%, remainder @ 40% (non‑AC) + 100% of A/C. Recommendation includes headroom buffer.';
     }
 
     // Maintain panel height if open
@@ -376,13 +578,19 @@ const desc  = "Quickly find out what size generator you need to power essentials
 
   // Wire-up
   scopeEl.addEventListener('change', e => applyPreset(e.target.value));
-  listEl.addEventListener('change', recalc);
-  surgeWatts?.addEventListener('input', recalc);
-  loadPolicy?.addEventListener('change', recalc);
-  addAcBtn.addEventListener('click', () => { addAcRow(); recalc(); });
-
-  // Initial
-  applyPreset(scopeEl.value);
-})();
+  listEl.addEventListener('change', () => { updateSummary(); recalc(); });
+  listEl.addEventListener('input', recalc);
+  sqftEl?.addEventListener('input', recalc);
+  
+  smallQtyEl?.addEventListener('input', recalc);
+  laundryQtyEl?.addEventListener('input', recalc);
+  
+  addAcBtn.addEventListener('click', () => { addAcRow(); setSection(acPanel, toggleAc, true); recalc(); });
+  addEvBtn?.addEventListener('click', () => { addEvRow({ amps: 40, kw: 0 }); setSection(evPanel, toggleEv, true); recalc(); });
+  bufferPctEl?.addEventListener('input', recalc);
+  evAmpsEl?.addEventListener('change', recalc);
+  evQtyEl?.addEventListener('input', recalc);
+  heatTypeEl?.addEventListener('change', recalc);
+  heatKwEl?.addEventListener('input', recalc);
+});
   </script>
-</SiteLayout>

@@ -1,21 +1,28 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 const title = "Disclaimer | Size My Generator";
-const desc  = "Important notices about calculator accuracy and professional advice.";
+const desc  = "Important notices about calculator accuracy, scope, and professional advice.";
 ---
 
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/disclaimer">
   <section class="page-hero">
     <h1>Disclaimer</h1>
-    <p class="lead"><em>Last updated: 2025-10-11</em></p>
+    <p class="lead"><em>Last updated: 2025-10-17</em></p>
   </section>
 
   <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
     <h2>Informational use only</h2>
     <p>
       The information and tools on this site are for general informational purposes only.
-      Results from any calculator are approximate and not a substitute for professional advice. 
+      Results from any calculator are approximate and not a substitute for professional advice.
       Always consult a licensed electrician before purchasing or installing any generator or electrical equipment.
+    </p>
+
+    <h2>Scope</h2>
+    <p>
+      This site and its calculator are intended for <strong>residential optional standby systems</strong>
+      under NEC Article&nbsp;702. They are <em>not</em> designed to size <strong>emergency systems</strong> (Article&nbsp;700),
+      <strong>legally required standby</strong> (Article&nbsp;701), or <strong>critical operations power</strong> (Article&nbsp;708).
     </p>
 
     <h2>No warranties</h2>
@@ -26,9 +33,11 @@ const desc  = "Important notices about calculator accuracy and professional advi
 
     <h2>Limitation of liability</h2>
     <p>
-      To the fullest extent permitted by law, sizemygenerator.com and its contributors will not be liable for
-      any losses or damages arising from reliance on the information or tools provided here.
+      To the fullest extent permitted by law, SizeMyGenerator.com and its contributors will not be liable for any losses
+      or damages arising from reliance on the information or tools provided here.
     </p>
+
+    <p>See also our <a class="link" href="/terms">Terms of Use</a>, <a class="link" href="/affiliate-disclosure">Affiliate Disclosure</a>, and <a class="link" href="/privacy">Privacy Policy</a>.</p>
 
     <p><a class="link" href="/">← Back to home</a></p>
   </main>
