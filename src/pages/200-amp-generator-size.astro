@@ -1,0 +1,158 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import Calculator from "../components/Calculator.astro";
+
+const title = "What Size Generator for 200-Amp Service? (+ AC/No-AC Examples)";
+const desc  = "See three real 200-amp scenarios (no AC, 1x 3-ton, 2x 3-ton), amp→kW math, transfer switch sizing, and panel balancing. Includes calculator preset toggles.";
+const canonical = "https://sizemygenerator.com/200-amp-generator-size/";
+const lastReviewed = "October 20, 2025";
+
+const faqs = [
+  { q: "Is a 22 kW generator enough for a 200-amp service?", a: "Often, yes—especially for essentials plus one 3-ton AC (with soft-start) or most-of-house without electric range/dryer overlap. Whole-house with 2 condensers or heavy electric cooking may need 24–26 kW+." },
+  { q: "Do I need a 200-amp transfer switch?", a: "Not necessarily. Many installs use a 100-amp (or 50-amp) feeder to a managed sub-panel. The switch must match the generator output feeder and wiring, not your main service rating." },
+  { q: "Can I run two central AC units on a 200-amp home?", a: "Yes with sufficient generator capacity and load sequencing. Soft-start kits reduce inrush so both systems aren’t trying to start at once." },
+  { q: "What if I have a heat pump with electric strips?", a: "Lock out strips during outage or size the generator to cover them; otherwise, strips can overwhelm capacity. Consider gas backup or staged heat." }
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": desc,
+  "dateModified": "2025-10-20",
+  "datePublished": "2025-10-20",
+  "mainEntityOfPage": canonical
+};
+
+const faqJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type":"Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type":"Answer", "text": f.a }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://sizemygenerator.com/"},
+    {"@type":"ListItem","position":2,"name":"200-Amp Generator Size","item":canonical}
+  ]
+};
+
+// Optional preset from URL (?preset=essentials|most|whole)
+const preset = Astro.url.searchParams.get("preset") ?? "most";
+---
+
+<SiteLayout {title} {desc} canonical={canonical}>
+  <section class="page-hero">
+    <h1>What Size Generator for <span class="nowrap">200-Amp</span> Service?</h1>
+    <p class="lead">Three practical scenarios, the amp→kW math, and the transfer-switch choices that actually matter.</p>
+    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
+  </section>
+
+  <section class="answer-box">
+    <strong>Quick answer:</strong>
+    <p>Most 200-amp homes land between <strong>14–26 kW</strong> depending on central AC and electric cooking/drying. Use the presets below to model your house, then sanity-check with the scenarios.</p>
+  </section>
+
+  <section class="calc-wrap" id="calculator">
+    <div class="preset-row">
+      <span class="label">Presets:</span>
+      <a class={`chip ${preset==="essentials"?"active":""}`} href="?preset=essentials#calculator">Essentials</a>
+      <a class={`chip ${preset==="most"?"active":""}`} href="?preset=most#calculator">Most of House</a>
+      <a class={`chip ${preset==="whole"?"active":""}`} href="?preset=whole#calculator">Whole House</a>
+    </div>
+    <div class="calculator-panel">
+      <Calculator preset={preset} />
+    </div>
+    <div class="micro-note">New to sizing? Start with the <a href="/generator-sizing-guide/">Home Generator Sizing Guide</a>.</div>
+  </section>
+
+  <nav class="toc" aria-label="On this page">
+    <strong>On this page</strong>
+    <ul>
+      <li><a href="#scenarios">Three 200-A scenarios</a></li>
+      <li><a href="#math">Amp → kW math</a></li>
+      <li><a href="#switch">Transfer switch sizing</a></li>
+      <li><a href="#faqs">FAQs</a></li>
+    </ul>
+  </nav>
+
+  <section id="scenarios">
+    <h2>Three 200-A scenarios (AC / no-AC)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>Assumptions</th><th>Recommended kW</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No central AC</td>
+            <td>Essentials + lights + fridge + furnace blower + small appliances <em>(no electric range/dryer overlap)</em></td>
+            <td>10–16 kW</td>
+          </tr>
+          <tr>
+            <td>1× 3-ton AC (soft-start)</td>
+            <td>Most of house + one condenser (3–4 kW run; 5–6 kW soft-start surge)</td>
+            <td>14–22 kW</td>
+          </tr>
+          <tr>
+            <td>2× 3-ton ACs</td>
+            <td>Whole-house, managed starts (no simultaneous inrush), EV charging paused</td>
+            <td>22–26 kW+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="micro-conclusion"><strong>So…</strong> model your mix in the calculator, then round up to the nearest size that covers worst-case overlap.</p>
+  </section>
+
+  <section id="math">
+    <h2>Amp → kW math (why 200-A ≠ 48 kW of generator)</h2>
+    <p>Service rating is an upstream maximum, not a mandate for generator size. For 240 V split-phase, <code>kW = (V × A × PF) / 1000</code>, but real homes have diversity—loads don’t all peak together. You size to <em>likely overlap</em> and the largest motor surge.</p>
+  </section>
+
+  <section id="switch">
+    <h2>Transfer switch sizing</h2>
+    <p>Choose the switch for the generator feeder (30 A / 50 A / 100 A), not the main service. Many 200-A homes use a 100-A switch feeding a managed sub-panel. When in doubt, verify conductor size, breaker ratings, and local code. See <a href="/transfer-switch-vs-interlock/">Transfer Switch vs Interlock</a>.</p>
+  </section>
+
+  <section id="faqs" class="faq-block">
+    <h2>FAQs</h2>
+    {faqs.map(f => (
+      <details><summary>{f.q}</summary><div innerHTML={f.a} /></details>
+    ))}
+  </section>
+
+  <section class="cta-row">
+    <a href="/generator-sizing-guide/" class="btn">Read the Sizing Guide</a>
+    <a href="/transfer-switch-vs-interlock/" class="btn btn-secondary">Switch vs Interlock</a>
+    <a href="/well-pump-starting-watts/" class="btn btn-secondary">Well Pump Surge</a>
+  </section>
+
+  <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
+
+  <style>
+    .page-hero { margin-bottom: 1rem; }
+    .answer-box { background: var(--card); border:1px solid var(--border); padding:1rem; border-radius:.75rem; }
+    .calc-wrap { margin:1rem 0; }
+    .preset-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.5rem}
+    .chip{border:1px solid var(--border);padding:.35rem .6rem;border-radius:999px;text-decoration:none}
+    .chip.active{background:var(--accent-weak);border-color:var(--accent-weak)}
+    .calculator-panel{border:1px solid var(--border);border-radius:.75rem;padding:.75rem;background:var(--panel)}
+    .toc{border-left:3px solid var(--border);padding-left:.75rem;margin:1rem 0}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--border);padding:.6rem;text-align:left}
+    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;margin-top:.5rem;background:var(--card)}
+    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
+    .cta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+    .nowrap{white-space:nowrap}
+  </style>
+</SiteLayout>

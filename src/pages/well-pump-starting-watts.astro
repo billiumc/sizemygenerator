@@ -1,0 +1,132 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+
+const title = "Well Pump Starting Watts & Generator Sizing (Charts + Examples)";
+const desc  = "HP→LRA table, 2-wire vs 3-wire, soft-start options, and worked examples for sizing a generator with a deep-well pump.";
+const canonical = "https://sizemygenerator.com/well-pump-starting-watts/";
+const lastReviewed = "October 20, 2025";
+
+const faqs = [
+  { q: "How many starting watts does a 1 HP well pump need?", a: "Running is ~1 kW; starting can be 2.5–3.5 kW or more depending on head pressure, depth, and control box. Soft-start can lower inrush." },
+  { q: "Do 2-wire and 3-wire pumps start differently?", a: "Yes. 3-wire with a control box can have different start characteristics; consult nameplate/LRA. Either way, size for worst-case inrush plus concurrent loads." },
+  { q: "Can a soft-start help with a generator?", a: "Yes. Soft-start kits reduce inrush so you can use a smaller generator or keep more headroom for other loads." }
+];
+
+const articleJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"Article",
+  "headline": title,
+  "description": desc,
+  "dateModified":"2025-10-20",
+  "datePublished":"2025-10-20",
+  "mainEntityOfPage": canonical
+};
+
+const faqJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type":"Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type":"Answer", "text": f.a }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://sizemygenerator.com/"},
+    {"@type":"ListItem","position":2,"name":"Well Pump Starting Watts","item":canonical}
+  ]
+};
+---
+
+<SiteLayout {title} {desc} canonical={canonical}>
+  <section class="page-hero">
+    <h1>Well Pump Starting Watts & Generator Sizing</h1>
+    <p class="lead">Use the HP→surge table below, then model it in the calculator to size your generator with confidence.</p>
+    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
+  </section>
+
+  <section class="answer-box">
+    <strong>Quick answer:</strong>
+    <p>A 1 HP deep-well pump typically needs ~1 kW running and <strong>2.5–3.5 kW</strong> of starting surge. Add this to your essentials overlap and size up to the nearest generator rating.</p>
+  </section>
+
+  <nav class="toc" aria-label="On this page">
+    <strong>On this page</strong>
+    <ul>
+      <li><a href="#table">HP → surge kW table</a></li>
+      <li><a href="#examples">Worked examples</a></li>
+      <li><a href="#faqs">FAQs</a></li>
+    </ul>
+  </nav>
+
+  <section id="table">
+    <h2>HP → surge kW (rule-of-thumb)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pump HP</th><th>Run kW</th><th>Typical surge kW</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>0.5 HP</td><td>0.5–0.6</td><td>1.5–2.2</td><td>Shallow wells; modest head</td></tr>
+          <tr><td>0.75 HP</td><td>0.7–0.8</td><td>2.0–2.8</td><td>—</td></tr>
+          <tr><td>1.0 HP</td><td>~1.0</td><td>2.5–3.5</td><td>Common; depth & head vary</td></tr>
+          <tr><td>1.5 HP</td><td>1.3–1.6</td><td>3.5–5.0</td><td>High head pressure</td></tr>
+          <tr><td>2.0 HP</td><td>1.8–2.1</td><td>5.0–7.0</td><td>Deep wells / long runs</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="micro-note">Numbers are typical; always check nameplate amps/LRA. Soft-start can reduce the surge band.</p>
+    <div class="cta-row">
+      <a href="/generator-sizing-guide/#calculator" class="btn">Add pump surge in the Calculator</a>
+      <a href="/200-amp-generator-size/" class="btn btn-secondary">See 200-A Examples</a>
+    </div>
+  </section>
+
+  <section id="examples">
+    <h2>Worked examples</h2>
+
+    <h3>Example A: Essentials + 1 HP pump</h3>
+    <ul>
+      <li>Essentials overlap ≈ 2.0–2.5 kW</li>
+      <li>Pump run ≈ 1.0 kW; surge ≈ 3.0 kW</li>
+    </ul>
+    <p class="micro-conclusion"><strong>So…</strong> 10–14 kW covers typical overlap + surge.</p>
+
+    <h3>Example B: 1 HP pump + 3-ton AC (soft-start)</h3>
+    <ul>
+      <li>AC run 3–4 kW; surge 5–6 kW (soft-start)</li>
+      <li>Pump surge not simultaneous (sequenced)</li>
+    </ul>
+    <p class="micro-conclusion"><strong>So…</strong> 18–22 kW with proper load management; higher without soft-start.</p>
+  </section>
+
+  <section id="faqs" class="faq-block">
+    <h2>FAQs</h2>
+    {faqs.map(f => (
+      <details><summary>{f.q}</summary><div innerHTML={f.a} /></details>
+    ))}
+  </section>
+
+  <section class="cta-row">
+    <a href="/generator-sizing-guide/" class="btn">Back to the Sizing Guide</a>
+    <a href="/transfer-switch-vs-interlock/" class="btn btn-secondary">Switch vs Interlock</a>
+  </section>
+
+  <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
+
+  <style>
+    .answer-box{background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:.75rem;margin:.75rem 0}
+    .toc{border-left:3px solid var(--border);padding-left:.75rem;margin:1rem 0}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--border);padding:.6rem;text-align:left}
+    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
+    .cta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+    .micro-note{opacity:.9}
+    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;background:var(--card)}
+  </style>
+</SiteLayout>

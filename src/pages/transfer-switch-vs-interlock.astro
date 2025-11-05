@@ -1,0 +1,135 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+
+const title = "Transfer Switch vs Interlock: Safety, Code & Cost";
+const desc  = "When you need a transfer switch, when an interlock is acceptable, and the real costs: hardware, labor, permit, gas/electric. Includes a safety decision tree.";
+const canonical = "https://sizemygenerator.com/transfer-switch-vs-interlock/";
+const lastReviewed = "October 20, 2025";
+
+const faqs = [
+  { q: "Do I legally need a transfer switch?", a: "For standby/whole-home systems, yes. For portable generators, some jurisdictions allow listed panel interlocks. Always verify local code and utility requirements." },
+  { q: "What size transfer switch do I need?", a: "Match the generator feeder and conductors (e.g., 30 A, 50 A, 100 A), not the main service rating. Consider managed sub-panels for critical loads." },
+  { q: "How much does a transfer switch install cost?", a: "Typical ranges: $400–$900 hardware (30–100 A manual), $800–$2,500+ installed depending on wiring distance, permitting, and ATS vs manual." }
+];
+
+const articleJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"Article",
+  "headline": title,
+  "description": desc,
+  "dateModified":"2025-10-20",
+  "datePublished":"2025-10-20",
+  "mainEntityOfPage": canonical
+};
+
+const faqJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type":"Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type":"Answer", "text": f.a }
+  }))
+};
+
+const howToJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"HowTo",
+  "name":"Choose between a transfer switch and an interlock",
+  "step":[
+    {"@type":"HowToStep","name":"Identify generator type","text":"Standby/whole-home or portable?"},
+    {"@type":"HowToStep","name":"Check local code/utility rules","text":"Confirm if interlocks are permitted; standby requires a listed transfer switch."},
+    {"@type":"HowToStep","name":"Size the feeder","text":"Choose 30 A / 50 A / 100 A based on generator output and conductor sizes."},
+    {"@type":"HowToStep","name":"Decide panel strategy","text":"Whole-home vs managed sub-panel for critical circuits."}
+  ]
+};
+
+const crumbJsonLd = {
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://sizemygenerator.com/"},
+    {"@type":"ListItem","position":2,"name":"Transfer Switch vs Interlock","item":canonical}
+  ]
+};
+---
+
+<SiteLayout {title} {desc} canonical={canonical}>
+  <section class="page-hero">
+    <h1>Transfer Switch vs Interlock</h1>
+    <p class="lead">Backfeed is dangerous. Here’s when an interlock is OK, when a transfer switch is mandatory, and how to size it right.</p>
+    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
+  </section>
+
+  <section class="answer-box">
+    <strong>Quick answer:</strong>
+    <p>Standby/whole-home → <strong>use a listed transfer switch</strong>. Portable → an <strong>interlock may be allowed</strong> in some jurisdictions. Size to your generator feeder (30/50/100 A), not your main service.</p>
+  </section>
+
+  <nav class="toc" aria-label="On this page">
+    <strong>On this page</strong>
+    <ul>
+      <li><a href="#decision">Decision tree</a></li>
+      <li><a href="#costs">Cost line-items</a></li>
+      <li><a href="#sizing">Sizing (30A / 50A / 100A)</a></li>
+      <li><a href="#faqs">FAQs</a></li>
+    </ul>
+  </nav>
+
+  <section id="decision">
+    <h2>Decision tree</h2>
+    <ol class="decision">
+      <li>Is this a standby/whole-home system? → <strong>Transfer switch</strong>.</li>
+      <li>Portable feeding select circuits? → Check local rules; if allowed, <strong>listed interlock</strong> + inlet + breaker.</li>
+      <li>Utility/AHJ prohibits interlocks? → <strong>Transfer switch</strong> only.</li>
+    </ol>
+    <p class="micro-note">New to sizing? See the <a href="/generator-sizing-guide/">Home Generator Sizing Guide</a>.</p>
+  </section>
+
+  <section id="costs">
+    <h2>Cost line-items</h2>
+    <ul>
+      <li>Hardware: manual 30–100 A switch $400–$900; ATS $700–$1,800+</li>
+      <li>Labor: $500–$1,500+ (distance, panel space, trenching if remote)</li>
+      <li>Permits/inspection: $100–$400+</li>
+      <li>Accessories: inlet box, whip, conductors, labeling</li>
+    </ul>
+    <p class="micro-conclusion"><strong>So…</strong> plan $800–$2,500+ installed, more with service upgrades or long runs.</p>
+  </section>
+
+  <section id="sizing">
+    <h2>Switch sizing (30A / 50A / 100A)</h2>
+    <p>Match generator output and conductors. Many 200-A homes use a <strong>100-A switch feeding a managed sub-panel</strong>. Coordinate breakers and wire gauges; balance phases to minimize nuisance trips when motors start.</p>
+    <div class="cta-row">
+      <a href="/200-amp-generator-size/" class="btn">200-A Examples</a>
+      <a href="/generator-sizing-guide/#calculator" class="btn btn-secondary">Open the Calculator</a>
+    </div>
+  </section>
+
+  <section id="faqs" class="faq-block">
+    <h2>FAQs</h2>
+    {faqs.map(f => (
+      <details><summary>{f.q}</summary><div innerHTML={f.a} /></details>
+    ))}
+  </section>
+
+  <section class="cta-row">
+    <a href="/generator-sizing-guide/" class="btn">Back to the Pillar</a>
+    <a href="/well-pump-starting-watts/" class="btn btn-secondary">Well Pump Surge</a>
+  </section>
+
+  <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(howToJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
+
+  <style>
+    .answer-box{background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:.75rem;margin:.75rem 0}
+    .toc{border-left:3px solid var(--border);padding-left:.75rem;margin:1rem 0}
+    .decision{margin:.4rem 0 .2rem}
+    .micro-note{opacity:.9}
+    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;background:var(--card)}
+    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
+    .cta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+  </style>
+</SiteLayout>

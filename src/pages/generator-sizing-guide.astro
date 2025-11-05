@@ -1,0 +1,244 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import Calculator from "../components/Calculator.astro";
+
+const title = "Home Generator Sizing Guide (+ Free Calculator)";
+const desc  = "Practical sizing with real-world tradeoffs: install cost, running cost, maintenance, rating-plate math, soft-start, and load management—plus a free calculator.";
+const canonical = "https://sizemygenerator.com/generator-sizing-guide/";
+const lastReviewed = "October 20, 2025";
+
+/** Optional: drop in your YouTube video ID when it’s live (e.g., 'dQw4w9WgXcQ') */
+const videoId = ""; // <- set this later
+const videoUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : "";
+const videoEmbed = videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+
+/** FAQs for on-page + JSON-LD */
+const faqs = [
+  { q: "Should I size for whole-house or just essentials?", a: "It depends on budget, fuel, and comfort expectations. Essentials (7–12 kW) are cheaper to install, fuel, and maintain. Whole-house (14–26 kW) runs more circuits and ACs but costs more up front and per hour." },
+  { q: "How do I read an appliance nameplate to get watts?", a: "Look for volts (V) and amps (A). Use: Watts = Volts × Amps × Power Factor (≈0.9 for many motors if PF isn’t listed). For 240 V split-phase loads, use 240 V; for 120 V receptacles, use 120 V." },
+  { q: "What about starting (surge) watts?", a: "Motors can draw 2–6× their running amps for a few cycles. Use the largest likely surge plus concurrent running loads. Soft-start kits and load management can cut inrush and allow a smaller generator." },
+  { q: "Do soft-start kits really help?", a: "Yes. On AC condensers and well pumps, soft-start can drop inrush by 30–60% so you can either step down a size or keep more headroom for other loads." },
+  { q: "What is load management?", a: "Devices or controller logic that prevent big loads from starting at the same time (e.g., shedding water heater while AC starts). This reduces peak demand and required generator kW." },
+  { q: "How much does it cost to run a generator?", a: "Fuel burn depends on size and load. As a rule of thumb, larger units burn more at idle and per kWh. Right-sizing, soft-start, and management reduce runtime fuel spend." }
+];
+
+/** JSON-LD blocks */
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": desc,
+  "dateModified": "2025-10-20",
+  "datePublished": "2025-10-20",
+  "author": {
+    "@type": "Person",
+    "name": "Bil C.",
+    "description": "HVAC contractor in PA and site owner"
+  },
+  "mainEntityOfPage": canonical
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type":"ListItem","position":1,"name":"Home","item":"https://sizemygenerator.com/"},
+    { "@type":"ListItem","position":2,"name":"Generator Sizing Guide","item":canonical}
+  ]
+};
+
+/** Calculator preset deep link support (no extra UI shown here) */
+const preset = Astro.url.searchParams.get("preset") ?? "essentials";
+
+/** Optional video schema (only if videoId is set) */
+const videoJsonLd = videoId ? {
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "How to Size a Home Generator (Walkthrough)",
+  "description": "Live walkthrough: reading rating plates, calculating running and surge watts, and choosing essentials vs whole-house with soft-start and load management.",
+  "uploadDate": "2025-10-20",
+  "thumbnailUrl": [`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`],
+  "embedUrl": videoEmbed,
+  "contentUrl": videoUrl
+} : null;
+---
+
+<SiteLayout {title} {desc} canonical={canonical}>
+  <section class="page-hero">
+    <h1 class="mb-2">Home Generator Sizing Guide <span class="text-accent">(+ Free Calculator)</span></h1>
+    <p class="lead">A practical way to size your generator—price tradeoffs, rating-plate math, and tools to reduce required kW.</p>
+    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
+  </section>
+
+  <!-- Answer box aimed at featured snippet -->
+  <section class="answer-box">
+    <strong>Quick answer:</strong>
+    <p>
+      Start with <strong>essentials-only</strong> to minimize install and fuel costs, then add AC/well pump <em>only</em> if comfort/health requires it. Use the calculator below,
+      confirm running vs surge, and consider <strong>soft-start</strong> and <strong>load management</strong> before upsizing.
+    </p>
+  </section>
+
+  <!-- Above-the-fold calculator (no duplicate preset chips) -->
+  <section class="calc-wrap" id="calculator">
+    <div class="calculator-panel">
+      <Calculator preset={preset} />
+    </div>
+    <div class="cta-row">
+      <a href="/200-amp-generator-size/" class="btn">200-Amp Examples</a>
+      <a href="/transfer-switch-vs-interlock/" class="btn btn-secondary">Transfer Switch vs Interlock</a>
+      <a href="/well-pump-starting-watts/" class="btn btn-secondary">Well Pump Surge</a>
+    </div>
+  </section>
+
+  <!-- Cost tradeoffs -->
+  <section id="cost-tradeoffs">
+    <h2>Cost tradeoffs: install, run, maintain</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Choice</th><th>Install cost impact</th><th>Run cost (fuel/hr)</th><th>Maintenance</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Essentials-only (7–12 kW)</td>
+            <td>Lower (smaller unit, smaller switch, simpler gas line)</td>
+            <td>Lower idle & load burn</td>
+            <td>Smaller oil/filter, less stress</td>
+            <td>Great ROI; add soft-start to include 1 AC if needed</td>
+          </tr>
+          <tr>
+            <td>Most of house (10–18 kW)</td>
+            <td>Moderate</td>
+            <td>Moderate</td>
+            <td>Standard intervals</td>
+            <td>Use management to avoid range + dryer + AC overlap</td>
+          </tr>
+          <tr>
+            <td>Whole-house (18–26 kW+)</td>
+            <td>Higher (bigger unit, 100 A ATS, heavier conductors)</td>
+            <td>Higher idle & load burn</td>
+            <td>Heavier use items; fuel matters more</td>
+            <td>Comfort-focused; consider sequencing/EV charging pause</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="micro-conclusion"><strong>So…</strong> price out both options. Many households prefer Essentials + soft-start/load management over jumping a whole size class.</p>
+  </section>
+
+  <!-- How to read rating plates -->
+  <section id="rating-plates">
+    <h2>How to read rating plates (and turn them into watts)</h2>
+    <ol class="steps">
+      <li>Find <strong>Voltage (V)</strong> and <strong>Amps (A)</strong> on the nameplate (or the breaker size as a proxy).</li>
+      <li>If PF (power factor) isn’t listed, assume ~<strong>0.9</strong> for many motors; resistive loads ≈ 1.0.</li>
+      <li>Use <code>Watts = Volts × Amps × PF</code>. For 240 V loads, use 240; for 120 V, use 120.</li>
+      <li>For motors, estimate surge at <strong>2–6×</strong> running amps unless you have LRA (Locked Rotor Amps).</li>
+      <li>Enter running and surge into the calculator; model realistic overlap.</li>
+    </ol>
+
+    <div class="examples">
+      <h3>Mini-examples</h3>
+      <ul>
+        <li><strong>3-ton AC condenser</strong>: nameplate 240 V, 15 A run, PF≈0.9 → run ≈ 240×15×0.9 ≈ <strong>3.2 kW</strong>. Surge (no soft-start) ≈ 2.5–3× → <strong>8–10 kW</strong>.</li>
+        <li><strong>Well pump 1 HP</strong>: run ≈ <strong>1.0 kW</strong>; typical surge <strong>2.5–3.5 kW</strong> (check LRA/control box).</li>
+        <li><strong>Microwave</strong>: 120 V, 12.5 A → 120×12.5 ≈ <strong>1.5 kW</strong> (resistive-ish; surge minimal).</li>
+        <li><strong>Gas furnace blower</strong>: 120 V, 5 A → 0.6 kW running; short surge modest (fan motor).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Soft-start & load management -->
+  <section id="start-management">
+    <h2>Soft-start & load management (shrink the peak)</h2>
+    <p>
+      Two levers reduce the generator size you need:
+    </p>
+    <ul>
+      <li><strong>Soft-start kits</strong> for AC/well pumps: lower inrush by ~30–60% so the generator doesn’t see a big spike.</li>
+      <li><strong>Load management</strong>: shed water heater/range while the AC starts; prevent two condensers from starting at once.</li>
+    </ul>
+    <p class="micro-conclusion"><strong>So…</strong> apply soft-start to your largest motor and sequence big loads. Re-run the calculator—many homes drop an entire size tier.</p>
+  </section>
+
+  <!-- Your walkthrough video (optional, appears when videoId is set) -->
+  {videoId ? (
+    <section id="walkthrough">
+      <h2>Watch: sizing a house, step by step</h2>
+      <div class="video-wrap">
+        <iframe
+          width="560"
+          height="315"
+          src={videoEmbed}
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <p class="micro-note">In this video: read rating plates, calculate watts, estimate surge, and decide on essentials vs whole-house with soft-start and load management.</p>
+    </section>
+  ) : null}
+
+  <!-- Transfer switching (short) -->
+  <section id="transfer-switching">
+    <h2>Transfer switching & safety (short version)</h2>
+    <p>Backfeed is dangerous and illegal. Use a listed transfer switch sized to your generator feeder (30 A / 50 A / 100 A). Interlocks may be allowed for portables—always follow code and utility rules. Details: <a href="/transfer-switch-vs-interlock/">Transfer Switch vs Interlock</a>.</p>
+  </section>
+
+  <!-- FAQs -->
+  <section id="faqs" class="faq-block">
+    <h2>FAQs</h2>
+    {faqs.map(f => (
+      <details>
+        <summary>{f.q}</summary>
+        <div innerHTML={f.a} />
+      </details>
+    ))}
+  </section>
+
+  <!-- Author box -->
+  <section class="author-box">
+    <h3>About the reviewer</h3>
+    <p>Bil C. — HVAC contractor in PA and site owner. This guide is reviewed periodically for accuracy.</p>
+    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
+  </section>
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+  <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
+  {videoJsonLd ? <script type="application/ld+json">{JSON.stringify(videoJsonLd)}</script> : null}
+
+  <style>
+    .page-hero { margin-bottom: 1.1rem; }
+    .lead { font-size: 1.05rem; }
+    .answer-box { background: var(--card); border: 1px solid var(--border); padding: 1rem; border-radius: .75rem; margin: 1rem 0; }
+    .calc-wrap { margin-top: 1rem; }
+    .calculator-panel { border:1px solid var(--border); border-radius:.75rem; padding:.75rem; background: var(--panel); }
+    .cta-row { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.75rem; }
+    .btn { display:inline-block; padding:.55rem .9rem; border-radius:.6rem; border:1px solid var(--border); text-decoration:none; }
+    .btn:hover { text-decoration:underline; }
+    .table-wrap{overflow-x:auto;margin:.3rem 0}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--border);padding:.6rem;text-align:left}
+    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;background:var(--card);margin-top:.5rem}
+    .steps{margin:.4rem 0 .2rem}
+    .examples ul{margin:.4rem 0}
+    .video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:.75rem;border:1px solid var(--border);background:#000}
+    .video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
+    .author-box{border-top:1px solid var(--border);margin-top:1.25rem;padding-top:.75rem}
+  </style>
+</SiteLayout>

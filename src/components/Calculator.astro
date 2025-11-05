@@ -1,17 +1,18 @@
 ---
-// Calculator.astro — recreated from your previous index_old.astro
-// Intent: keep formatting, functionality, and calculations EXACTLY the same.
-// Note: This version keeps the original element IDs and global script logic.
-// Use only one instance per page to avoid ID collisions (same as the old page).
+/*
+Calculator.astro — Fuel-based continuous amps + max-start surge check
+(Updates:)
+- "Other" unchecked by default
+- Read Cooling from CSV and append "— Air-cooled" / "— Liquid-cooled" in recommendation,
+  except when amps are in portable range (neededAmps ≤ 30A).
+*/
 ---
-
-<!-- ======== Calculator (1:1) ======== -->
 <div class="box" id="gen-calculator">
   <div class="calc-grid">
     <div class="inputs">
       <label for="scope"><strong>What do you want to power?</strong></label>
       <select id="scope">
-        <option value="essentials">Essentials (fridge, lights, Wi-Fi, furnace blower)</option>
+        <option value="essentials">Essentials (fridge, lights, furnace blower)</option>
         <option value="most">Most of house (kitchen + some HVAC)</option>
         <option value="whole">Whole house (unrestricted typical use)</option>
       </select>
@@ -50,7 +51,7 @@
 
       <hr style="margin:1rem 0">
 
-      <!-- AC module (add rows dynamically) -->
+      <!-- AC module -->
       <div id="ac-section">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
           <strong>Air conditioning (optional)</strong>
@@ -61,21 +62,7 @@
         </div>
         <small style="color:#555">Add one row per condenser (e.g., 3-ton up, 2-ton down).</small>
         <div id="ac-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
-          <div id="ac-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"></div>
-        </div>
-      </div>
-
-      <!-- EV charging (optional) -->
-      <div id="ev-section" style="margin-top:1rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-          <strong>EV charging (optional)</strong>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <button id="toggle-ev" type="button" aria-controls="ev-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
-            <button id="add-ev" type="button">+ Add EV charger</button>
-          </div>
-        </div>
-        <div id="ev-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
-          <div id="ev-rows" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+          <div id="ac-rows" style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem"></div>
         </div>
       </div>
 
@@ -100,7 +87,46 @@
         </div>
       </div>
 
-      <!-- Buffer (headroom) input -->
+      <!-- Max starting amps (now used in surge check) -->
+      <div id="maxstart-section" style="margin-top:1rem;">
+        <strong>Appliance w/max starting amps</strong>
+        <div class="controls-row" style="grid-template-columns:1fr 1fr;align-items:end;margin-top:.5rem;">
+          <div>
+            <label for="ms-start-amps" class="lbl">Starting amps</label>
+            <input id="ms-start-amps" type="number" min="0" step="0.1" placeholder="e.g., 40">
+          </div>
+          <div>
+            <label for="ms-run-amps" class="lbl">Running amps</label>
+            <input id="ms-run-amps" type="number" min="0" step="0.1" placeholder="e.g., 8">
+          </div>
+        </div>
+        <div class="controls-row" style="grid-template-columns:1fr 1fr; margin-top:.25rem;">
+          <div>
+            <label for="ms-volts" class="lbl">Voltage</label>
+            <select id="ms-volts">
+              <option value="120" selected>120 V</option>
+              <option value="240">240 V</option>
+            </select>
+          </div>
+          <div>
+            <label for="ms-soft" class="lbl">Soft Starter</label>
+            <select id="ms-soft">
+              <option value="no" selected>No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+        <small class="muted">Used to adjust peak (surge) amps for the recommendation.</small>
+      </div>
+
+      <!-- Fuel & Buffer -->
+      <div class="controls-row">
+        <label for="fuelType" class="lbl">Fuel type</label>
+        <select id="fuelType">
+          <option value="lp" selected>LP (propane)</option>
+          <option value="ng">Natural gas</option>
+        </select>
+      </div>
       <div class="controls-row">
         <label for="bufferPct" class="lbl">Headroom buffer (%)</label>
         <input id="bufferPct" type="number" min="0" max="50" step="1" value="20" class="fld">
@@ -114,7 +140,11 @@
         <h3 class="summary-title" style="margin:.25rem 0 .5rem">Recommended generator size</h3>
         <p class="summary-big" style="font-size:1.4rem;line-height:1.2;margin:.25rem 0 .75rem"><span id="rec">—</span></p>
         <p style="margin:.25rem 0"><strong>Planning load:</strong> <span id="runW">0</span> W</p>
-        <small id="assumption-note" style="color:#666;display:block;margin-top:.25rem">NEC demand factors: first 10 kVA @ 100%, remainder @ 40% (non‑AC) + 100% of A/C. Recommendation includes headroom buffer.</small>
+        <p style="margin:.25rem 0"><strong>Needed amps (with buffer):</strong> <span id="needA">0</span> A</p>
+        <p style="margin:.25rem 0"><strong>Peak amps (with max-start):</strong> <span id="peakA">0</span> A</p>
+        <small id="assumption-note" style="color:#666;display:block;margin-top:.25rem">
+          Running amps = watts ÷ 240. Needed amps = running amps ÷ (1 − headroom%). Peak includes max-start swap (soft starter cuts start amps 50%).
+        </small>
       </div>
     </aside>
   </div><!-- /calc-grid -->
@@ -124,7 +154,6 @@
   </p>
 </div>
 
-<!-- ======== Styles (1:1) ======== -->
 <style>
   .box { background: var(--card, #fff); padding: 1.5rem; border-radius: 12px; box-shadow: 0 3px 14px rgba(0,0,0,.06); max-width: 720px; margin: 0 auto 1.5rem; }
   label { display:block; margin-top: 1rem; font-weight: 600; }
@@ -144,9 +173,11 @@
   .summary-card strong{font-weight:700}
   #toggle-appliances{color:#0a7e51}
   #toggle-appliances:hover{text-decoration:underline}
+  .muted{ color:#6b7280 }
+  .ac-subgrid{ display:grid; grid-template-columns: 1fr; gap:.5rem .75rem; margin-top:.35rem; }
+  .ac-subgrid input{ width: 9ch; text-align:right; }
 </style>
 
-<!-- ======== Script (1:1) ======== -->
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   // ---------- APPLIANCES (non-AC) ----------
@@ -165,68 +196,130 @@ window.addEventListener('DOMContentLoaded', () => {
     { id:'gdoor',       name:'Garage door opener',              run:500,  defaultScopes:['most','whole'] },
     { id:'septic',      name:'Septic grinder pump',             run:1000, defaultScopes:['most','whole'] },
     { id:'hottub',      name:'Hot tub / spa',                   run:10000,defaultScopes:['whole'] },
-    { id:'other',       name:'Other (enter watts)',             run:0,    defaultScopes:['essentials','most','whole'] },
+    { id:'pool',        name:'Pool pump (1–1.5 hp)',            run:1200, defaultScopes:[] }, // always unchecked
+    { id:'other',       name:'Other (enter watts)',             run:0,    defaultScopes:[] }, // ← now unchecked by default
     { id:'fridge',      name:'Refrigerator',                    run:150,  defaultScopes:['essentials','most','whole'] },
-    { id:'lights',      name:'LED lights (whole house)',        run:200,  defaultScopes:['essentials','most','whole'] },
-    { id:'wifi',        name:'Wi‑Fi/router',                    run:15,   defaultScopes:['essentials','most','whole'] },
     { id:'furnace',     name:'Furnace blower (gas/propane)',    run:600,  defaultScopes:['essentials','most','whole'] }
   ];
 
-  // ---------- AC sizing ----------
+  // ---------- AC assumptions (for prefill of RUN amps only) ----------
   const RUN_W_PER_TON = { standard: 1100, inverter: 750 };
-  const START_MULT    = { standard: 4.0,  inverter: 1.5 };
-  const SOFT_START_FACTOR = 0.6; // soft-starter on standard ≈ 40% less surge
+  const AC_VOLTS = 240;
 
-  // ---------- Generator tiers (continuous ratings) ----------
-  const TIERS = [
-    { size:2000,  label:'~2 kW portable (120 V light loads)' },
-    { size:3500,  label:'~3.5 kW portable (basic essentials)' },
-    { size:5000,  label:'~5 kW portable (essentials + kitchen basics)' },
-    { size:7500,  label:'~7.5 kW portable (most of a small home)' },
-    { size:10000, label:'~10 kW standby (entry Guardian)' },
-    { size:14000, label:'~14 kW standby' },
-    { size:18000, label:'~18 kW standby' },
-    { size:22000, label:'~22 kW standby' },
-    { size:24000, label:'~24 kW standby' },
-    { size:26000, label:'~26 kW standby' },
+  // ---------- Fallback generator table (amps @ 240) ----------
+  // Will be overridden by CSV if found.
+  let GEN_TABLE = [
+    { label:'~10 kW standby', amps_lp:42, amps_ng:42, max_surge:55, cooling:'Air' },
+    { label:'~14 kW standby', amps_lp:58, amps_ng:54, max_surge:75, cooling:'Air' },
+    { label:'~18 kW standby', amps_lp:75, amps_ng:70, max_surge:90, cooling:'Air' },
+    { label:'~22 kW standby', amps_lp:92, amps_ng:81, max_surge:110, cooling:'Air' },
+    { label:'~24 kW standby', amps_lp:100, amps_ng:100, max_surge:120, cooling:'Air' },
+    { label:'~26 kW standby', amps_lp:108, amps_ng:108, max_surge:130, cooling:'Air' }
   ];
+
+  // Try to load CSV if present
+  async function tryLoadCsv() {
+    const paths = ['/generator-amps.csv','/data/generator-amps.csv','/generator_amps.csv','/public/generator_amps.csv'];
+    for (const p of paths) {
+      try {
+        const res = await fetch(p, { cache:'no-store' });
+        if (!res.ok) continue;
+        const text = await res.text();
+        const rows = text.trim().split(/\r?\n/);
+        const header = rows.shift().split(',').map(s=>s.trim().toLowerCase());
+        const iLabel   = header.indexOf('label');
+        const iLP      = header.indexOf('amps_lp');
+        const iNG      = header.indexOf('amps_ng');
+        const iSurge   = header.indexOf('max_surge');
+        const iCooling = header.indexOf('cooling'); // optional
+        if (iLabel === -1 || iLP === -1 || iNG === -1 || iSurge === -1) continue;
+
+        const parsed = rows.map(r=>{
+          const cols = r.split(',').map(s=>s.trim());
+          return {
+            label: cols[iLabel],
+            amps_lp: Number(cols[iLP]),
+            amps_ng: Number(cols[iNG]),
+            max_surge: Number(cols[iSurge]),
+            cooling: iCooling >= 0 ? cols[iCooling] : undefined
+          };
+        }).filter(x =>
+          x.label &&
+          Number.isFinite(x.amps_lp) &&
+          Number.isFinite(x.amps_ng) &&
+          Number.isFinite(x.max_surge)
+        );
+
+        if (parsed.length) {
+          GEN_TABLE = parsed.sort((a,b)=>Math.min(a.amps_lp,a.amps_ng)-Math.min(b.amps_lp,b.amps_ng));
+        }
+        break;
+      } catch(e){ /* ignore; fall back to inline */ }
+    }
+  }
 
   // ---------- Elements ----------
   const el = (id) => document.getElementById(id);
   const scopeEl      = el('scope');
   const listEl       = el('appliance-list');
   const runWEl       = el('runW');
+  const needAEl      = el('needA');
+  const peakAEl      = el('peakA');
   const sqftEl       = el('sqft');
   const smallQtyEl   = el('smallQty');
   const laundryQtyEl = el('laundryQty');
   const recEl        = el('rec');
   const bufferPctEl  = el('bufferPct');
-  const assumptionNote = el('assumption-note');
-  const acRowsEl   = el('ac-rows');
-  const addAcBtn   = el('add-ac');
-  const evRowsEl   = el('ev-rows');
-  const addEvBtn   = el('add-ev');
-  const heatTypeEl = el('heat-type');
-  const heatKwEl   = el('heat-kw');
-  const acPanel    = document.getElementById('ac-panel');
-  const evPanel    = document.getElementById('ev-panel');
-  const heatPanel  = document.getElementById('heat-panel');
-  const toggleAc   = document.getElementById('toggle-ac');
-  const toggleEv   = document.getElementById('toggle-ev');
-  const toggleHeat = document.getElementById('toggle-heat');
-  const panel      = el('appliance-panel');
-  const toggleBtn  = el('toggle-appliances');
+  const fuelEl       = el('fuelType');
+  const acRowsEl     = el('ac-rows');
+  const addAcBtn     = el('add-ac');
+  const heatTypeEl   = el('heat-type');
+  const heatKwEl     = el('heat-kw');
+  const acPanel      = document.getElementById('ac-panel');
+  const heatPanel    = document.getElementById('heat-panel');
+  const toggleAc     = document.getElementById('toggle-ac');
+  const toggleHeat   = document.getElementById('toggle-heat');
+  const panel        = el('appliance-panel');
+  const toggleBtn    = el('toggle-appliances');
   const summaryCount = el('summary-count');
 
-  // Build appliance rows (checkbox + editable running watts)
+  // Max-start fields (used now)
+  const msStartAmpsEl = el('ms-start-amps');
+  const msRunAmpsEl   = el('ms-run-amps');
+  const msVoltsEl     = el('ms-volts');
+  const msSoftEl      = el('ms-soft');
+
+  // Build appliance rows with "(W run)" after name
   APPLIANCES.forEach(a => {
     const wrap = document.createElement('label');
     wrap.className = 'appliance-row';
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'cb_' + a.id;
-    const nameSpan = document.createElement('span'); nameSpan.className = 'name'; nameSpan.textContent = a.name;
-    const runInput = document.createElement('input'); runInput.type = 'number'; runInput.id = 'run_' + a.id; runInput.className = 'watt-input'; runInput.min = '0'; runInput.step = '10'; runInput.value = a.run; runInput.setAttribute('aria-label', a.name + ' running watts'); runInput.title = 'Running watts';
-    const runUnit = document.createElement('span'); runUnit.textContent = 'W run';
-    wrap.appendChild(cb); wrap.appendChild(nameSpan); wrap.appendChild(runInput); wrap.appendChild(runUnit);
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'cb_' + a.id;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.textContent = a.name;
+
+    const runUnit = document.createElement('small');
+    runUnit.textContent = ' (W run)';
+
+    const runInput = document.createElement('input');
+    runInput.type = 'number';
+    runInput.id = 'run_' + a.id;
+    runInput.className = 'watt-input';
+    runInput.min = '0';
+    runInput.step = '10';
+    runInput.value = a.run;
+    runInput.setAttribute('aria-label', a.name + ' running watts');
+    runInput.title = 'Running watts';
+
+    wrap.appendChild(cb);
+    wrap.appendChild(nameSpan);
+    wrap.appendChild(runUnit);
+    wrap.appendChild(runInput);
+
     listEl.appendChild(wrap);
     runInput.addEventListener('input', recalc);
   });
@@ -237,55 +330,212 @@ window.addEventListener('DOMContentLoaded', () => {
   applyGrid();
   if (media.addEventListener) media.addEventListener('change', applyGrid); else if (media.addListener) media.addListener(applyGrid);
 
-  // Collapsible panel helpers
+  // Collapsible helpers
   let open = false;
   function setPanel(openNow){ open = openNow; panel.setAttribute('data-open', open ? '1' : '0'); toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); panel.style.maxHeight = open ? panel.scrollHeight + 'px' : '0'; toggleBtn.textContent = open ? 'Hide details ▴' : 'Show details ▾'; }
   function setSection(panelEl, toggleEl, openNow){ if (!panelEl || !toggleEl) return; panelEl.setAttribute('data-open', openNow ? '1' : '0'); toggleEl.setAttribute('aria-expanded', openNow ? 'true' : 'false'); panelEl.style.maxHeight = openNow ? panelEl.scrollHeight + 'px' : '0'; toggleEl.textContent = openNow ? 'Hide details ▴' : 'Show details ▾'; }
   toggleBtn.addEventListener('click', () => setPanel(!open));
   toggleAc?.addEventListener('click', ()=> setSection(acPanel, toggleAc, (acPanel?.getAttribute('data-open')!=='1')));
-  toggleEv?.addEventListener('click', ()=> setSection(evPanel, toggleEv, (evPanel?.getAttribute('data-open')!=='1')));
   toggleHeat?.addEventListener('click', ()=> setSection(heatPanel, toggleHeat, (heatPanel?.getAttribute('data-open')!=='1')));
 
-  // AC rows
-  function addAcRow(preset = { tons: 2.5, type: 'standard', soft: false }){
+  // AC rows (running amps only)
+  function prefillRunAmps(tons, type){
+    const runW = Math.max(0, tons) * (RUN_W_PER_TON[type] || RUN_W_PER_TON.standard);
+    return Math.round((runW / AC_VOLTS) * 10) / 10;
+  }
+  function addAcRow(preset = { tons: 2.5, type: 'standard' }){
     if (acRowsEl.children.length >= 3) return;
-    const row = document.createElement('div'); row.className = 'ac-row'; row.style.display = 'grid'; row.style.gridTemplateColumns = '1fr 1fr auto'; row.style.gap = '.5rem'; row.style.alignItems = 'center';
-    const tonSel = document.createElement('select'); [1.5,2,2.5,3,3.5,4,5].forEach(t=>{ const opt=document.createElement('option'); opt.value=t; opt.textContent=`${t} ton`; tonSel.appendChild(opt); }); tonSel.value = preset.tons;
-    const typeWrap = document.createElement('div'); typeWrap.style.display = 'flex'; typeWrap.style.alignItems = 'center'; typeWrap.style.gap = '.5rem';
-    const typeSel = document.createElement('select'); [{v:'standard', n:'Standard (single-stage)'},{v:'inverter', n:'High-efficiency (inverter)'}].forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.n; typeSel.appendChild(opt); }); typeSel.value = preset.type;
-    const softLbl = document.createElement('label'); const softCb = document.createElement('input'); softCb.type = 'checkbox'; softCb.checked = !!preset.soft; softLbl.appendChild(softCb); softLbl.appendChild(document.createTextNode(' Soft-starter'));
-    typeWrap.appendChild(typeSel); typeWrap.appendChild(softLbl);
+
+    const row = document.createElement('div');
+    row.className = 'ac-row';
+    row.style.display = 'grid';
+    row.style.gridTemplateColumns = '1fr 1fr auto';
+    row.style.gap = '.5rem';
+    row.style.alignItems = 'center';
+    row.style.padding = '.25rem .25rem .5rem';
+    row.style.border = '1px solid #eef2f6';
+    row.style.borderRadius = '8px';
+
+    const tonSel = document.createElement('select');
+    [1.5,2,2.5,3,3.5,4,5].forEach(t=>{ const opt=document.createElement('option'); opt.value=t; opt.textContent=`${t} ton`; tonSel.appendChild(opt); });
+    tonSel.value = preset.tons;
+
+    const typeSel = document.createElement('select');
+    [{v:'standard', n:'Standard (single-stage)'},{v:'inverter', n:'High-efficiency (inverter)'}].forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.n; typeSel.appendChild(opt); });
+    typeSel.value = preset.type;
+
     const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '✕'; delBtn.title = 'Remove'; delBtn.style.minWidth = '2rem';
-    row.appendChild(tonSel); row.appendChild(typeWrap); row.appendChild(delBtn); acRowsEl.appendChild(row);
-    const recalcBound = recalc.bind(null); tonSel.addEventListener('change', recalcBound); typeSel.addEventListener('change', recalcBound); softCb.addEventListener('change', recalcBound); delBtn.addEventListener('click', ()=>{ row.remove(); recalc(); });
+
+    const sub = document.createElement('div');
+    sub.className = 'ac-subgrid';
+    sub.style.gridColumn = '1 / -1';
+    const runLbl = document.createElement('label'); runLbl.textContent = 'Running amps';
+    const runA   = document.createElement('input'); runA.type = 'number'; runA.step = '0.1'; runA.min = '0';
+
+    sub.appendChild(runLbl);
+    sub.appendChild(runA);
+
+    const typeWrap = document.createElement('div'); typeWrap.appendChild(typeSel);
+    row.appendChild(tonSel);
+    row.appendChild(typeWrap);
+    row.appendChild(delBtn);
+    row.appendChild(sub);
+    acRowsEl.appendChild(row);
+
+    function refreshRunDefault(){ runA.value = prefillRunAmps(parseFloat(tonSel.value)||0, typeSel.value); }
+    refreshRunDefault();
+
+    const recalcBound = recalc.bind(null);
+    tonSel.addEventListener('change', ()=>{ refreshRunDefault(); recalcBound(); });
+    typeSel.addEventListener('change', ()=>{ refreshRunDefault(); recalcBound(); });
+    runA.addEventListener('input', recalcBound);
+    delBtn.addEventListener('click', ()=>{ row.remove(); recalc(); });
   }
-  function getAcLoads(){ const rows = Array.from(acRowsEl.querySelectorAll('.ac-row')); return rows.map(row => { const selects = row.querySelectorAll('select'); const tons = parseFloat(selects[0].value); const type = selects[1].value; const soft = row.querySelector('input[type="checkbox"]').checked; const runPerTon = RUN_W_PER_TON[type]; const run = Math.round(tons * runPerTon); let start = Math.round(run * START_MULT[type]); if (type === 'standard' && soft) start = Math.round(start * SOFT_START_FACTOR); start = Math.min(start, 10000); return { run, start }; }); }
 
-  // EV rows
-  function addEvRow(preset = { amps: 40, kw: 0 }){
-    const row = document.createElement('div'); row.className = 'ev-row'; row.style.display = 'grid'; row.style.gridTemplateColumns = '1fr 1fr auto'; row.style.gap = '.5rem'; row.style.alignItems = 'center';
-    const sel = document.createElement('select'); ['32','40','48','60','80','custom'].forEach(v => { const opt=document.createElement('option'); opt.value=v; opt.textContent=(v==='custom')?'Custom kW':`${v}A @240V`; sel.appendChild(opt); }); sel.value = preset.kw ? 'custom' : String(preset.amps);
-    const kwInput = document.createElement('input'); kwInput.type = 'number'; kwInput.min = '0'; kwInput.step = '0.5'; kwInput.placeholder = 'kW'; kwInput.value = preset.kw ? String(preset.kw) : ''; kwInput.disabled = sel.value !== 'custom'; kwInput.style.display = (sel.value === 'custom') ? '' : 'none';
-    const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕'; del.title = 'Remove'; del.style.minWidth = '2rem';
-    row.appendChild(sel); row.appendChild(kwInput); row.appendChild(del); evRowsEl.appendChild(row);
-    function onChange(){ kwInput.disabled = (sel.value !== 'custom'); kwInput.style.display = (sel.value === 'custom') ? '' : 'none'; recalc(); }
-    sel.addEventListener('change', onChange); kwInput.addEventListener('input', recalc); del.addEventListener('click', ()=>{ row.remove(); recalc(); });
+  // Heating helper (unchanged)
+  function getHeatCandidateW(acRun){
+    const type = heatTypeEl ? heatTypeEl.value : 'none';
+    const kw = parseFloat(heatKwEl && heatKwEl.value ? heatKwEl.value : '0') || 0;
+    if (type === 'resistance') return Math.round(kw * 1000);
+    if (type === 'hp_supp') { const supp = Math.round(kw * 1000 * 0.65); return acRun + supp; }
+    return 0;
   }
-  function getEvLoadW(){ const rows = Array.from(evRowsEl?.querySelectorAll('.ev-row') || []); return rows.reduce((sum,row)=>{ const sel = row.querySelector('select'); const kwInput = row.querySelector('input[type="number"]'); if (!sel) return sum; if (sel.value === 'custom') { const kw = parseFloat(kwInput?.value||'0')||0; return sum + Math.round(kw*1000); } const amps = parseInt(sel.value,10)||0; const kw = (amps*240)/1000; return sum + Math.round(kw*1000); },0); }
 
-  function getHeatCandidateW(acRun){ const type = heatTypeEl ? heatTypeEl.value : 'none'; const kw = parseFloat(heatKwEl && heatKwEl.value ? heatKwEl.value : '0') || 0; if (type === 'resistance') { return Math.round(kw * 1000); } if (type === 'hp_supp') { const supp = Math.round(kw * 1000 * 0.65); return acRun + supp; } return 0; }
+  function updateSummary(){
+    const count = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked).length;
+    summaryCount.textContent = count;
+  }
 
-  function updateSummary(){ const count = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked).length; summaryCount.textContent = count; }
+  function applyPreset(scope){
+    APPLIANCES.forEach(a => { const cb = document.getElementById('cb_' + a.id); if (cb) cb.checked = false; });
+    APPLIANCES.filter(a => a.defaultScopes.includes(scope))
+      .forEach(a => { const cb = document.getElementById('cb_' + a.id); if (cb) cb.checked = true; });
 
-  function applyPreset(scope){ APPLIANCES.forEach(a => document.getElementById('cb_' + a.id).checked = false); APPLIANCES.filter(a => a.defaultScopes.includes(scope)).forEach(a => document.getElementById('cb_' + a.id).checked = true); if (scope === 'essentials') { ['spaceHeat','waterHeater','elecRange','elecDryer'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; }); } if (scope === 'most') { ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; }); } { const c = document.getElementById('cb_hottub'); if (c) c.checked = false; } acRowsEl.innerHTML = ''; evRowsEl.innerHTML = ''; setSection(acPanel, toggleAc, false); setSection(evPanel, toggleEv, false); setSection(heatPanel, toggleHeat, false); if (smallQtyEl) smallQtyEl.value = '2'; if (laundryQtyEl) laundryQtyEl.value = '1'; updateSummary(); setPanel(false); recalc(); }
+    if (scope === 'essentials') { ['spaceHeat','waterHeater','elecRange','elecDryer'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; }); }
+    if (scope === 'most') { ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; }); }
+    { const c = document.getElementById('cb_hottub'); if (c) c.checked = false; }
 
-  function recalc(){ let runSumNonAC = 0; const appRunsById = {}; const sqft = parseInt(sqftEl && sqftEl.value ? sqftEl.value : '0', 10) || 0; const necLighting = Math.max(0, Math.round(sqft * 3)); runSumNonAC += necLighting; 
-// NEC: add 1500 VA for each small-appliance and laundry branch circuit
-const saQty = parseInt(smallQtyEl?.value || '0', 10) || 0;
-const laQty = parseInt(laundryQtyEl?.value || '0', 10) || 0;
-runSumNonAC += (saQty + laQty) * 1500;
+    acRowsEl.innerHTML = '';
+    setSection(acPanel, toggleAc, false);
+    setSection(heatPanel, toggleHeat, false);
 
-APPLIANCES.forEach(a => { const cb = document.getElementById('cb_'+a.id); if (!cb || !cb.checked) return; const runEl = document.getElementById('run_'+a.id); const v = parseInt(runEl?.value, 10); const run = Number.isFinite(v) ? v : a.run; appRunsById[a.id] = run; runSumNonAC += run; }); const acLoads = getAcLoads(); const acRun = acLoads.reduce((s,a)=> s + a.run, 0); const evRun = getEvLoadW(); const heatCandidate = getHeatCandidateW(acRun); const seasonalMax = Math.max(acRun, heatCandidate); const totalGeneral = runSumNonAC; const first10k = Math.min(totalGeneral, 10000); const remainder = Math.max(totalGeneral - 10000, 0); const weightedGeneral = first10k + Math.round(remainder * 0.40); const runSum = weightedGeneral + seasonalMax + evRun; const buf = Math.max(0, Math.min(50, parseInt(bufferPctEl && bufferPctEl.value ? bufferPctEl.value : '20', 10) || 20)); const neededContinuous = Math.ceil(runSum / (1 - buf/100)); const tier = TIERS.find(t => t.size >= neededContinuous) || { size: Math.ceil(neededContinuous/1000)*1000, label: `~${Math.ceil(neededContinuous/1000)*1000} W (custom)` }; runWEl.textContent = runSum.toLocaleString(); recEl.textContent = `${tier.label}`; if (assumptionNote) { assumptionNote.textContent = 'NEC demand factors: first 10 kVA @ 100%, remainder @ 40% (non‑AC) + 100% of A/C. Recommendation includes headroom buffer.'; } if (panel && panel.getAttribute('data-open') === '1') { panel.style.maxHeight = panel.scrollHeight + 'px'; } }
+    if (smallQtyEl) smallQtyEl.value = '2';
+    if (laundryQtyEl) laundryQtyEl.value = '1';
+    updateSummary(); setPanel(false); recalc();
+  }
+
+  // --- Pick generator: must meet BOTH continuous and surge amps ---
+  function pickGenerator(neededAmps, surgeAmps, fuel /* 'lp' | 'ng' */){
+    const key = fuel === 'ng' ? 'amps_ng' : 'amps_lp';
+
+    // 1) Filter by CONTINUOUS first (fuel-specific)
+    const contOK = GEN_TABLE.filter(row => Number(row[key]) >= neededAmps);
+
+    if (contOK.length === 0) {
+      return {
+        label: `≥ ${Math.ceil(neededAmps)} A continuous (custom)`,
+        amps_lp: neededAmps, amps_ng: neededAmps, max_surge: surgeAmps
+      };
+    }
+
+    // 2) Sort by the same fuel-specific amps so we truly get the smallest that works
+    contOK.sort((a, b) => Number(a[key]) - Number(b[key]));
+
+    // 3) Among those, pick the smallest that also meets SURGE
+    const bothOK = contOK.find(row => Number(row.max_surge) >= surgeAmps);
+    if (bothOK) return bothOK;
+
+    // 4) If none meet surge, take the smallest that meets continuous (honest upsize path)
+    return contOK[0];
+  }
+
+  function recalc(){
+    let runSumNonAC = 0;
+
+    // NEC lighting from sqft
+    const sqft = parseInt(sqftEl?.value || '0', 10) || 0;
+    const necLighting = Math.max(0, Math.round(sqft * 3));
+    runSumNonAC += necLighting;
+
+    // NEC branch circuits
+    const saQty = parseInt(smallQtyEl?.value || '0', 10) || 0;
+    const laQty = parseInt(laundryQtyEl?.value || '0', 10) || 0;
+    runSumNonAC += (saQty + laQty) * 1500;
+
+    // Appliances
+    APPLIANCES.forEach(a => {
+      const cb = document.getElementById('cb_'+a.id);
+      if (!cb || !cb.checked) return;
+      const runEl = document.getElementById('run_'+a.id);
+      const v = parseInt(runEl?.value, 10);
+      const run = Number.isFinite(v) ? v : a.run;
+      runSumNonAC += run;
+    });
+
+    // AC loads from RUNNING AMPS (A×240)
+    let acRun = 0;
+    const acRows = Array.from(acRowsEl.querySelectorAll('.ac-row'));
+    acRows.forEach(row => {
+      const sub = row.querySelector('.ac-subgrid');
+      const input = sub ? sub.querySelector('input[type="number"]') : null;
+      const runA = input ? parseFloat(input.value || '0') || 0 : 0;
+      acRun += Math.round(runA * AC_VOLTS);
+    });
+
+    // Heating vs AC seasonal selection
+    const heatCandidate = getHeatCandidateW(acRun);
+    const seasonalMax = Math.max(acRun, heatCandidate);
+
+    // General (NEC) demand factor for non-AC
+    const totalGeneral = runSumNonAC;
+    const first10k = Math.min(totalGeneral, 10000);
+    const remainder = Math.max(totalGeneral - 10000, 0);
+    const weightedGeneral = first10k + Math.round(remainder * 0.40);
+
+    // Base running watts (continuous only)
+    const runningWatts = weightedGeneral + seasonalMax;
+
+    // Running & needed amps (continuous)
+    const buffer = Math.max(0, Math.min(50, parseInt(bufferPctEl?.value || '20', 10) || 20));
+    const runningAmps = runningWatts / 240;
+    const neededAmps  = runningAmps / (1 - buffer/100);
+
+    // Peak (surge) amps = pre-buffer amps, swapping raw amps (no voltage normalization)
+// Matches: peak = runningAmps_preBuffer − msRunA + (msStartA * soft)
+const msStartA = parseFloat(msStartAmpsEl?.value || '0') || 0;
+const msRunA   = parseFloat(msRunAmpsEl?.value || '0') || 0;
+// keep the field but don't use it in the math per your spec/Excel
+// const msV   = parseInt(msVoltsEl?.value || '120', 10) || 120;
+const soft     = (msSoftEl?.value || 'no') === 'yes' ? 0.5 : 1.0;
+
+const preBufferAmps = runningWatts / 240;           // = runningAmps before headroom
+const surgeDeltaA   = Math.max(0, (msStartA * soft) - msRunA);
+const surgeAmps     = preBufferAmps + surgeDeltaA;  // what we display + compare to max_surge
+
+
+    // Pick generator
+    const fuel = (fuelEl?.value || 'lp');
+    const choice = pickGenerator(neededAmps, surgeAmps, fuel);
+
+    // Build cooling note (show only if NOT portable-level amps)
+    const isPortable = neededAmps <= 30; // ≈7.2 kW @ 240V — rule-of-thumb portable threshold
+    let coolingNote = '';
+    if (!isPortable && choice && typeof choice.cooling === 'string' && choice.cooling.trim()) {
+      const c = choice.cooling.trim().toLowerCase();
+      coolingNote = c.startsWith('liquid') ? ' — Liquid-cooled' : ' — Air-cooled';
+    }
+
+    // Output
+    runWEl.textContent  = runningWatts.toLocaleString();
+    needAEl.textContent = Math.ceil(neededAmps).toString();
+    peakAEl.textContent = Math.ceil(surgeAmps).toString();
+    recEl.textContent   = `${choice.label} (${fuel === 'lp' ? 'LP' : 'NG'})${coolingNote}`;
+
+    // Maintain panel heights when open
+    if (panel?.getAttribute('data-open') === '1') panel.style.maxHeight = panel.scrollHeight + 'px';
+    if (acPanel?.getAttribute('data-open') === '1') acPanel.style.maxHeight = acPanel.scrollHeight + 'px';
+    if (heatPanel?.getAttribute('data-open') === '1') heatPanel.style.maxHeight = heatPanel.scrollHeight + 'px';
+  }
 
   // Wire-up
   scopeEl.addEventListener('change', e => applyPreset(e.target.value));
@@ -295,12 +545,21 @@ APPLIANCES.forEach(a => { const cb = document.getElementById('cb_'+a.id); if (!c
   smallQtyEl?.addEventListener('input', recalc);
   laundryQtyEl?.addEventListener('input', recalc);
   addAcBtn.addEventListener('click', () => { addAcRow(); setSection(acPanel, toggleAc, true); recalc(); });
-  addEvBtn?.addEventListener('click', () => { addEvRow({ amps: 40, kw: 0 }); setSection(evPanel, toggleEv, true); recalc(); });
-  const bufferEl = bufferPctEl; bufferEl?.addEventListener('input', recalc);
+  bufferPctEl?.addEventListener('input', recalc);
+  fuelEl?.addEventListener('change', recalc);
   heatTypeEl?.addEventListener('change', recalc);
   heatKwEl?.addEventListener('input', recalc);
 
-  // Initialize default preset
-  applyPreset('essentials');
+  // Max-start listeners
+  msStartAmpsEl?.addEventListener('input', recalc);
+  msRunAmpsEl?.addEventListener('input', recalc);
+  msVoltsEl?.addEventListener('change', recalc);
+  msSoftEl?.addEventListener('change', recalc);
+
+  // Init
+  (async () => {
+    await tryLoadCsv();     // pulls your generator(-|_)amps.csv (with max_surge, optional Cooling)
+    applyPreset('essentials');
+  })();
 });
 </script>
