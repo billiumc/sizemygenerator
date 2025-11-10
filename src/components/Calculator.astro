@@ -1,10 +1,19 @@
 ---
 /*
-Calculator.astro — Fuel-based continuous amps + max-start surge check
-(Updates:)
-- "Other" unchecked by default
-- Read Cooling from CSV and append "— Air-cooled" / "— Liquid-cooled" in recommendation,
-  except when amps are in portable range (neededAmps ≤ 30A).
+Calculator.astro — generator sizing (continuous amps + surge), with LMS
+
+Highlights
+- CSV loader uses safe newline splitter (no regex)
+- Appliances list (+ NEC lighting/branch circuits)
+- AC rows (tons->prefill amps, editable)
+- Heating (resistance or HP supplemental)
+- EV chargers (amps @ 240 V), inline ✕ on same row
+- LMS: Appliances, each AC row, Heating, and each EV row are “shed-able”
+  • Appliances/EV: sum unmanaged + largest managed
+  • AC: sum unmanaged + largest managed condenser
+  • Heating: competes seasonally with AC (we still take seasonal max)
+- Liquid-cooled advisory banner in results
+- Vanilla JS only (no React imports)
 */
 ---
 <div class="box" id="gen-calculator">
@@ -25,7 +34,7 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
         </div>
       </div>
 
-      <!-- Collapsible appliance section -->
+      <!-- Appliances (collapsible) -->
       <div id="appliance-header" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
         <div id="appliance-summary" style="font-size:.95rem;color:#555">
           ✅ Preset applied. <span id="summary-count">0</span> items selected.
@@ -34,7 +43,6 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
       </div>
 
       <div id="appliance-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
-        <p style="margin:.25rem 0 .5rem;color:#666">Toggle what you’ll run at the same time. Edit <em>running watts</em> if you have the rating plate; defaults are typical values.</p>
         <!-- NEC required small-appliance and laundry circuits -->
         <div id="nec-circuits" style="display:grid;grid-template-columns:1fr auto auto;gap:.5rem 1rem;align-items:center;margin:.5rem 0 .75rem;">
           <div><strong>Small-appliance circuits</strong> <small style="color:#666">(NEC, 1500 W each)</small></div>
@@ -51,7 +59,7 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
 
       <hr style="margin:1rem 0">
 
-      <!-- AC module -->
+      <!-- Air Conditioning -->
       <div id="ac-section">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
           <strong>Air conditioning (optional)</strong>
@@ -66,7 +74,7 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
         </div>
       </div>
 
-      <!-- Heating (optional) -->
+      <!-- Heating -->
       <div id="heat-section" style="margin-top:1rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
           <strong>Heating (optional)</strong>
@@ -87,7 +95,22 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
         </div>
       </div>
 
-      <!-- Max starting amps (now used in surge check) -->
+      <!-- EV Chargers -->
+      <div id="ev-section" style="margin-top:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+          <strong>EV chargers (optional)</strong>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <button id="toggle-ev" type="button" aria-controls="ev-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
+            <button id="add-ev" type="button">+ Add EV charger</button>
+          </div>
+        </div>
+        <small style="color:#555">Included at 100% like A/C. Enter charging/breaker amps at 240 V.</small>
+        <div id="ev-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
+          <div id="ev-rows" style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem"></div>
+        </div>
+      </div>
+
+      <!-- Max-start (surge) -->
       <div id="maxstart-section" style="margin-top:1rem;">
         <strong>Appliance w/max starting amps</strong>
         <div class="controls-row" style="grid-template-columns:1fr 1fr;align-items:end;margin-top:.5rem;">
@@ -119,7 +142,36 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
         <small class="muted">Used to adjust peak (surge) amps for the recommendation.</small>
       </div>
 
-      <!-- Fuel & Buffer -->
+      <!-- LMS -->
+      <div class="controls-row" style="margin-top:1.25rem;grid-template-columns: 1fr 1fr;">
+        <div>
+          <label for="lms-enable" class="lbl">Load Management System (LMS)</label>
+          <select id="lms-enable">
+            <option value="no" selected>No</option>
+            <option value="yes">Yes</option>
+          </select>
+          <small class="muted">If enabled, we count the sum of unmanaged + the <em>largest</em> managed item for each category.</small>
+        </div>
+        <div></div>
+      </div>
+
+      <div id="lms-section" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;border:1px solid #e6ebf2;border-radius:10px;">
+        <div style="padding:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;">
+          <div class="lbl" style="margin:0">LMS items — <span id="lms-summary">No LMS items selected</span></div>
+          <button id="toggle-lms" type="button" aria-controls="lms-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
+        </div>
+        <div id="lms-panel" style="padding:.5rem .75rem .75rem">
+          <small class="muted">Select items to manage (shed/sequence). Only the <em>largest</em> managed item per category is counted with unmanaged.</small>
+          <div id="lms-list" style="margin-top:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.5rem;">
+            <div class="mini-card"><div class="mini-label">Managed count</div><div class="mini-val" id="lms-count">0</div></div>
+            <div class="mini-card"><div class="mini-label">Largest managed (Appl.)</div><div class="mini-val" id="lms-max-general">0 W</div></div>
+            <div class="mini-card"><div class="mini-label">Largest managed (AC/EV)</div><div class="mini-val" id="lms-max-others">0 W</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fuel & buffer -->
       <div class="controls-row">
         <label for="fuelType" class="lbl">Fuel type</label>
         <select id="fuelType">
@@ -133,21 +185,24 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
       </div>
 
       <hr>
-    </div><!-- /inputs -->
+    </div>
 
     <aside class="summary-card" aria-live="polite">
       <div id="results">
         <h3 class="summary-title" style="margin:.25rem 0 .5rem">Recommended generator size</h3>
         <p class="summary-big" style="font-size:1.4rem;line-height:1.2;margin:.25rem 0 .75rem"><span id="rec">—</span></p>
+        <div id="lc-alert" style="display:none;margin:.5rem 0;padding:.5rem .75rem;border-left:4px solid #b45309;background:#FFF7ED;color:#92400E;border-radius:6px;">
+          Consider a load management system to reduce recommended generator size.
+        </div>
         <p style="margin:.25rem 0"><strong>Planning load:</strong> <span id="runW">0</span> W</p>
         <p style="margin:.25rem 0"><strong>Needed amps (with buffer):</strong> <span id="needA">0</span> A</p>
         <p style="margin:.25rem 0"><strong>Peak amps (with max-start):</strong> <span id="peakA">0</span> A</p>
         <small id="assumption-note" style="color:#666;display:block;margin-top:.25rem">
-          Running amps = watts ÷ 240. Needed amps = running amps ÷ (1 − headroom%). Peak includes max-start swap (soft starter cuts start amps 50%).
+          Running amps = watts ÷ 240. Needed amps = running amps ÷ (1 − headroom%). Peak includes max-start swap (soft starter cuts start amps ~50%).
         </small>
       </div>
     </aside>
-  </div><!-- /calc-grid -->
+  </div>
 
   <p style="margin-top:1rem;color:#555">
     Heads up: This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
@@ -155,32 +210,31 @@ Calculator.astro — Fuel-based continuous amps + max-start surge check
 </div>
 
 <style>
-  .box { background: var(--card, #fff); padding: 1.5rem; border-radius: 12px; box-shadow: 0 3px 14px rgba(0,0,0,.06); max-width: 720px; margin: 0 auto 1.5rem; }
-  label { display:block; margin-top: 1rem; font-weight: 600; }
-  input, select { width: 100%; padding: .6rem .7rem; margin-top: .35rem; border: 1px solid #cfd6df; border-radius: 8px; font-size: 1rem; background:#fff; }
-  .controls-row { display:grid; grid-template-columns: 1fr 1fr; gap:.5rem .75rem; margin-top:1rem; align-items:center; }
-  .controls-row .lbl { font-weight:600; margin:0; }
-  .controls-row .fld { width:100%; min-width:0; }
-  @media (max-width:560px){ .controls-row { grid-template-columns: 1fr; } }
-  .watt-input { width: 7ch; min-width: 7ch; text-align: right; padding:.35rem .5rem; margin:0; }
+  .box { background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 3px 14px rgba(0,0,0,.06); max-width:720px; margin:0 auto 1.5rem; }
+  label { display:block; margin-top:1rem; font-weight:600; }
+  input, select { width:100%; padding:.6rem .7rem; margin-top:.35rem; border:1px solid #cfd6df; border-radius:8px; font-size:1rem; background:#fff; }
+  .controls-row { display:grid; grid-template-columns:1fr 1fr; gap:.5rem .75rem; margin-top:1rem; align-items:center; }
+  @media (max-width:560px){ .controls-row { grid-template-columns:1fr; } }
+  .watt-input { width:7ch; min-width:7ch; text-align:right; padding:.35rem .5rem; margin:0; }
   .appliance-row { display:flex; align-items:center; gap:.5rem; }
-  .appliance-row small { color:#666; }
-  .appliance-row .name { flex: 1 1 auto; min-width: 0; }
+  .appliance-row .name { flex:1 1 auto; min-width:0; }
   .calc-grid{display:grid;gap:1rem}
   @media(min-width:900px){.calc-grid{grid-template-columns:1fr 320px}}
-  .summary-card{position:sticky;top:1rem;align-self:start;background:var(--card,#fff);border:1px solid #e6ebf2;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.06);padding:1rem}
+  .summary-card{position:sticky;top:1rem;align-self:start;background:#fff;border:1px solid #e6ebf2;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.06);padding:1rem}
   .summary-card p{margin:.25rem 0}
-  .summary-card strong{font-weight:700}
   #toggle-appliances{color:#0a7e51}
   #toggle-appliances:hover{text-decoration:underline}
   .muted{ color:#6b7280 }
   .ac-subgrid{ display:grid; grid-template-columns: 1fr; gap:.5rem .75rem; margin-top:.35rem; }
-  .ac-subgrid input{ width: 9ch; text-align:right; }
+  .ac-subgrid input{ width:9ch; text-align:right; }
+  .mini-card{background:#fff;border:1px solid #eef2f6;border-radius:10px;padding:.5rem}
+  .mini-label{font-size:.75rem;color:#6b7280}
+  .mini-val{font-weight:700}
 </style>
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
-  // ---------- APPLIANCES (non-AC) ----------
+  // --------- DATA ----------
   const APPLIANCES = [
     { id:'well',        name:'Well pump (3/4 hp)',              run:1500, defaultScopes:['most','whole'] },
     { id:'sump',        name:'Sump pump (1/2 hp)',              run:900,  defaultScopes:['essentials','most','whole'] },
@@ -196,18 +250,15 @@ window.addEventListener('DOMContentLoaded', () => {
     { id:'gdoor',       name:'Garage door opener',              run:500,  defaultScopes:['most','whole'] },
     { id:'septic',      name:'Septic grinder pump',             run:1000, defaultScopes:['most','whole'] },
     { id:'hottub',      name:'Hot tub / spa',                   run:10000,defaultScopes:['whole'] },
-    { id:'pool',        name:'Pool pump (1–1.5 hp)',            run:1200, defaultScopes:[] }, // always unchecked
-    { id:'other',       name:'Other (enter watts)',             run:0,    defaultScopes:[] }, // ← now unchecked by default
+    { id:'pool',        name:'Pool pump (1–1.5 hp)',            run:1200, defaultScopes:[] },
+    { id:'other',       name:'Other (enter watts)',             run:0,    defaultScopes:[] },
     { id:'fridge',      name:'Refrigerator',                    run:150,  defaultScopes:['essentials','most','whole'] },
     { id:'furnace',     name:'Furnace blower (gas/propane)',    run:600,  defaultScopes:['essentials','most','whole'] }
   ];
-
-  // ---------- AC assumptions (for prefill of RUN amps only) ----------
-  const RUN_W_PER_TON = { standard: 1100, inverter: 750 };
+  const RUN_W_PER_TON = { standard:1100, inverter:750 };
   const AC_VOLTS = 240;
 
-  // ---------- Fallback generator table (amps @ 240) ----------
-  // Will be overridden by CSV if found.
+  // Fallback generator table (amps @ 240)
   let GEN_TABLE = [
     { label:'~10 kW standby', amps_lp:42, amps_ng:42, max_surge:55, cooling:'Air' },
     { label:'~14 kW standby', amps_lp:58, amps_ng:54, max_surge:75, cooling:'Air' },
@@ -217,7 +268,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { label:'~26 kW standby', amps_lp:108, amps_ng:108, max_surge:130, cooling:'Air' }
   ];
 
-  // Try to load CSV if present
+  // --------- CSV loader (safe newline splitter) ----------
   async function tryLoadCsv() {
     const paths = ['/generator-amps.csv','/data/generator-amps.csv','/generator_amps.csv','/public/generator_amps.csv'];
     for (const p of paths) {
@@ -225,330 +276,405 @@ window.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(p, { cache:'no-store' });
         if (!res.ok) continue;
         const text = await res.text();
-        const rows = text.trim().split(/\r?\n/);
-        const header = rows.shift().split(',').map(s=>s.trim().toLowerCase());
-        const iLabel   = header.indexOf('label');
-        const iLP      = header.indexOf('amps_lp');
-        const iNG      = header.indexOf('amps_ng');
-        const iSurge   = header.indexOf('max_surge');
-        const iCooling = header.indexOf('cooling'); // optional
-        if (iLabel === -1 || iLP === -1 || iNG === -1 || iSurge === -1) continue;
+        const rows = text.split('\n').map(l => (l.endsWith('\r') ? l.slice(0,-1) : l));
+        if (!rows.length) continue;
+
+        const header = rows.shift().split(',').map(s => s.trim().toLowerCase());
+        const iLabel=header.indexOf('label'), iLP=header.indexOf('amps_lp'), iNG=header.indexOf('amps_ng'), iSurge=header.indexOf('max_surge'), iCooling=header.indexOf('cooling');
+        if (iLabel<0||iLP<0||iNG<0||iSurge<0) continue;
 
         const parsed = rows.map(r=>{
-          const cols = r.split(',').map(s=>s.trim());
-          return {
-            label: cols[iLabel],
-            amps_lp: Number(cols[iLP]),
-            amps_ng: Number(cols[iNG]),
-            max_surge: Number(cols[iSurge]),
-            cooling: iCooling >= 0 ? cols[iCooling] : undefined
-          };
-        }).filter(x =>
-          x.label &&
-          Number.isFinite(x.amps_lp) &&
-          Number.isFinite(x.amps_ng) &&
-          Number.isFinite(x.max_surge)
-        );
+          const c=r.split(',').map(s=>s.trim());
+          return { label:c[iLabel], amps_lp:Number(c[iLP]), amps_ng:Number(c[iNG]), max_surge:Number(c[iSurge]), cooling:iCooling>=0?c[iCooling]:undefined };
+        }).filter(x=>x.label && Number.isFinite(x.amps_lp) && Number.isFinite(x.amps_ng) && Number.isFinite(x.max_surge));
 
-        if (parsed.length) {
-          GEN_TABLE = parsed.sort((a,b)=>Math.min(a.amps_lp,a.amps_ng)-Math.min(b.amps_lp,b.amps_ng));
-        }
+        if (parsed.length) GEN_TABLE = parsed.sort((a,b)=>Math.min(a.amps_lp,a.amps_ng)-Math.min(b.amps_lp,b.amps_ng));
         break;
-      } catch(e){ /* ignore; fall back to inline */ }
+      } catch { /* ignore */ }
     }
   }
 
-  // ---------- Elements ----------
-  const el = (id) => document.getElementById(id);
-  const scopeEl      = el('scope');
-  const listEl       = el('appliance-list');
-  const runWEl       = el('runW');
-  const needAEl      = el('needA');
-  const peakAEl      = el('peakA');
-  const sqftEl       = el('sqft');
-  const smallQtyEl   = el('smallQty');
-  const laundryQtyEl = el('laundryQty');
-  const recEl        = el('rec');
-  const bufferPctEl  = el('bufferPct');
-  const fuelEl       = el('fuelType');
-  const acRowsEl     = el('ac-rows');
-  const addAcBtn     = el('add-ac');
-  const heatTypeEl   = el('heat-type');
-  const heatKwEl     = el('heat-kw');
-  const acPanel      = document.getElementById('ac-panel');
-  const heatPanel    = document.getElementById('heat-panel');
-  const toggleAc     = document.getElementById('toggle-ac');
-  const toggleHeat   = document.getElementById('toggle-heat');
-  const panel        = el('appliance-panel');
-  const toggleBtn    = el('toggle-appliances');
-  const summaryCount = el('summary-count');
+  // --------- Elements ----------
+  const el = id => document.getElementById(id);
+  const scopeEl=el('scope'), listEl=el('appliance-list'), runWEl=el('runW'), needAEl=el('needA'), peakAEl=el('peakA');
+  const sqftEl=el('sqft'), smallQtyEl=el('smallQty'), laundryQtyEl=el('laundryQty'), recEl=el('rec'), bufferPctEl=el('bufferPct'), fuelEl=el('fuelType');
+  const acRowsEl=el('ac-rows'), addAcBtn=el('add-ac'), addEvBtn=el('add-ev');
+  const heatTypeEl=el('heat-type'), heatKwEl=el('heat-kw');
+  const acPanel=el('ac-panel'), heatPanel=el('heat-panel'), evPanel=el('ev-panel');
+  const toggleAc=el('toggle-ac'), toggleHeat=el('toggle-heat'), toggleEv=el('toggle-ev');
+  const panel=el('appliance-panel'), toggleBtn=el('toggle-appliances'), summaryCount=el('summary-count');
 
-  // Max-start fields (used now)
-  const msStartAmpsEl = el('ms-start-amps');
-  const msRunAmpsEl   = el('ms-run-amps');
-  const msVoltsEl     = el('ms-volts');
-  const msSoftEl      = el('ms-soft');
+  const msStartAmpsEl=el('ms-start-amps'), msRunAmpsEl=el('ms-run-amps'), msVoltsEl=el('ms-volts'), msSoftEl=el('ms-soft');
 
-  // Build appliance rows with "(W run)" after name
-  APPLIANCES.forEach(a => {
-    const wrap = document.createElement('label');
-    wrap.className = 'appliance-row';
+  // LMS refs
+  const lmsEnableEl=el('lms-enable'), lmsSectionEl=el('lms-section'), lmsToggleEl=el('toggle-lms'), lmsPanelEl=el('lms-panel'), lmsListEl=el('lms-list');
+  const lmsSummaryEl=el('lms-summary'), lmsCountEl=el('lms-count'), lmsMaxGeneralEl=el('lms-max-general'), lmsMaxOthersEl=el('lms-max-others');
 
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.id = 'cb_' + a.id;
-
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'name';
-    nameSpan.textContent = a.name;
-
-    const runUnit = document.createElement('small');
-    runUnit.textContent = ' (W run)';
-
-    const runInput = document.createElement('input');
-    runInput.type = 'number';
-    runInput.id = 'run_' + a.id;
-    runInput.className = 'watt-input';
-    runInput.min = '0';
-    runInput.step = '10';
-    runInput.value = a.run;
-    runInput.setAttribute('aria-label', a.name + ' running watts');
-    runInput.title = 'Running watts';
-
-    wrap.appendChild(cb);
-    wrap.appendChild(nameSpan);
-    wrap.appendChild(runUnit);
-    wrap.appendChild(runInput);
-
-    listEl.appendChild(wrap);
-    runInput.addEventListener('input', recalc);
+  // --------- Build Appliance rows ----------
+  APPLIANCES.forEach(a=>{
+    const wrap=document.createElement('label'); wrap.className='appliance-row';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.id='cb_'+a.id;
+    const name=document.createElement('span'); name.className='name'; name.textContent=a.name;
+    const unit=document.createElement('small'); unit.textContent=' (W run)';
+    const run=document.createElement('input'); run.type='number'; run.id='run_'+a.id; run.className='watt-input'; run.min='0'; run.step='10'; run.value=a.run;
+    wrap.append(cb,name,unit,run); listEl.appendChild(wrap);
+    run.addEventListener('input', ()=>{ recalc(); refreshLmsListDisabled(); });
   });
 
-  // Responsive grid
-  const media = window.matchMedia('(max-width: 520px)');
-  function applyGrid(){ listEl.style.gridTemplateColumns = media.matches ? '1fr' : '1fr 1fr'; }
+  // --------- LMS list builders ----------
+  function buildLmsList(){
+    lmsListEl.innerHTML='';
+
+    // Appliances (non-AC)
+    APPLIANCES.forEach(a=>{
+      const row=document.createElement('label'); row.className='appliance-row';
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.id='lms_'+a.id;
+      const nm=document.createElement('span'); nm.className='name'; nm.textContent=a.name;
+      const mt=document.createElement('small'); mt.id='lmsmeta_'+a.id; mt.textContent=' (0 W run)';
+      row.append(cb,nm,mt); lmsListEl.appendChild(row);
+      cb.addEventListener('change', recalc);
+    });
+
+    // AC header + rows
+    const acHeader=document.createElement('div'); acHeader.style.cssText='grid-column:1/-1;margin-top:.5rem;color:#555;font-weight:600'; acHeader.textContent='A/C units';
+    lmsListEl.appendChild(acHeader);
+    Array.from(acRowsEl.querySelectorAll('.ac-row')).forEach((row,i)=>{
+      const r=document.createElement('label'); r.className='appliance-row';
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.id=`lms_ac_${i}`;
+      const nm=document.createElement('span'); nm.className='name'; nm.textContent=`Condenser ${i+1}`;
+      const mt=document.createElement('small'); mt.id=`lmsmeta_ac_${i}`; mt.textContent=' (0 W run)';
+      r.append(cb,nm,mt); lmsListEl.appendChild(r);
+      cb.addEventListener('change', recalc);
+    });
+
+    // Heating
+    const heatRow=document.createElement('label'); heatRow.className='appliance-row';
+    const heatCb=document.createElement('input'); heatCb.type='checkbox'; heatCb.id='lms_heat';
+    const heatNm=document.createElement('span'); heatNm.className='name'; heatNm.textContent='Heating';
+    const heatMt=document.createElement('small'); heatMt.id='lmsmeta_heat'; heatMt.textContent=' (0 W run)';
+    heatRow.append(heatCb,heatNm,heatMt); lmsListEl.appendChild(heatRow);
+    heatCb.addEventListener('change', recalc);
+
+    // EV header + rows
+    const evHeader=document.createElement('div'); evHeader.style.cssText='grid-column:1/-1;margin-top:.5rem;color:#555;font-weight:600'; evHeader.textContent='EV chargers';
+    lmsListEl.appendChild(evHeader);
+    const evRows=Array.from((evPanel?.querySelector('#ev-rows')||document.createElement('div')).querySelectorAll('.ev-row'));
+    evRows.forEach((row,i)=>{
+      const r=document.createElement('label'); r.className='appliance-row';
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.id=`lms_ev_${i}`;
+      const nm=document.createElement('span'); nm.className='name'; nm.textContent=`EV charger ${i+1}`;
+      const mt=document.createElement('small'); mt.id=`lmsmeta_ev_${i}`; mt.textContent=' (0 W run)';
+      r.append(cb,nm,mt); lmsListEl.appendChild(r);
+      cb.addEventListener('change', recalc);
+    });
+
+    refreshLmsListDisabled();
+  }
+
+  function refreshLmsListDisabled(){
+    let managedCount=0;
+
+    // Appliances
+    APPLIANCES.forEach(a=>{
+      const sel=el('cb_'+a.id), lms=el('lms_'+a.id), meta=el('lmsmeta_'+a.id), runEl=el('run_'+a.id);
+      const on=!!(sel && sel.checked);
+      const run=Math.max(0, parseInt(runEl?.value||'0',10) || 0);
+      if (lms){
+        lms.disabled = !on || (lmsEnableEl?.value!=='yes');
+        if (!on) lms.checked=false;
+        if (meta) meta.textContent=` (${run.toLocaleString()} W run)`;
+        if (lms.checked) managedCount++;
+      }
+    });
+
+    // AC rows
+    Array.from(acRowsEl.querySelectorAll('.ac-row')).forEach((row,i)=>{
+      const input=row.querySelector('.ac-subgrid input[type="number"]');
+      const runA=input ? parseFloat(input.value||'0')||0 : 0;
+      const runW=Math.round(runA*240);
+      const lms=el(`lms_ac_${i}`), meta=el(`lmsmeta_ac_${i}`);
+      if (lms){
+        lms.disabled=(lmsEnableEl?.value!=='yes');
+        if (meta) meta.textContent=` (${runW.toLocaleString()} W run)`;
+        if (lms.checked) managedCount++;
+      }
+    });
+
+    // Heating (meta = supplemental portion if HP)
+    const heatCb=el('lms_heat'), heatMeta=el('lmsmeta_heat');
+    if (heatCb){
+      const type=heatTypeEl?.value||'none';
+      const kw=parseFloat(heatKwEl?.value||'0')||0;
+      let heatW=0;
+      if (type==='resistance') heatW=Math.round(kw*1000);
+      if (type==='hp_supp') heatW=Math.round(kw*1000*0.65);
+      heatCb.disabled=(type==='none') || (lmsEnableEl?.value!=='yes');
+      if (type==='none') heatCb.checked=false;
+      if (heatMeta) heatMeta.textContent=` (${heatW.toLocaleString()} W run)`;
+      if (heatCb.checked) managedCount++;
+    }
+
+    // EV rows
+    const evRows=Array.from((evPanel?.querySelector('#ev-rows')||document.createElement('div')).querySelectorAll('.ev-row'));
+    evRows.forEach((row,i)=>{
+      const input=row.querySelector('input[type="number"]');
+      const amps=input ? parseFloat(input.value||'0')||0 : 0;
+      const runW=Math.round(amps*240);
+      const lms=el(`lms_ev_${i}`), meta=el(`lmsmeta_ev_${i}`);
+      if (lms){
+        lms.disabled=(lmsEnableEl?.value!=='yes');
+        if (meta) meta.textContent=` (${runW.toLocaleString()} W run)`;
+        if (lms.checked) managedCount++;
+      }
+    });
+
+    lmsSummaryEl.textContent = managedCount ? `${managedCount} item(s) selected` : 'No LMS items selected';
+    lmsCountEl.textContent = String(managedCount);
+    if (lmsSectionEl?.getAttribute('data-open')==='1') lmsSectionEl.style.maxHeight = lmsSectionEl.scrollHeight + 'px';
+  }
+
+  // --------- Responsive/grid helpers ----------
+  const media=window.matchMedia('(max-width:520px)');
+  function applyGrid(){
+    listEl.style.gridTemplateColumns = media.matches ? '1fr' : '1fr 1fr';
+    if (lmsListEl) lmsListEl.style.gridTemplateColumns = media.matches ? '1fr' : '1fr 1fr';
+  }
   applyGrid();
   if (media.addEventListener) media.addEventListener('change', applyGrid); else if (media.addListener) media.addListener(applyGrid);
 
   // Collapsible helpers
-  let open = false;
-  function setPanel(openNow){ open = openNow; panel.setAttribute('data-open', open ? '1' : '0'); toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); panel.style.maxHeight = open ? panel.scrollHeight + 'px' : '0'; toggleBtn.textContent = open ? 'Hide details ▴' : 'Show details ▾'; }
-  function setSection(panelEl, toggleEl, openNow){ if (!panelEl || !toggleEl) return; panelEl.setAttribute('data-open', openNow ? '1' : '0'); toggleEl.setAttribute('aria-expanded', openNow ? 'true' : 'false'); panelEl.style.maxHeight = openNow ? panelEl.scrollHeight + 'px' : '0'; toggleEl.textContent = openNow ? 'Hide details ▴' : 'Show details ▾'; }
-  toggleBtn.addEventListener('click', () => setPanel(!open));
-  toggleAc?.addEventListener('click', ()=> setSection(acPanel, toggleAc, (acPanel?.getAttribute('data-open')!=='1')));
-  toggleHeat?.addEventListener('click', ()=> setSection(heatPanel, toggleHeat, (heatPanel?.getAttribute('data-open')!=='1')));
+  let open=false;
+  function setPanel(on){ open=on; panel.setAttribute('data-open',on?'1':'0'); toggleBtn.setAttribute('aria-expanded',on?'true':'false'); panel.style.maxHeight=on?panel.scrollHeight+'px':'0'; toggleBtn.textContent=on?'Hide details ▴':'Show details ▾'; }
+  function setSection(panelEl,toggleEl,on){ if(!panelEl||!toggleEl) return; panelEl.setAttribute('data-open',on?'1':'0'); toggleEl.setAttribute('aria-expanded',on?'true':'false'); panelEl.style.maxHeight=on?panelEl.scrollHeight+'px':'0'; toggleEl.textContent=on?'Hide details ▴':'Show details ▾'; }
+  toggleBtn.addEventListener('click', ()=>setPanel(!open));
+  toggleAc?.addEventListener('click', ()=>setSection(acPanel,toggleAc,(acPanel?.getAttribute('data-open')!=='1')));
+  toggleHeat?.addEventListener('click', ()=>setSection(heatPanel,toggleHeat,(heatPanel?.getAttribute('data-open')!=='1')));
+  toggleEv?.addEventListener('click', ()=>setSection(evPanel,toggleEv,(evPanel?.getAttribute('data-open')!=='1')));
+  lmsToggleEl?.addEventListener('click', ()=>setSection(lmsPanelEl,lmsToggleEl,(lmsSectionEl?.getAttribute('data-open')!=='1')));
 
-  // AC rows (running amps only)
-  function prefillRunAmps(tons, type){
-    const runW = Math.max(0, tons) * (RUN_W_PER_TON[type] || RUN_W_PER_TON.standard);
-    return Math.round((runW / AC_VOLTS) * 10) / 10;
-  }
-  function addAcRow(preset = { tons: 2.5, type: 'standard' }){
-    if (acRowsEl.children.length >= 3) return;
+  // --------- AC rows ----------
+  function prefillRunAmps(tons,type){ const runW=Math.max(0,tons)*(RUN_W_PER_TON[type]||RUN_W_PER_TON.standard); return Math.round((runW/AC_VOLTS)*10)/10; }
+  function addAcRow(preset={tons:2.5,type:'standard'}){
+    if (acRowsEl.children.length>=3) return;
+    const row=document.createElement('div'); row.className='ac-row';
+    row.style.display='grid'; row.style.gridTemplateColumns='1fr 1fr auto'; row.style.gap='.5rem'; row.style.alignItems='center';
+    row.style.padding='.25rem .25rem .5rem'; row.style.border='1px solid #eef2f6'; row.style.borderRadius='8px';
 
-    const row = document.createElement('div');
-    row.className = 'ac-row';
-    row.style.display = 'grid';
-    row.style.gridTemplateColumns = '1fr 1fr auto';
-    row.style.gap = '.5rem';
-    row.style.alignItems = 'center';
-    row.style.padding = '.25rem .25rem .5rem';
-    row.style.border = '1px solid #eef2f6';
-    row.style.borderRadius = '8px';
+    const tonSel=document.createElement('select');
+    [1.5,2,2.5,3,3.5,4,5].forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=`${t} ton`; tonSel.appendChild(o); });
+    tonSel.value=preset.tons;
 
-    const tonSel = document.createElement('select');
-    [1.5,2,2.5,3,3.5,4,5].forEach(t=>{ const opt=document.createElement('option'); opt.value=t; opt.textContent=`${t} ton`; tonSel.appendChild(opt); });
-    tonSel.value = preset.tons;
+    const typeSel=document.createElement('select');
+    [{v:'standard',n:'Standard (single-stage)'},{v:'inverter',n:'High-efficiency (inverter)'}].forEach(o=>{ const op=document.createElement('option'); op.value=o.v; op.textContent=o.n; typeSel.appendChild(op); });
+    typeSel.value=preset.type;
 
-    const typeSel = document.createElement('select');
-    [{v:'standard', n:'Standard (single-stage)'},{v:'inverter', n:'High-efficiency (inverter)'}].forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.n; typeSel.appendChild(opt); });
-    typeSel.value = preset.type;
+    const delBtn=document.createElement('button'); delBtn.type='button'; delBtn.textContent='✕'; delBtn.title='Remove'; delBtn.style.minWidth='2rem';
 
-    const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '✕'; delBtn.title = 'Remove'; delBtn.style.minWidth = '2rem';
+    const sub=document.createElement('div'); sub.className='ac-subgrid'; sub.style.gridColumn='1 / -1';
+    const runLbl=document.createElement('label'); runLbl.textContent='Running amps';
+    const runA=document.createElement('input'); runA.type='number'; runA.step='0.1'; runA.min='0';
+    sub.append(runLbl,runA);
 
-    const sub = document.createElement('div');
-    sub.className = 'ac-subgrid';
-    sub.style.gridColumn = '1 / -1';
-    const runLbl = document.createElement('label'); runLbl.textContent = 'Running amps';
-    const runA   = document.createElement('input'); runA.type = 'number'; runA.step = '0.1'; runA.min = '0';
+    row.append(tonSel, typeSel, delBtn, sub); acRowsEl.appendChild(row);
 
-    sub.appendChild(runLbl);
-    sub.appendChild(runA);
+    function refreshDefault(){ runA.value=prefillRunAmps(parseFloat(tonSel.value)||0, typeSel.value); }
+    refreshDefault();
 
-    const typeWrap = document.createElement('div'); typeWrap.appendChild(typeSel);
-    row.appendChild(tonSel);
-    row.appendChild(typeWrap);
-    row.appendChild(delBtn);
-    row.appendChild(sub);
-    acRowsEl.appendChild(row);
-
-    function refreshRunDefault(){ runA.value = prefillRunAmps(parseFloat(tonSel.value)||0, typeSel.value); }
-    refreshRunDefault();
-
-    const recalcBound = recalc.bind(null);
-    tonSel.addEventListener('change', ()=>{ refreshRunDefault(); recalcBound(); });
-    typeSel.addEventListener('change', ()=>{ refreshRunDefault(); recalcBound(); });
-    runA.addEventListener('input', recalcBound);
-    delBtn.addEventListener('click', ()=>{ row.remove(); recalc(); });
+    const recalcBound=recalc.bind(null);
+    tonSel.addEventListener('change', ()=>{ refreshDefault(); recalcBound(); refreshLmsListDisabled(); });
+    typeSel.addEventListener('change', ()=>{ refreshDefault(); recalcBound(); refreshLmsListDisabled(); });
+    runA.addEventListener('input', ()=>{ recalcBound(); refreshLmsListDisabled(); });
+    delBtn.addEventListener('click', ()=>{ row.remove(); buildLmsList(); recalc(); });
   }
 
-  // Heating helper (unchanged)
-  function getHeatCandidateW(acRun){
-    const type = heatTypeEl ? heatTypeEl.value : 'none';
-    const kw = parseFloat(heatKwEl && heatKwEl.value ? heatKwEl.value : '0') || 0;
-    if (type === 'resistance') return Math.round(kw * 1000);
-    if (type === 'hp_supp') { const supp = Math.round(kw * 1000 * 0.65); return acRun + supp; }
+  // --------- EV rows ----------
+  function addEvRow(preset={amps:40}){
+    const row=document.createElement('div'); row.className='ev-row';
+    row.style.display='grid'; row.style.gridTemplateColumns='auto auto 1fr auto'; row.style.gap='.5rem'; row.style.alignItems='center';
+    row.style.padding='.25rem .5rem'; row.style.border='1px solid #eef2f6'; row.style.borderRadius='8px';
+
+    const ampsLbl=document.createElement('label'); ampsLbl.textContent='Charger amps (240 V)';
+    const ampsInp=document.createElement('input'); ampsInp.type='number'; ampsInp.step='1'; ampsInp.min='6'; ampsInp.value=String(preset.amps); ampsInp.style.width='7ch'; ampsInp.style.textAlign='right';
+    const spacer=document.createElement('div');
+    const delBtn=document.createElement('button'); delBtn.type='button'; delBtn.textContent='✕'; delBtn.title='Remove'; delBtn.style.minWidth='2rem';
+
+    row.append(ampsLbl,ampsInp,spacer,delBtn);
+    evPanel.querySelector('#ev-rows').appendChild(row);
+
+    const recalcBound=recalc.bind(null);
+    ampsInp.addEventListener('input', ()=>{ recalcBound(); refreshLmsListDisabled(); });
+    delBtn.addEventListener('click', ()=>{ row.remove(); buildLmsList(); recalc(); });
+  }
+
+  // --------- Heating helper ----------
+  function getHeatCandidateW(acEffective){
+    const type=heatTypeEl ? heatTypeEl.value : 'none';
+    const kw=parseFloat(heatKwEl && heatKwEl.value ? heatKwEl.value : '0') || 0;
+    if (type==='resistance') return Math.round(kw*1000);
+    if (type==='hp_supp')   return acEffective + Math.round(kw*1000*0.65);
     return 0;
   }
 
   function updateSummary(){
-    const count = APPLIANCES.filter(a => document.getElementById('cb_'+a.id).checked).length;
-    summaryCount.textContent = count;
+    const count=APPLIANCES.filter(a=>el('cb_'+a.id).checked).length;
+    summaryCount.textContent=count;
   }
 
   function applyPreset(scope){
-    APPLIANCES.forEach(a => { const cb = document.getElementById('cb_' + a.id); if (cb) cb.checked = false; });
-    APPLIANCES.filter(a => a.defaultScopes.includes(scope))
-      .forEach(a => { const cb = document.getElementById('cb_' + a.id); if (cb) cb.checked = true; });
+    APPLIANCES.forEach(a=>{ const cb=el('cb_'+a.id); if (cb) cb.checked=false; });
+    APPLIANCES.filter(a=>a.defaultScopes.includes(scope)).forEach(a=>{ const cb=el('cb_'+a.id); if (cb) cb.checked=true; });
+    if (scope==='essentials'){ ['spaceHeat','waterHeater','elecRange','elecDryer'].forEach(id=>{ const c=el('cb_'+id); if (c) c.checked=false; }); }
+    if (scope==='most'){ ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c=el('cb_'+id); if (c) c.checked=false; }); }
+    { const c=el('cb_hottub'); if (c) c.checked=false; }
 
-    if (scope === 'essentials') { ['spaceHeat','waterHeater','elecRange','elecDryer'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; }); }
-    if (scope === 'most') { ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c = document.getElementById('cb_'+id); if (c) c.checked = false; }); }
-    { const c = document.getElementById('cb_hottub'); if (c) c.checked = false; }
+    acRowsEl.innerHTML=''; setSection(acPanel,toggleAc,false);
+    setSection(heatPanel,toggleHeat,false);
+    const evRowsEl=el('ev-rows'); if (evRowsEl) evRowsEl.innerHTML='';
+    setSection(evPanel,toggleEv,false);
 
-    acRowsEl.innerHTML = '';
-    setSection(acPanel, toggleAc, false);
-    setSection(heatPanel, toggleHeat, false);
-
-    if (smallQtyEl) smallQtyEl.value = '2';
-    if (laundryQtyEl) laundryQtyEl.value = '1';
-    updateSummary(); setPanel(false); recalc();
+    if (smallQtyEl) smallQtyEl.value='2';
+    if (laundryQtyEl) laundryQtyEl.value='1';
+    updateSummary(); setPanel(false); buildLmsList(); recalc();
   }
 
-  // --- Pick generator: must meet BOTH continuous and surge amps ---
-  function pickGenerator(neededAmps, surgeAmps, fuel /* 'lp' | 'ng' */){
-    const key = fuel === 'ng' ? 'amps_ng' : 'amps_lp';
-
-    // 1) Filter by CONTINUOUS first (fuel-specific)
-    const contOK = GEN_TABLE.filter(row => Number(row[key]) >= neededAmps);
-
-    if (contOK.length === 0) {
-      return {
-        label: `≥ ${Math.ceil(neededAmps)} A continuous (custom)`,
-        amps_lp: neededAmps, amps_ng: neededAmps, max_surge: surgeAmps
-      };
-    }
-
-    // 2) Sort by the same fuel-specific amps so we truly get the smallest that works
-    contOK.sort((a, b) => Number(a[key]) - Number(b[key]));
-
-    // 3) Among those, pick the smallest that also meets SURGE
-    const bothOK = contOK.find(row => Number(row.max_surge) >= surgeAmps);
-    if (bothOK) return bothOK;
-
-    // 4) If none meet surge, take the smallest that meets continuous (honest upsize path)
-    return contOK[0];
+  // --------- Generator picker ----------
+  function pickGenerator(neededAmps, surgeAmps, fuel){
+    const key=fuel==='ng'?'amps_ng':'amps_lp';
+    const contOK=GEN_TABLE.filter(r=>Number(r[key])>=neededAmps);
+    if (!contOK.length) return { label:`≥ ${Math.ceil(neededAmps)} A continuous (custom)`, amps_lp:neededAmps, amps_ng:neededAmps, max_surge:surgeAmps };
+    contOK.sort((a,b)=>Number(a[key])-Number(b[key]));
+    const bothOK=contOK.find(r=>Number(r.max_surge)>=surgeAmps);
+    return bothOK || contOK[0];
   }
 
+  // --------- Core calc ----------
   function recalc(){
-    let runSumNonAC = 0;
+    // NEC from sqft + branch circuits
+    const sqft=parseInt(sqftEl?.value||'0',10)||0;
+    const necLighting=Math.max(0, Math.round(sqft*3));
+    const saQty=parseInt(smallQtyEl?.value||'0',10)||0;
+    const laQty=parseInt(laundryQtyEl?.value||'0',10)||0;
+    const branchW=(saQty+laQty)*1500;
 
-    // NEC lighting from sqft
-    const sqft = parseInt(sqftEl?.value || '0', 10) || 0;
-    const necLighting = Math.max(0, Math.round(sqft * 3));
-    runSumNonAC += necLighting;
-
-    // NEC branch circuits
-    const saQty = parseInt(smallQtyEl?.value || '0', 10) || 0;
-    const laQty = parseInt(laundryQtyEl?.value || '0', 10) || 0;
-    runSumNonAC += (saQty + laQty) * 1500;
-
-    // Appliances
-    APPLIANCES.forEach(a => {
-      const cb = document.getElementById('cb_'+a.id);
-      if (!cb || !cb.checked) return;
-      const runEl = document.getElementById('run_'+a.id);
-      const v = parseInt(runEl?.value, 10);
-      const run = Number.isFinite(v) ? v : a.run;
-      runSumNonAC += run;
+    // Appliances: split unmanaged vs managed (largest)
+    let nonLmsApplianceW=0; const managedGeneral=[];
+    APPLIANCES.forEach(a=>{
+      const cb=el('cb_'+a.id); if (!cb||!cb.checked) return;
+      const runEl=el('run_'+a.id); const v=parseInt(runEl?.value,10);
+      const run=Number.isFinite(v)?v:a.run;
+      const lms=el('lms_'+a.id);
+      const isManaged=(lmsEnableEl && lmsEnableEl.value==='yes') && lms && lms.checked;
+      if (isManaged) managedGeneral.push(run); else nonLmsApplianceW+=run;
     });
+    const largestManagedGeneral = managedGeneral.length ? Math.max(...managedGeneral) : 0;
 
-    // AC loads from RUNNING AMPS (A×240)
-    let acRun = 0;
-    const acRows = Array.from(acRowsEl.querySelectorAll('.ac-row'));
-    acRows.forEach(row => {
-      const sub = row.querySelector('.ac-subgrid');
-      const input = sub ? sub.querySelector('input[type="number"]') : null;
-      const runA = input ? parseFloat(input.value || '0') || 0 : 0;
-      acRun += Math.round(runA * AC_VOLTS);
+    // A/C rows: sum unmanaged + largest managed
+    let acUnmanaged=0; const acManaged=[];
+    const acRows=Array.from(acRowsEl.querySelectorAll('.ac-row'));
+    acRows.forEach((row,i)=>{
+      const input=row.querySelector('.ac-subgrid input[type="number"]');
+      const runA=input ? parseFloat(input.value||'0')||0 : 0;
+      const runW=Math.round(runA*240);
+      const lms=el(`lms_ac_${i}`);
+      const isManaged=(lmsEnableEl && lmsEnableEl.value==='yes') && lms && lms.checked;
+      if (isManaged) acManaged.push(runW); else acUnmanaged+=runW;
     });
+    const acManagedMax = acManaged.length ? Math.max(...acManaged) : 0;
+    const acEffective  = acUnmanaged + acManagedMax;
 
-    // Heating vs AC seasonal selection
-    const heatCandidate = getHeatCandidateW(acRun);
-    const seasonalMax = Math.max(acRun, heatCandidate);
+    // Heating candidate (uses AC effective if HP supplemental)
+    const heatCandidate = getHeatCandidateW(acEffective);
 
-    // General (NEC) demand factor for non-AC
-    const totalGeneral = runSumNonAC;
-    const first10k = Math.min(totalGeneral, 10000);
-    const remainder = Math.max(totalGeneral - 10000, 0);
-    const weightedGeneral = first10k + Math.round(remainder * 0.40);
+    // Seasonal effective (one big thing at a time)
+    const seasonalEffective = Math.max(acEffective, heatCandidate);
 
-    // Base running watts (continuous only)
-    const runningWatts = weightedGeneral + seasonalMax;
+    // EV: sum unmanaged + largest managed
+    let evUnmanaged=0; const evManaged=[];
+    const evRows=Array.from((evPanel?.querySelector('#ev-rows')||document.createElement('div')).querySelectorAll('.ev-row'));
+    evRows.forEach((row,i)=>{
+      const input=row.querySelector('input[type="number"]');
+      const amps=input ? parseFloat(input.value||'0')||0 : 0;
+      const runW=Math.round(amps*240);
+      const lms=el(`lms_ev_${i}`);
+      const isManaged=(lmsEnableEl && lmsEnableEl.value==='yes') && lms && lms.checked;
+      if (isManaged) evManaged.push(runW); else evUnmanaged+=runW;
+    });
+    const evManagedMax = evManaged.length ? Math.max(...evManaged) : 0;
+    const evEffective  = evUnmanaged + evManagedMax;
 
-    // Running & needed amps (continuous)
-    const buffer = Math.max(0, Math.min(50, parseInt(bufferPctEl?.value || '20', 10) || 20));
-    const runningAmps = runningWatts / 240;
-    const neededAmps  = runningAmps / (1 - buffer/100);
+    // Demand factor (NEC) for general non-AC
+    const totalGeneral = necLighting + branchW + nonLmsApplianceW + largestManagedGeneral;
+    const first10k=Math.min(totalGeneral,10000), remainder=Math.max(totalGeneral-10000,0);
+    const weightedGeneral=first10k + Math.round(remainder*0.40);
 
-    // Peak (surge) amps = pre-buffer amps, swapping raw amps (no voltage normalization)
-// Matches: peak = runningAmps_preBuffer − msRunA + (msStartA * soft)
-const msStartA = parseFloat(msStartAmpsEl?.value || '0') || 0;
-const msRunA   = parseFloat(msRunAmpsEl?.value || '0') || 0;
-// keep the field but don't use it in the math per your spec/Excel
-// const msV   = parseInt(msVoltsEl?.value || '120', 10) || 120;
-const soft     = (msSoftEl?.value || 'no') === 'yes' ? 0.5 : 1.0;
+    // Running watts (continuous)
+    const runningWatts = weightedGeneral + seasonalEffective + evEffective;
 
-const preBufferAmps = runningWatts / 240;           // = runningAmps before headroom
-const surgeDeltaA   = Math.max(0, (msStartA * soft) - msRunA);
-const surgeAmps     = preBufferAmps + surgeDeltaA;  // what we display + compare to max_surge
+    // Continuous amps with buffer
+    const buffer=Math.max(0, Math.min(50, parseInt(bufferPctEl?.value||'20',10) || 20));
+    const runningAmps=runningWatts/240;
+    const neededAmps = runningAmps/(1 - buffer/100);
 
+    // Surge amps via max-start swap
+    const msStartA=parseFloat(msStartAmpsEl?.value||'0')||0;
+    const msRunA  =parseFloat(msRunAmpsEl?.value||'0')||0;
+    const soft    =(msSoftEl?.value||'no')==='yes' ? 0.5 : 1.0;
+    const preBufferAmps=runningWatts/240;
+    const surgeDeltaA=Math.max(0, (msStartA*soft) - msRunA);
+    const surgeAmps=preBufferAmps + surgeDeltaA;
 
     // Pick generator
-    const fuel = (fuelEl?.value || 'lp');
-    const choice = pickGenerator(neededAmps, surgeAmps, fuel);
+    const fuel=(fuelEl?.value||'lp');
+    const choice=pickGenerator(neededAmps, surgeAmps, fuel);
 
-    // Build cooling note (show only if NOT portable-level amps)
-    const isPortable = neededAmps <= 30; // ≈7.2 kW @ 240V — rule-of-thumb portable threshold
-    let coolingNote = '';
-    if (!isPortable && choice && typeof choice.cooling === 'string' && choice.cooling.trim()) {
-      const c = choice.cooling.trim().toLowerCase();
-      coolingNote = c.startsWith('liquid') ? ' — Liquid-cooled' : ' — Air-cooled';
-    }
+    // Cooling note + LC advisory (hide if LMS is enabled)
+	const isPortable = neededAmps <= 30;
+	let coolingNote = '';
+	if (!isPortable && choice && typeof choice.cooling === 'string' && choice.cooling.trim()){
+	  const c = choice.cooling.trim().toLowerCase();
+  	  coolingNote = c.startsWith('liquid') ? ' — Liquid-cooled' : ' — Air-cooled';
+	}
+	const lcAlertEl = document.getElementById('lc-alert');
+	const isLiquid  = (!isPortable && (
+	  (choice && typeof choice.cooling === 'string' && choice.cooling.toLowerCase().startsWith('liquid')) ||
+	  String(coolingNote).toLowerCase().includes('liquid-cooled')
+	));
+	const lmsOn = (lmsEnableEl && lmsEnableEl.value === 'yes');
+	if (lcAlertEl) lcAlertEl.style.display = (!lmsOn && isLiquid) ? 'block' : 'none';
+
 
     // Output
-    runWEl.textContent  = runningWatts.toLocaleString();
+    runWEl.textContent = runningWatts.toLocaleString();
     needAEl.textContent = Math.ceil(neededAmps).toString();
     peakAEl.textContent = Math.ceil(surgeAmps).toString();
-    recEl.textContent   = `${choice.label} (${fuel === 'lp' ? 'LP' : 'NG'})${coolingNote}`;
+    recEl.textContent = `${choice.label} (${fuel==='lp'?'LP':'NG'})${coolingNote}`;
+
+    // LMS summary tiles
+    lmsMaxGeneralEl.textContent = `${largestManagedGeneral.toLocaleString()} W`;
+    lmsMaxOthersEl.textContent  = `${Math.max(acManagedMax, evManagedMax).toLocaleString()} W`;
 
     // Maintain panel heights when open
-    if (panel?.getAttribute('data-open') === '1') panel.style.maxHeight = panel.scrollHeight + 'px';
-    if (acPanel?.getAttribute('data-open') === '1') acPanel.style.maxHeight = acPanel.scrollHeight + 'px';
-    if (heatPanel?.getAttribute('data-open') === '1') heatPanel.style.maxHeight = heatPanel.scrollHeight + 'px';
+    if (panel?.getAttribute('data-open')==='1') panel.style.maxHeight=panel.scrollHeight+'px';
+    if (acPanel?.getAttribute('data-open')==='1') acPanel.style.maxHeight=acPanel.scrollHeight+'px';
+    if (heatPanel?.getAttribute('data-open')==='1') heatPanel.style.maxHeight=heatPanel.scrollHeight+'px';
+    if (lmsSectionEl?.getAttribute('data-open')==='1') lmsSectionEl.style.maxHeight=lmsSectionEl.scrollHeight+'px';
   }
 
-  // Wire-up
-  scopeEl.addEventListener('change', e => applyPreset(e.target.value));
-  listEl.addEventListener('change', () => { updateSummary(); recalc(); });
-  listEl.addEventListener('input', recalc);
+  // --------- Wire-up ----------
+  function updateSummaryAndCalc(){ updateSummary(); refreshLmsListDisabled(); recalc(); }
+
+  scopeEl.addEventListener('change', e=>applyPreset(e.target.value));
+  listEl.addEventListener('change', updateSummaryAndCalc);
+  listEl.addEventListener('input',  updateSummaryAndCalc);
   sqftEl?.addEventListener('input', recalc);
   smallQtyEl?.addEventListener('input', recalc);
   laundryQtyEl?.addEventListener('input', recalc);
-  addAcBtn.addEventListener('click', () => { addAcRow(); setSection(acPanel, toggleAc, true); recalc(); });
+  addAcBtn.addEventListener('click', ()=>{ addAcRow(); setSection(acPanel,toggleAc,true); buildLmsList(); recalc(); });
+  addEvBtn?.addEventListener('click', ()=>{ addEvRow(); setSection(evPanel,toggleEv,true); buildLmsList(); recalc(); });
   bufferPctEl?.addEventListener('input', recalc);
   fuelEl?.addEventListener('change', recalc);
-  heatTypeEl?.addEventListener('change', recalc);
-  heatKwEl?.addEventListener('input', recalc);
+  heatTypeEl?.addEventListener('change', ()=>{ buildLmsList(); recalc(); });
+  heatKwEl?.addEventListener('input',  ()=>{ buildLmsList(); recalc(); });
 
   // Max-start listeners
   msStartAmpsEl?.addEventListener('input', recalc);
@@ -556,9 +682,20 @@ const surgeAmps     = preBufferAmps + surgeDeltaA;  // what we display + compare
   msVoltsEl?.addEventListener('change', recalc);
   msSoftEl?.addEventListener('change', recalc);
 
-  // Init
-  (async () => {
-    await tryLoadCsv();     // pulls your generator(-|_)amps.csv (with max_surge, optional Cooling)
+  // LMS enable/disable
+  lmsEnableEl?.addEventListener('change', ()=>{
+    const on=lmsEnableEl.value==='yes';
+    lmsSectionEl.setAttribute('data-open', on?'1':'0');
+    lmsSectionEl.style.maxHeight = on ? (lmsSectionEl.scrollHeight + 'px') : '0';
+    lmsToggleEl.textContent = on ? 'Hide details ▴' : 'Show details ▾';
+    refreshLmsListDisabled(); recalc();
+  });
+
+  // --------- Init ----------
+  (async()=>{
+    await tryLoadCsv();
+    buildLmsList();
+    applyGrid();
     applyPreset('essentials');
   })();
 });
