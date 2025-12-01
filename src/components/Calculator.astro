@@ -1,6 +1,6 @@
 ---
 /*
-Calculator.astro — generator sizing (continuous amps + surge), with LMS
+Calculator.astro — generator sizing (continuous amps + surge), with LMS + ZIP-based derating
 
 Highlights
 - CSV loader uses safe newline splitter (no regex)
@@ -13,6 +13,7 @@ Highlights
   • AC: sum unmanaged + largest managed condenser
   • Heating: competes seasonally with AC (we still take seasonal max)
 - Liquid-cooled advisory banner in results
+- ZIP -> elevation & temp derating (air-cooled vs liquid-cooled rules)
 - Vanilla JS only (no React imports)
 */
 ---
@@ -25,6 +26,17 @@ Highlights
         <option value="most">Most of house (kitchen + some HVAC)</option>
         <option value="whole">Whole house (unrestricted typical use)</option>
       </select>
+
+      <div class="controls-row" style="margin-top:.5rem;align-items:end;">
+        <div>
+          <label for="zip" class="lbl">Home ZIP code (US, 5 digits)</label>
+          <input id="zip" class="fld" type="text" inputmode="numeric" maxlength="5" placeholder="e.g., 19087">
+          <small class="muted">
+            Used to estimate elevation &amp; typical summer high. Leave blank to assume sea level &amp; 60&nbsp;°F.
+          </small>
+        </div>
+        <div></div>
+      </div>
 
       <div class="controls-row" style="margin-top:.5rem;align-items:end;">
         <div>
@@ -200,6 +212,7 @@ Highlights
         <small id="assumption-note" style="color:#666;display:block;margin-top:.25rem">
           Running amps = watts ÷ 240. Needed amps = running amps ÷ (1 − headroom%). Peak includes max-start swap (soft starter cuts start amps ~50%).
         </small>
+        <small id="env-note" style="color:#666;display:block;margin-top:.25rem"></small>
       </div>
     </aside>
   </div>
@@ -268,6 +281,9 @@ window.addEventListener('DOMContentLoaded', () => {
     { label:'~26 kW standby', amps_lp:108, amps_ng:108, max_surge:130, cooling:'Air' }
   ];
 
+  // ZIP -> { elevFt, tempF }
+  const ZIP_TABLE = new Map();
+
   // --------- CSV loader (safe newline splitter) ----------
   async function tryLoadCsv() {
     const paths = ['/generator-amps.csv','/data/generator-amps.csv','/generator_amps.csv','/public/generator_amps.csv'];
@@ -284,9 +300,10 @@ window.addEventListener('DOMContentLoaded', () => {
         if (iLabel<0||iLP<0||iNG<0||iSurge<0) continue;
 
         const parsed = rows.map(r=>{
+          if (!r.trim()) return null;
           const c=r.split(',').map(s=>s.trim());
           return { label:c[iLabel], amps_lp:Number(c[iLP]), amps_ng:Number(c[iNG]), max_surge:Number(c[iSurge]), cooling:iCooling>=0?c[iCooling]:undefined };
-        }).filter(x=>x.label && Number.isFinite(x.amps_lp) && Number.isFinite(x.amps_ng) && Number.isFinite(x.max_surge));
+        }).filter(x=>x && x.label && Number.isFinite(x.amps_lp) && Number.isFinite(x.amps_ng) && Number.isFinite(x.max_surge));
 
         if (parsed.length) GEN_TABLE = parsed.sort((a,b)=>Math.min(a.amps_lp,a.amps_ng)-Math.min(b.amps_lp,b.amps_ng));
         break;
@@ -294,21 +311,100 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function tryLoadZipCsv() {
+    const paths = ['/zip_elevation_temp.csv','/data/zip_elevation_temp.csv','/public/zip_elevation_temp.csv'];
+    for (const p of paths) {
+      try {
+        const res = await fetch(p, { cache:'no-store' });
+        if (!res.ok) continue;
+        const text = await res.text();
+        const rows = text.split('\n').map(l => (l.endsWith('\r') ? l.slice(0,-1) : l));
+        if (!rows.length) continue;
+
+        const header = rows.shift().split(',').map(s => s.trim().toLowerCase());
+        const iZip = header.indexOf('zip');
+        const iElevM = header.indexOf('elevation_m');
+        const iElevFt = iElevM < 0 ? header.indexOf('elevation_ft') : -1;
+        const iElevGeneric = (iElevM < 0 && iElevFt < 0) ? header.indexOf('elevation') : -1;
+        const iTemp = header.findIndex(h => h === 'temp' || h === 'temperature' || h === 'avg_temp' || h === 'avg_high');
+
+        if (iZip < 0 || iTemp < 0 || (iElevM < 0 && iElevFt < 0 && iElevGeneric < 0)) continue;
+
+        rows.forEach(r => {
+          if (!r.trim()) return;
+          const c = r.split(',').map(s => s.trim());
+          const rawZip = c[iZip];
+          if (!rawZip) return;
+          let zipStr = String(rawZip).replace(/\D/g,'');
+          if (!zipStr) return;
+          zipStr = zipStr.padStart(5,'0').slice(-5);
+
+          const elevRaw = c[iElevM >= 0 ? iElevM : (iElevFt >= 0 ? iElevFt : iElevGeneric)];
+          const tempRaw = c[iTemp];
+          const elevVal = parseFloat(elevRaw);
+          const tempVal = parseFloat(tempRaw);
+          if (!Number.isFinite(elevVal) || !Number.isFinite(tempVal)) return;
+
+          // If elevation_m present, convert meters -> feet; otherwise assume feet
+          const elevFt = iElevM >= 0 ? elevVal * 3.28084 : elevVal;
+
+          ZIP_TABLE.set(zipStr, {
+            elevFt,
+            tempF: tempVal
+          });
+        });
+
+        if (ZIP_TABLE.size) break;
+      } catch { /* ignore */ }
+    }
+  }
+
   // --------- Elements ----------
   const el = id => document.getElementById(id);
-  const scopeEl=el('scope'), listEl=el('appliance-list'), runWEl=el('runW'), needAEl=el('needA'), peakAEl=el('peakA');
-  const sqftEl=el('sqft'), smallQtyEl=el('smallQty'), laundryQtyEl=el('laundryQty'), recEl=el('rec'), bufferPctEl=el('bufferPct'), fuelEl=el('fuelType');
-  const acRowsEl=el('ac-rows'), addAcBtn=el('add-ac'), addEvBtn=el('add-ev');
-  const heatTypeEl=el('heat-type'), heatKwEl=el('heat-kw');
-  const acPanel=el('ac-panel'), heatPanel=el('heat-panel'), evPanel=el('ev-panel');
-  const toggleAc=el('toggle-ac'), toggleHeat=el('toggle-heat'), toggleEv=el('toggle-ev');
-  const panel=el('appliance-panel'), toggleBtn=el('toggle-appliances'), summaryCount=el('summary-count');
+  const scopeEl=el('scope'),
+        listEl=el('appliance-list'),
+        runWEl=el('runW'),
+        needAEl=el('needA'),
+        peakAEl=el('peakA');
+  const sqftEl=el('sqft'),
+        smallQtyEl=el('smallQty'),
+        laundryQtyEl=el('laundryQty'),
+        recEl=el('rec'),
+        bufferPctEl=el('bufferPct'),
+        fuelEl=el('fuelType');
+  const acRowsEl=el('ac-rows'),
+        addAcBtn=el('add-ac'),
+        addEvBtn=el('add-ev');
+  const heatTypeEl=el('heat-type'),
+        heatKwEl=el('heat-kw');
+  const acPanel=el('ac-panel'),
+        heatPanel=el('heat-panel'),
+        evPanel=el('ev-panel');
+  const toggleAc=el('toggle-ac'),
+        toggleHeat=el('toggle-heat'),
+        toggleEv=el('toggle-ev');
+  const panel=el('appliance-panel'),
+        toggleBtn=el('toggle-appliances'),
+        summaryCount=el('summary-count');
 
-  const msStartAmpsEl=el('ms-start-amps'), msRunAmpsEl=el('ms-run-amps'), msVoltsEl=el('ms-volts'), msSoftEl=el('ms-soft');
+  const msStartAmpsEl=el('ms-start-amps'),
+        msRunAmpsEl=el('ms-run-amps'),
+        msVoltsEl=el('ms-volts'),
+        msSoftEl=el('ms-soft');
+
+  const zipEl = el('zip');
+  const envNoteEl = el('env-note');
 
   // LMS refs
-  const lmsEnableEl=el('lms-enable'), lmsSectionEl=el('lms-section'), lmsToggleEl=el('toggle-lms'), lmsPanelEl=el('lms-panel'), lmsListEl=el('lms-list');
-  const lmsSummaryEl=el('lms-summary'), lmsCountEl=el('lms-count'), lmsMaxGeneralEl=el('lms-max-general'), lmsMaxOthersEl=el('lms-max-others');
+  const lmsEnableEl=el('lms-enable'),
+        lmsSectionEl=el('lms-section'),
+        lmsToggleEl=el('toggle-lms'),
+        lmsPanelEl=el('lms-panel'),
+        lmsListEl=el('lms-list');
+  const lmsSummaryEl=el('lms-summary'),
+        lmsCountEl=el('lms-count'),
+        lmsMaxGeneralEl=el('lms-max-general'),
+        lmsMaxOthersEl=el('lms-max-others');
 
   // --------- Build Appliance rows ----------
   APPLIANCES.forEach(a=>{
@@ -547,8 +643,43 @@ window.addEventListener('DOMContentLoaded', () => {
     return bothOK || contOK[0];
   }
 
+  function computeAirFactor(elevFt, tempF){
+    const altTerm = elevFt > 0 ? (elevFt / 1000) * 0.035 : 0; // 3.5% per 1000 ft above sea level
+    const tempExcess = Math.max(0, (tempF || 0) - 60);
+    const tempTerm = (tempExcess / 10) * 0.01;                // 1% per 10°F above 60
+    return 1 + altTerm + tempTerm;
+  }
+
+  function computeLiquidFactor(elevFt, tempF){
+    const altExcessFt = Math.max(0, elevFt - 600);
+    const altTerm = (altExcessFt / 1000) * 0.03;              // 3% per 1000 ft above 600 ft
+    const tempExcess = Math.max(0, (tempF || 0) - 77);
+    const tempTerm = (tempExcess / 10) * 0.0165;              // 1.65% per 10°F above 77
+    return 1 + altTerm + tempTerm;
+  }
+
   // --------- Core calc ----------
   function recalc(){
+    // Determine ZIP-based environment (elevation & temp)
+    const zipRaw = (zipEl?.value || '').trim();
+    let zipDigits = zipRaw.replace(/\D/g,'');
+    let zipKey = '';
+    if (zipDigits.length) {
+      zipKey = zipDigits.padStart(5,'0').slice(-5);
+    }
+
+    let env = { elevFt:0, tempF:60, source:'default' };
+    if (zipKey && ZIP_TABLE.size) {
+      const row = ZIP_TABLE.get(zipKey);
+      if (row) {
+        env = { elevFt: row.elevFt, tempF: row.tempF, source:'zip' };
+      } else {
+        env.source = 'zip-missing';
+      }
+    } else if (zipKey && !ZIP_TABLE.size) {
+      env.source = 'table-missing';
+    }
+
     // NEC from sqft + branch circuits
     const sqft=parseInt(sqftEl?.value||'0',10)||0;
     const necLighting=Math.max(0, Math.round(sqft*3));
@@ -610,38 +741,67 @@ window.addEventListener('DOMContentLoaded', () => {
     // Running watts (continuous)
     const runningWatts = weightedGeneral + seasonalEffective + evEffective;
 
-    // Continuous amps with buffer
+    // Continuous amps BEFORE buffer, BEFORE derating
     const buffer=Math.max(0, Math.min(50, parseInt(bufferPctEl?.value||'20',10) || 20));
-    const runningAmps=runningWatts/240;
-    const neededAmps = runningAmps/(1 - buffer/100);
+    const bufferFrac = buffer / 100;
+    const baseRunningAmps = runningWatts / 240;
 
-    // Surge amps via max-start swap
+    // Surge amps via max-start swap (baseline, before derating)
     const msStartA=parseFloat(msStartAmpsEl?.value||'0')||0;
     const msRunA  =parseFloat(msRunAmpsEl?.value||'0')||0;
     const soft    =(msSoftEl?.value||'no')==='yes' ? 0.5 : 1.0;
-    const preBufferAmps=runningWatts/240;
+    const preBufferAmps=baseRunningAmps;
     const surgeDeltaA=Math.max(0, (msStartA*soft) - msRunA);
-    const surgeAmps=preBufferAmps + surgeDeltaA;
+    const baseSurgeAmps=preBufferAmps + surgeDeltaA;
 
-    // Pick generator
     const fuel=(fuelEl?.value||'lp');
-    const choice=pickGenerator(neededAmps, surgeAmps, fuel);
+
+    // Helper: pick generator given assumed cooling type for derating
+    function pickWithEnv(coolingHint){
+      const elevFt = env.elevFt || 0;
+      const tempF = env.tempF || 60;
+      const factor = coolingHint === 'liquid'
+        ? computeLiquidFactor(elevFt, tempF)
+        : computeAirFactor(elevFt, tempF);
+
+      // Apply derating as a multiplier on required amps BEFORE buffer
+      const deratedRunAmps = baseRunningAmps * factor;
+      const deratedSurgeAmps = baseSurgeAmps * factor; // conservative: apply same factor to surge
+
+      const neededAmps = deratedRunAmps / (1 - bufferFrac);
+      const choice = pickGenerator(neededAmps, deratedSurgeAmps, fuel);
+
+      return { factor, neededAmps, surgeAmps: deratedSurgeAmps, choice };
+    }
+
+    // First assume air-cooled (most common), then adjust if final choice is liquid-cooled
+    let interim = pickWithEnv('air');
+    let coolingType = (interim.choice && typeof interim.choice.cooling === 'string' && interim.choice.cooling.toLowerCase().startsWith('liquid'))
+      ? 'liquid'
+      : 'air';
+
+    if (coolingType === 'liquid') {
+      interim = pickWithEnv('liquid');
+    }
+
+    const neededAmps = interim.neededAmps;
+    const surgeAmps = interim.surgeAmps;
+    const choice = interim.choice;
 
     // Cooling note + LC advisory (hide if LMS is enabled)
-	const isPortable = neededAmps <= 30;
-	let coolingNote = '';
-	if (!isPortable && choice && typeof choice.cooling === 'string' && choice.cooling.trim()){
-	  const c = choice.cooling.trim().toLowerCase();
-  	  coolingNote = c.startsWith('liquid') ? ' — Liquid-cooled' : ' — Air-cooled';
-	}
-	const lcAlertEl = document.getElementById('lc-alert');
-	const isLiquid  = (!isPortable && (
-	  (choice && typeof choice.cooling === 'string' && choice.cooling.toLowerCase().startsWith('liquid')) ||
-	  String(coolingNote).toLowerCase().includes('liquid-cooled')
-	));
-	const lmsOn = (lmsEnableEl && lmsEnableEl.value === 'yes');
-	if (lcAlertEl) lcAlertEl.style.display = (!lmsOn && isLiquid) ? 'block' : 'none';
-
+    const isPortable = neededAmps <= 30;
+    let coolingNote = '';
+    if (!isPortable && choice && typeof choice.cooling === 'string' && choice.cooling.trim()){
+      const c = choice.cooling.trim().toLowerCase();
+      coolingNote = c.startsWith('liquid') ? ' — Liquid-cooled' : ' — Air-cooled';
+    }
+    const lcAlertEl = document.getElementById('lc-alert');
+    const isLiquid  = (!isPortable && (
+      (choice && typeof choice.cooling === 'string' && choice.cooling.toLowerCase().startsWith('liquid')) ||
+      String(coolingNote).toLowerCase().includes('liquid-cooled')
+    ));
+    const lmsOn = (lmsEnableEl && lmsEnableEl.value === 'yes');
+    if (lcAlertEl) lcAlertEl.style.display = (!lmsOn && isLiquid) ? 'block' : 'none';
 
     // Output
     runWEl.textContent = runningWatts.toLocaleString();
@@ -649,9 +809,16 @@ window.addEventListener('DOMContentLoaded', () => {
     peakAEl.textContent = Math.ceil(surgeAmps).toString();
     recEl.textContent = `${choice.label} (${fuel==='lp'?'LP':'NG'})${coolingNote}`;
 
-    // LMS summary tiles
+        // LMS summary tiles
     lmsMaxGeneralEl.textContent = `${largestManagedGeneral.toLocaleString()} W`;
     lmsMaxOthersEl.textContent  = `${Math.max(acManagedMax, evManagedMax).toLocaleString()} W`;
+
+    // Maintain panel heights when open
+    if (panel?.getAttribute('data-open')==='1') panel.style.maxHeight=panel.scrollHeight+'px';
+    if (acPanel?.getAttribute('data-open')==='1') acPanel.style.maxHeight=acPanel.scrollHeight+'px';
+    if (heatPanel?.getAttribute('data-open')==='1') heatPanel.style.maxHeight=heatPanel.scrollHeight+'px';
+    if (lmsSectionEl?.getAttribute('data-open')==='1') lmsSectionEl.style.maxHeight=lmsSectionEl.scrollHeight+'px';
+
 
     // Maintain panel heights when open
     if (panel?.getAttribute('data-open')==='1') panel.style.maxHeight=panel.scrollHeight+'px';
@@ -682,6 +849,9 @@ window.addEventListener('DOMContentLoaded', () => {
   msVoltsEl?.addEventListener('change', recalc);
   msSoftEl?.addEventListener('change', recalc);
 
+  // ZIP listener
+  zipEl?.addEventListener('input', recalc);
+
   // LMS enable/disable
   lmsEnableEl?.addEventListener('change', ()=>{
     const on=lmsEnableEl.value==='yes';
@@ -693,7 +863,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // --------- Init ----------
   (async()=>{
-    await tryLoadCsv();
+    await Promise.all([tryLoadCsv(), tryLoadZipCsv()]);
     buildLmsList();
     applyGrid();
     applyPreset('essentials');
