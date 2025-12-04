@@ -7,34 +7,29 @@ const desc  = "Get in touch with the Size My Generator team.";
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/contact">
   <section class="page-hero">
     <h1>Contact</h1>
-    <p class="lead">Questions, feedback, or a bug to report? Send a note—we read everything.</p>
+    <p class="lead">
+      Questions, feedback, or a bug to report? Send a note—we read everything.
+    </p>
   </section>
 
-  <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
+  <main class="page-main">
     <div class="card">
       <h2>Email</h2>
       <p>
         Prefer your email client? Write us at
-        <a class="link" href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>.
+        <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>.
       </p>
-      <p style="color:#667">PA HIC License # PA 073102</p>
+      <p class="muted">PA HIC License # PA 073102</p>
     </div>
 
     <div class="card">
       <h2>Contact form</h2>
-      <!--
-        FormSubmit wiring:
-        - First submission triggers a confirmation email; click to activate.
-        - After activation, messages forward to your inbox immediately.
-        - You can later switch to a tokenized endpoint if you prefer.
-      -->
       <form
         method="POST"
         action="https://formsubmit.co/bill@atacamahvac.com"
         class="form"
         aria-label="Contact form"
       >
-        <!-- Required: fields need name= attributes -->
         <label for="name">Name</label>
         <input id="name" name="name" type="text" required autocomplete="name" />
 
@@ -54,12 +49,10 @@ const desc  = "Get in touch with the Size My Generator team.";
         <label for="message">Message</label>
         <textarea id="message" name="message" rows="6" required></textarea>
 
-        <!-- Nice-to-have hidden options -->
+        <!-- Redirect + options -->
         <input type="hidden" name="_next" value="https://sizemygenerator.com/contact?sent=1" />
         <input type="hidden" name="_subject" value="Size My Generator contact form" />
         <input type="hidden" name="_template" value="table" />
-        <!-- Optional: turn off their CAPTCHA if it conflicts -->
-        <!-- <input type="hidden" name="_captcha" value="false" /> -->
 
         <!-- Honeypot anti-spam (keep hidden) -->
         <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" />
@@ -67,7 +60,9 @@ const desc  = "Get in touch with the Size My Generator team.";
         <button type="submit">Send message</button>
         <p class="help">
           Rather email directly?
-          <a class="link" href="mailto:bill@atacamahvac.com?subject=Size%20My%20Generator%20contact">Click here</a>.
+          <a href="mailto:bill@atacamahvac.com?subject=Size%20My%20Generator%20contact">
+            Click here
+          </a>.
         </p>
       </form>
     </div>
@@ -78,56 +73,12 @@ const desc  = "Get in touch with the Size My Generator team.";
     </div>
   </main>
 
-  <style>
-    .card {
-      background: var(--card);
-      padding: 1rem 1.25rem;
-      border-radius: 12px;
-      box-shadow: 0 3px 14px rgba(0,0,0,.06);
-      margin-bottom: 1rem;
-    }
-    .form {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: .6rem;
-    }
-    label { font-weight: 600; }
-    input, select, textarea {
-      width: 100%;
-      padding: .65rem .75rem;
-      border: 1px solid #cfd6df;
-      border-radius: 8px;
-      font-size: 1rem;
-      background: #fff;
-    }
-    button {
-      margin-top: .5rem;
-      border: 1px solid #cfe5da;
-      background: #e9fff6;
-      color: #0b6;
-      font-weight: 700;
-      padding: .7rem 1rem;
-      border-radius: .6rem;
-      cursor: pointer;
-    }
-    button:hover { background: #ddfff0; }
-    .help { color:#667; margin:.25rem 0 0; }
-    .notice {
-      max-width: 720px;
-      margin: .75rem auto 0;
-      background: #f0fff4;
-      border: 1px solid #b7f5c8;
-      padding: .75rem 1rem;
-      border-radius: 10px;
-    }
-  </style>
-
   <script>
     // Show a success message if redirected back with ?sent=1
-    (function(){
+    (function () {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('sent') === '1') {
-        const el = document.getElementById('sent');
+      if (params.get("sent") === "1") {
+        const el = document.getElementById("sent");
         if (el) el.hidden = false;
       }
     })();

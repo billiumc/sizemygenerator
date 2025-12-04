@@ -7,69 +7,84 @@ const desc  = "Methodology, scope, and assumptions behind the residential genera
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/about">
   <main class="prose">
     <h1>About Size My Generator</h1>
-    <p>A simple, practical tool from a licensed HVAC pro to help you think through backup power—without the fluff.</p>
+    <p>
+      A simple, practical tool from a licensed HVAC pro to help you think through backup power—without the fluff.
+    </p>
 
-    <h2 style="margin-bottom:.25rem;">About SizeMyGenerator.com</h2>
-    <p>Practical, no-nonsense generator sizing guidance—free to use and updated as assumptions improve.</p>
+    <h2>About SizeMyGenerator.com</h2>
+    <p>
+      Practical, no-nonsense generator sizing guidance—free to use and updated as assumptions improve.
+    </p>
 
-    <h2 style="margin-bottom:.25rem;">Who’s behind this</h2>
-    <p>I’m an HVAC professional with hands-on experience sizing, installing, and servicing residential systems. I built this calculator so families who don’t speak kilowatts all day can quickly get to a sensible starting point—before talking to a pro.</p>
+    <h2>Who’s behind this</h2>
+    <p>
+      I’m an HVAC professional with hands-on experience sizing, installing, and servicing residential systems.
+      I built this calculator so families who don’t speak kilowatts all day can quickly get to a sensible starting
+      point—before talking to a pro.
+    </p>
 
-    
     <h1>About this calculator</h1>
     <p>
       This site helps homeowners ballpark a generator size using a simplified interpretation of the
-      National Electrical Code (NEC) dwelling load method, tailored for <strong>residential optional standby systems</strong>.
+      National Electrical Code (NEC) dwelling load method, tailored for
+      <strong>residential optional standby systems</strong>.
     </p>
 
     <section style="margin: 1.5rem 0;">
-    <h2 style="margin-bottom:.5rem;">How the calculator works</h2>
-    <ul style="padding-left:1.25rem; margin: .5rem 0;">
-      <li><strong>Square‑footage general load:</strong> <code>3&nbsp;VA/ft²</code> based on the area you enter (NEC&nbsp;2023 approach includes garage &amp; basement).</li>
-      <li><strong>Required small‑appliance &amp; laundry circuits:</strong> <code>1,500&nbsp;VA</code> each × quantity.</li>
-      <li><strong>Fixed appliances:</strong> user‑selected nameplate running watts at <strong>100%</strong> (well, sump, dishwasher, range, etc.).</li>
-      <li><strong>Demand factor:</strong> apply <strong>first 10&nbsp;kVA at 100%</strong>, then <strong>the remainder at 40%</strong> to the non‑A/C portion.</li>
-      <li><strong>Seasonal maximum (heating vs cooling):</strong> add <strong>100% of the larger</strong> of A/C or heating. For heat pumps with electric supplemental heat we add the A/C run plus <strong>65%</strong> of supplemental kW.</li>
-      <li><strong>EV charging (Level 2):</strong> added at <strong>100%</strong> based on selected amperage (32/40/48/60/80A @240V) or a custom kW.</li>
-      <li><strong>Headroom buffer:</strong> default <strong>20%</strong>. We divide by <code>(1 − buffer)</code> and round up to the next common generator size (10/14/18/22/24/26&nbsp;kW air‑cooled).</li>
-    </ul>
-    <p style="color:#666; margin-top:.5rem;">
-      Assumptions reflect typical residential equipment and are updated periodically. Always verify against nameplates and local code amendments.
-    </p>
-  </section>
+      <h2>How the calculator works</h2>
+      <ul>
+        <li><strong>Square-footage general load:</strong> <code>3&nbsp;VA/ft²</code> based on the area you enter (NEC&nbsp;2023 approach includes garage &amp; basement).</li>
+        <li><strong>Required small-appliance &amp; laundry circuits:</strong> <code>1,500&nbsp;VA</code> each × quantity.</li>
+        <li><strong>Fixed appliances:</strong> user-selected nameplate running watts at <strong>100%</strong> (well, sump, dishwasher, range, etc.).</li>
+        <li><strong>Demand factor:</strong> apply <strong>first 10&nbsp;kVA at 100%</strong>, then <strong>the remainder at 40%</strong> to the non-A/C portion.</li>
+        <li><strong>Seasonal maximum (heating vs cooling):</strong> add <strong>100% of the larger</strong> of A/C or heating. For heat pumps with electric supplemental heat we add the A/C run plus <strong>65%</strong> of supplemental kW.</li>
+        <li><strong>EV charging (Level 2):</strong> added at <strong>100%</strong> based on selected amperage (32/40/48/60/80A @240V) or a custom kW.</li>
+        <li><strong>Headroom buffer:</strong> default <strong>20%</strong>. We divide by <code>(1 − buffer)</code> and round up to the next common generator size (10/14/18/22/24/26&nbsp;kW air-cooled).</li>
+      </ul>
+      <p class="muted">
+        Assumptions reflect typical residential equipment and are updated periodically. Always verify against nameplates and
+        local code amendments.
+      </p>
+    </section>
 
     <section style="margin: 1.5rem 0;">
-    <h2 style="margin-bottom:.5rem;">What this site is (and isn’t)</h2>
-    <p>
-      This tool is oriented to <strong>residential optional standby systems</strong> (NEC Article&nbsp;702). It is <em>not</em> intended for
-      <strong>emergency systems</strong> (Article&nbsp;700), <strong>legally required standby</strong> (Article&nbsp;701), or
-      <strong>critical operations power systems</strong> (Article&nbsp;708), which have different design, reliability, and code requirements.
-    </p>
-    <p>
-      This is <strong>planning guidance</strong>, not a site survey. Homes vary, nameplates can surprise, and local AHJs may amend the NEC.
-      Before purchasing or installing a generator, <strong>consult a licensed electrician/contractor</strong> and your utility to confirm sizing,
-      transfer equipment, interconnection rules, and code compliance.
-    </p>
-  </section>
-    <section style="margin: 2rem 0; border-top:1px solid #e8edf3; padding-top:1rem;">
-    <h2 style="margin-bottom:.25rem;">Monetization &amp; independence</h2>
-    <p>SizeMyGenerator.com is free to use. We fund the site with display ads and affiliate links. If you buy through a link, we may earn a commission at no extra cost to you. Our recommendations are driven by practical assumptions and field experience—never pay-to-play.</p>
-    <p>See our <a href="/affiliate-disclosure">Affiliate Disclosure</a> and <a href="/privacy">Privacy Policy</a> for details.</p>
+      <h2>What this site is (and isn’t)</h2>
+      <p>
+        This tool is oriented to <strong>residential optional standby systems</strong> (NEC Article&nbsp;702). It is <em>not</em> intended for
+        <strong>emergency systems</strong> (Article&nbsp;700), <strong>legally required standby</strong> (Article&nbsp;701), or
+        <strong>critical operations power systems</strong> (Article&nbsp;708), which have different design, reliability, and code
+        requirements.
+      </p>
+      <p>
+        This is <strong>planning guidance</strong>, not a site survey. Homes vary, nameplates can surprise, and local AHJs may amend the
+        NEC. Before purchasing or installing a generator, <strong>consult a licensed electrician/contractor</strong> and your utility
+        to confirm sizing, transfer equipment, interconnection rules, and code compliance.
+      </p>
+    </section>
 
-    <h2 style="margin:.75rem 0 .25rem;">Ownership &amp; compliance</h2>
-    <p>SizeMyGenerator.com is owned by Atacama Cooling &amp; Heating, LLC (Pennsylvania).<br>
-    PA HIC#: PA 073102<br>
-    Contact: <a href=\"mailto:bill@atacamahvac.com\">bill@atacamahvac.com</a></p>
+    <section style="margin: 2rem 0; border-top:1px solid rgba(148,163,253,0.6); padding-top:1rem;">
+      <h2>Monetization &amp; independence</h2>
+      <p>
+        SizeMyGenerator.com is free to use. We fund the site with display ads and affiliate links. If you buy through a link,
+        we may earn a commission at no extra cost to you. Our recommendations are driven by practical assumptions and field
+        experience—never pay-to-play.
+      </p>
+      <p>
+        See our <a href="/affiliate-disclosure">Affiliate Disclosure</a> and <a href="/privacy">Privacy Policy</a> for details.
+      </p>
 
-    <h2 style="margin:.75rem 0 .25rem;">Corrections &amp; updates</h2>
-    <p>We periodically review load tables and assumptions. If you spot anything off—or have a suggestion—please <a href="mailto:bill@atacamahvac.com">email us</a>.</p>
-  </section>
-</main>
+      <h2>Ownership &amp; compliance</h2>
+      <p>
+        SizeMyGenerator.com is owned by Atacama Cooling &amp; Heating, LLC (Pennsylvania).<br />
+        PA HIC#: PA 073102<br />
+        Contact: <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>
+      </p>
 
-  <style>
-    .prose { max-width: 720px; margin: 0 auto; padding: 1rem; }
-    .prose h1 { margin-bottom: .5rem; }
-    .prose h2 { margin-top: 1.25rem; }
-    .prose ul li { margin:.25rem 0; }
-  </style>
+      <h2>Corrections &amp; updates</h2>
+      <p>
+        We periodically review load tables and assumptions. If you spot anything off—or have a suggestion—please
+        <a href="mailto:bill@atacamahvac.com">email us</a>.
+      </p>
+    </section>
+  </main>
 </SiteLayout>
