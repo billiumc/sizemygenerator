@@ -1,249 +1,1199 @@
 ---
-/*
-Calculator.astro — generator sizing (continuous amps + surge), with LMS + ZIP-based derating
-
-Highlights
-- CSV loader uses safe newline splitter (no regex)
-- Appliances list (+ NEC lighting/branch circuits)
-- AC rows (tons->prefill amps, editable)
-- Heating (resistance or HP supplemental)
-- EV chargers (amps @ 240 V), inline ✕ on same row
-- LMS: Appliances, each AC row, Heating, and each EV row are “shed-able”
-  • Appliances/EV: sum unmanaged + largest managed
-  • AC: sum unmanaged + largest managed condenser
-  • Heating: competes seasonally with AC (we still take seasonal max)
-- Liquid-cooled advisory banner in results
-- ZIP -> elevation & temp derating (air-cooled vs liquid-cooled rules)
-- Vanilla JS only (no React imports)
-*/
+export const prerender = true;
+const pageTitle = "Generator Sizing Calculator";
 ---
-<div class="box" id="gen-calculator">
+
+<head>
+  <title>{pageTitle}</title>
+</head>
+
+<style is:global>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 0;
+    color: #1f2937;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 2rem;
+  }
+  
+  .header {
+    text-align: center;
+    color: white;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .header h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  
+  .header p {
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    opacity: 0.95;
+  }
+
+  .header-subline {
+    margin-top: 0.35rem;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  
+  /* Main Calculator Layout */
+  .calc-grid {
+    display: grid;
+    gap: 1.25rem;
+    animation: slideUp 0.6s ease-out 0.1s both;
+  }
+
+  @media (min-width: 900px) {
+    .calc-grid {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      align-items: flex-start;
+    }
+  }
+  
+  .calc-card {
+    background: white;
+    border-radius: 16px;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 25px rgba(0, 0, 0, 0.08);
+  }
+
+  .inputs {
+    width: 100%;
+  }
+
+  /* Dark, premium summary card */
+  .summary-card {
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+    background: #020617;
+    color: #f9fafb;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.6);
+    padding: 1.5rem 1.5rem 1.25rem;
+  }
+
+  .summary-card p {
+    margin: 0.25rem 0;
+  }
+
+  @media (max-width: 899px) {
+    .summary-card {
+      order: 1;
+      position: relative;
+      top: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .inputs {
+      order: 2;
+    }
+  }
+  
+  .section {
+    margin-bottom: 2rem;
+  }
+  
+  .section:last-child {
+    margin-bottom: 0;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f3f4f6;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-step {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    font-weight: 600;
+  }
+  
+  .section-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: white;
+    transition: all 0.2s;
+    font-family: inherit;
+    min-height: 44px; /* touch target */
+  }
+  
+  input:focus, select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+  }
+  
+  input:hover, select:hover {
+    border-color: #cbd5e1;
+  }
+  
+  .input-hint {
+    display: block;
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.35rem;
+    line-height: 1.4;
+  }
+  
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  
+  .form-row {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+  
+  @media (min-width: 640px) {
+    .form-row {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  /* Buttons */
+  button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  
+  .btn-secondary {
+    background: white;
+    color: #667eea;
+    padding: 0.5rem 1rem;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+  }
+  
+  .btn-secondary:hover {
+    background: #f0f4ff;
+  }
+  
+  .btn-text {
+    background: transparent;
+    color: #667eea;
+    padding: 0.5rem;
+    font-weight: 600;
+  }
+  
+  .btn-text:hover {
+    color: #5568d3;
+    text-decoration: underline;
+  }
+  
+  .btn-remove {
+    background: #fee;
+    color: #dc2626;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    min-width: 2.5rem;
+  }
+  
+  .btn-remove:hover {
+    background: #fcc;
+  }
+
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    border: 1px solid #9ca3af;
+    font-size: 0.75rem;
+    color: #4b5563;
+    cursor: help;
+    background: #f9fafb;
+  }
+  
+  /* Collapsible Sections */
+  .collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 0.5rem;
+  }
+  
+  .collapsible-header:hover {
+    background: #f3f4f6;
+  }
+  
+  .collapsible-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+  }
+  
+  .collapsible-content.open {
+    max-height: 5000px;
+  }
+  
+  .toggle-icon {
+    transition: transform 0.3s;
+    font-weight: 700;
+    color: #667eea;
+  }
+  
+  .toggle-icon.open {
+    transform: rotate(180deg);
+  }
+  
+  /* Appliance List (driven by JS, uses .appliance-row) */
+  .appliance-grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .appliance-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .appliance-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  
+  .appliance-row input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  
+  .appliance-row input[type="number"],
+  .watt-input {
+    width: 7ch;
+    padding: 0.4rem 0.5rem;
+    text-align: right;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    min-height: 34px;
+  }
+  
+  .appliance-row .name {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #374151;
+  }
+  
+  .appliance-row:hover {
+    border-color: #667eea;
+    background: #eff6ff;
+  }
+  
+  /* AC/EV Rows */
+  .dynamic-row {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 2px solid #e5e7eb;
+    margin-bottom: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .dynamic-row {
+      grid-template-columns: 1fr 1fr auto;
+      align-items: end;
+    }
+  }
+  
+  .ac-subgrid input[type="number"] {
+    width: 7ch;
+    text-align: right;
+  }
+  
+  /* Summary Card content */
+  .summary-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .summary-result {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+    color: #fbbf24;
+  }
+
+  .summary-copy {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    opacity: 0.9;
+    margin-bottom: 1.25rem;
+  }
+  
+  .summary-details {
+    display: grid;
+    gap: 1rem;
+  }
+  
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+  }
+  
+  .detail-label {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .detail-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .alert {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .alert-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
+  }
+  
+  .alert-info {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    border-left: 4px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+    margin: 2rem 0;
+  }
+  
+  .disclaimer {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+  }
+
+  /* Bottom stepper nav */
+  .flow-steps {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 2rem 0 1rem;
+  }
+
+  .flow-steps button {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: #e5e7eb;
+    color: #111827;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+
+  .flow-steps button:hover {
+    background: #c7d2fe;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  /* How to Use Section */
+  .how-to-use {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 25px rgba(0, 0, 0, 0.08);
+    animation: slideUp 0.6s ease-out 0.2s both;
+  }
+  
+  .how-to-use h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .how-to-use h2::before {
+    content: "💡";
+    font-size: 1.75rem;
+  }
+  
+  .steps {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .step {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    transition: background 0.15s ease;
+    animation: slideUp 0.45s ease-out both;
+  }
+
+  .step:nth-child(1) { animation-delay: 0.05s; }
+  .step:nth-child(2) { animation-delay: 0.10s; }
+  .step:nth-child(3) { animation-delay: 0.15s; }
+  .step:nth-child(4) { animation-delay: 0.20s; }
+  .step:nth-child(5) { animation-delay: 0.25s; }
+  
+  .step:hover {
+    background: #f3f4f6;
+  }
+  
+  .step-number {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: #e5e7eb;
+    color: #4b5563;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border: none;
+    cursor: default;
+  }
+  
+  .step-content h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    color: #111827;
+  }
+  
+  .step-content p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+  
+  .appliance-tag-guide {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+    border: 2px dashed #f59e0b;
+  }
+  
+  .appliance-tag-guide h3 {
+    font-size: 1.1rem;
+    color: #92400e;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .appliance-tag-guide h3::before {
+    content: "📋";
+  }
+  
+  .tag-tips {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #78350f;
+  }
+  
+  .tag-tip {
+    display: flex;
+    align-items: start;
+    gap: 0.5rem;
+  }
+  
+  .tag-tip::before {
+    content: "→";
+    color: #f59e0b;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Mini cards for LMS */
+  .mini-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  
+  .mini-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+  }
+  
+  .mini-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .mini-value,
+  .mini-val {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  
+  /* NEC Circuits */
+  .nec-grid {
+    display: grid;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  
+  @media (min-width: 640px) {
+    .nec-grid {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+  
+  .nec-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 10px;
+  }
+  
+  .nec-item label {
+    margin: 0;
+    flex: 1;
+  }
+  
+  .nec-item input {
+    width: 7ch;
+    text-align: right;
+  }
+
+  .section-highlight {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4);
+    border-radius: 16px;
+    transition: box-shadow 0.4s ease-out;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .calc-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition: none !important;
+    }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+
+  
   <div class="calc-grid">
-    <div class="inputs">
-      <label for="scope"><strong>What do you want to power?</strong></label>
-      <select id="scope">
-        <option value="essentials">Essentials (fridge, lights, furnace blower)</option>
-        <option value="most">Most of house (kitchen + some HVAC)</option>
-        <option value="whole">Whole house (unrestricted typical use)</option>
-      </select>
-
-      <div class="controls-row" style="margin-top:.5rem;align-items:end;">
-        <div>
-          <label for="zip" class="lbl">Home ZIP code (US, 5 digits)</label>
-          <input id="zip" class="fld" type="text" inputmode="numeric" maxlength="5" placeholder="e.g., 19087">
-          <small class="muted">
-            Used to estimate elevation &amp; typical summer high. Leave blank to assume sea level &amp; 60&nbsp;°F.
-          </small>
-        </div>
-        <div></div>
-      </div>
-
-      <div class="controls-row" style="margin-top:.5rem;align-items:end;">
-        <div>
-          <label for="sqft" class="lbl">Home square footage (incl. garage &amp; basement)</label>
-          <input id="sqft" class="fld" type="number" min="0" step="50" placeholder="e.g., 2400">
-          <small style="color:#666">NEC general lighting load = 3 watts per sq ft × this number. (NEC&nbsp;2023 includes garage &amp; basement.)</small>
-        </div>
-      </div>
-
-      <!-- Appliances (collapsible) -->
-      <div id="appliance-header" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
-        <div id="appliance-summary" style="font-size:.95rem;color:#555">
-          ✅ Preset applied. <span id="summary-count">0</span> items selected.
-          <button id="toggle-appliances" type="button" aria-controls="appliance-panel" aria-expanded="false" style="margin-left:.5rem;border:0;background:transparent;color:#0b6;font-weight:600;cursor:pointer;">Show details ▾</button>
-        </div>
-      </div>
-
-      <div id="appliance-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.25rem;">
-        <!-- NEC required small-appliance and laundry circuits -->
-        <div id="nec-circuits" style="display:grid;grid-template-columns:1fr auto auto;gap:.5rem 1rem;align-items:center;margin:.5rem 0 .75rem;">
-          <div><strong>Small-appliance circuits</strong> <small style="color:#666">(NEC, 1500 W each)</small></div>
-          <label for="smallQty" style="justify-self:end;color:#555">Qty</label>
-          <input id="smallQty" type="number" min="0" step="1" value="2" style="width:7ch;text-align:right;">
-
-          <div><strong>Laundry circuits</strong> <small style="color:#666">(NEC, 1500 W each)</small></div>
-          <label for="laundryQty" style="justify-self:end;color:#555">Qty</label>
-          <input id="laundryQty" type="number" min="0" step="1" value="1" style="width:7ch;text-align:right;">
-        </div>
-
-        <div id="appliance-list" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
-      </div>
-
-      <hr style="margin:1rem 0">
-
-      <!-- Air Conditioning -->
-      <div id="ac-section">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-          <strong>Air conditioning (optional)</strong>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <button id="toggle-ac" type="button" aria-controls="ac-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
-            <button id="add-ac" type="button">+ Add AC system</button>
+    <!-- Main Calculator (left) -->
+    <div class="inputs calc-card">
+      <!-- Step 1: Coverage + home details -->
+      <section id="step-1-coverage">
+        <!-- Coverage -->
+        <div class="section" id="scope-section">
+          <div class="section-header">
+            <div class="section-title">What do you want to power?</div>
+            <div class="section-step">Step 1 of 5</div>
           </div>
-        </div>
-        <small style="color:#555">Add one row per condenser (e.g., 3-ton up, 2-ton down).</small>
-        <div id="ac-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
-          <div id="ac-rows" style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem"></div>
-        </div>
-      </div>
-
-      <!-- Heating -->
-      <div id="heat-section" style="margin-top:1rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-          <strong>Heating (optional)</strong>
-          <button id="toggle-heat" type="button" aria-controls="heat-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
-        </div>
-        <div id="heat-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;align-items:center">
-            <label for="heat-type">Type</label>
-            <select id="heat-type">
-              <option value="none">None</option>
-              <option value="resistance">Electric resistance (furnace/baseboards)</option>
-              <option value="hp_supp">Heat pump + electric supplemental</option>
-            </select>
-            <label for="heat-kw">kW (if applicable)</label>
-            <input id="heat-kw" type="number" min="0" step="0.5" placeholder="e.g., 10">
-          </div>
-          <small style="color:#555">Per NEC, we use the larger of heating or A/C. For heat pumps, we add 65% of supplemental heat.</small>
-        </div>
-      </div>
-
-      <!-- EV Chargers -->
-      <div id="ev-section" style="margin-top:1rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-          <strong>EV chargers (optional)</strong>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <button id="toggle-ev" type="button" aria-controls="ev-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
-            <button id="add-ev" type="button">+ Add EV charger</button>
-          </div>
-        </div>
-        <small style="color:#555">Included at 100% like A/C. Enter charging/breaker amps at 240 V.</small>
-        <div id="ev-panel" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;">
-          <div id="ev-rows" style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem"></div>
-        </div>
-      </div>
-
-      <!-- Max-start (surge) -->
-      <div id="maxstart-section" style="margin-top:1rem;">
-        <strong>Appliance w/max starting amps</strong>
-        <div class="controls-row" style="grid-template-columns:1fr 1fr;align-items:end;margin-top:.5rem;">
-          <div>
-            <label for="ms-start-amps" class="lbl">Starting amps</label>
-            <input id="ms-start-amps" type="number" min="0" step="0.1" placeholder="e.g., 40">
-          </div>
-          <div>
-            <label for="ms-run-amps" class="lbl">Running amps</label>
-            <input id="ms-run-amps" type="number" min="0" step="0.1" placeholder="e.g., 8">
-          </div>
-        </div>
-        <div class="controls-row" style="grid-template-columns:1fr 1fr; margin-top:.25rem;">
-          <div>
-            <label for="ms-volts" class="lbl">Voltage</label>
-            <select id="ms-volts">
-              <option value="120" selected>120 V</option>
-              <option value="240">240 V</option>
+          <div class="form-group">
+            <label for="scope">Coverage level</label>
+            <select id="scope">
+              <option value="essentials">Essentials (fridge, lights, furnace blower)</option>
+              <option value="most">Most of house (kitchen + some HVAC)</option>
+              <option value="whole">Whole house (unrestricted typical use)</option>
             </select>
           </div>
-          <div>
-            <label for="ms-soft" class="lbl">Soft Starter</label>
-            <select id="ms-soft">
+        </div>
+
+        <!-- Home details -->
+        <div class="section" id="home-details-section">
+          <div class="section-header">
+            <div class="section-title">Home details</div>
+            <div class="section-step">Step 2 of 5</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="zip">Home ZIP code (US, 5 digits)</label>
+              <input id="zip" type="text" inputmode="numeric" maxlength="5" placeholder="e.g., 19087" />
+              <span class="input-hint">
+                Used to estimate elevation &amp; typical summer high. Leave blank to assume sea level &amp; 60&nbsp;°F.
+              </span>
+            </div>
+            
+            <div class="form-group">
+              <label for="sqft">Home square footage</label>
+              <input id="sqft" type="number" min="0" step="50" placeholder="e.g., 2400" />
+              <span class="input-hint">
+                NEC general lighting load = 3 watts per sq ft × this number. Include garage &amp; basement.
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <div class="divider"></div>
+      
+      <!-- Step 2: Appliances -->
+      <section id="step-2-appliances">
+        <div class="section" id="appliance-section">
+          <div id="appliance-header" class="section-header">
+            <div>
+              <div class="section-title">Appliances &amp; circuits</div>
+              <small style="color: #6b7280; margin-top: 0.25rem; display: block;">
+                ✅ Preset applied.
+                <span id="appliance-summary">
+                  <span id="summary-count">0</span> items selected.
+                </span>
+              </small>
+            </div>
+            <div class="section-step">Step 3 of 5</div>
+          </div>
+
+          <div id="appliance-panel" class="collapsible-content" data-open="0">
+            <div class="nec-grid">
+              <div class="nec-item">
+                <label>
+                  Small-appliance circuits
+                  <small style="color: #6b7280;">(1500W each)</small>
+                </label>
+                <input id="smallQty" type="number" min="0" step="1" value="2" />
+              </div>
+              <div class="nec-item">
+                <label>
+                  Laundry circuits
+                  <small style="color: #6b7280;">(1500W each)</small>
+                </label>
+                <input id="laundryQty" type="number" min="0" step="1" value="1" />
+              </div>
+            </div>
+            
+            <div class="appliance-grid" id="appliance-list"></div>
+          </div>
+
+          <div style="margin-top: 0.5rem;">
+            <button
+              id="toggle-appliances"
+              type="button"
+              class="btn-text"
+              aria-controls="appliance-panel"
+              aria-expanded="false"
+            >
+              Show appliance details ▾
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      <div class="divider"></div>
+      
+      <!-- Step 3: HVAC (AC + Heating + EV) -->
+      <section id="step-3-hvac">
+        <div class="section" id="hvac-section">
+          <div class="section-header">
+            <div class="section-title">HVAC &amp; EV loads</div>
+            <div class="section-step">Step 4 of 5</div>
+          </div>
+
+          <!-- Air Conditioning -->
+          <div class="section" id="ac-section">
+            <div class="section-header" style="border-bottom: none; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+              <div class="section-title" style="font-size: 1rem;">❄️ Air conditioning</div>
+              <div class="section-actions">
+                <button
+                  class="btn-secondary"
+                  id="toggle-ac"
+                  type="button"
+                  aria-controls="ac-panel"
+                  aria-expanded="false"
+                >
+                  Show details ▾
+                </button>
+                <button class="btn-primary" id="add-ac" type="button">+ Add AC system</button>
+              </div>
+            </div>
+            <span class="input-hint">Add one row per outdoor condenser (e.g., 3-ton up, 2-ton down).</span>
+            <div class="collapsible-content" id="ac-panel" data-open="0" style="margin-top: 0.5rem;">
+              <div id="ac-rows"></div>
+            </div>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <!-- Heating -->
+          <div class="section" id="heat-section">
+            <div class="collapsible-header">
+              <div class="section-title" style="font-size: 1rem;">🔥 Heating</div>
+              <button
+                id="toggle-heat"
+                type="button"
+                class="btn-text"
+                aria-controls="heat-panel"
+                aria-expanded="false"
+              >
+                Show details ▾
+              </button>
+            </div>
+            
+            <div class="collapsible-content" id="heat-panel" data-open="0">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="heat-type">Type</label>
+                  <select id="heat-type">
+                    <option value="none">None</option>
+                    <option value="resistance">Electric resistance (furnace/baseboards)</option>
+                    <option value="hp_supp">Heat pump + electric supplemental</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="heat-kw">kW (if applicable)</label>
+                  <input id="heat-kw" type="number" min="0" step="0.5" placeholder="e.g., 10" />
+                </div>
+              </div>
+              <span class="input-hint">
+                Per NEC, we use the larger of heating or A/C. For heat pumps, we add 65% of supplemental heat.
+              </span>
+            </div>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <!-- EV Chargers (part of HVAC/EV step) -->
+          <div class="section" id="ev-section">
+            <div class="section-header" style="border-bottom: none, padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+              <div class="section-title" style="font-size: 1rem;">🔌 EV chargers</div>
+              <div class="section-actions">
+                <button
+                  class="btn-secondary"
+                  id="toggle-ev"
+                  type="button"
+                  aria-controls="ev-panel"
+                  aria-expanded="false"
+                >
+                  Show details ▾
+                </button>
+                <button class="btn-primary" id="add-ev" type="button">+ Add charger</button>
+              </div>
+            </div>
+            <span class="input-hint">
+              Included at 100% like A/C. Enter charging/breaker amps at 240 V.
+            </span>
+            <div class="collapsible-content" id="ev-panel" data-open="0" style="margin-top: 0.5rem;">
+              <div id="ev-rows"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <div class="divider"></div>
+      
+      <!-- Step 4: Max start + LMS -->
+      <section id="step-4-ev">
+        <!-- Max Start -->
+        <div class="section" id="maxstart-section">
+          <div class="section-header">
+            <div class="section-title">⚡ Max starting load</div>
+          </div>
+          <span class="input-hint" style="display: block; margin-bottom: 1rem;">
+            Enter details for the appliance with the highest starting surge (often an A/C or well pump). Use the largest
+            starting amps (LRA) you see on any appliance tag. The yellow guide below shows where to find it.
+          </span>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ms-start-amps">Starting amps</label>
+              <input id="ms-start-amps" type="number" min="0" step="0.1" placeholder="e.g., 40" />
+            </div>
+            <div class="form-group">
+              <label for="ms-run-amps">Running amps</label>
+              <input id="ms-run-amps" type="number" min="0" step="0.1" placeholder="e.g., 8" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ms-volts">Voltage</label>
+              <select id="ms-volts">
+                <option value="120" selected>120V</option>
+                <option value="240">240V</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ms-soft">Soft starter?</label>
+              <select id="ms-soft">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          <span class="input-hint">
+            Used to adjust peak (surge) amps for the recommendation. Soft starters typically cut start amps ~50%.
+          </span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- LMS -->
+        <div class="section" id="lms-section-wrapper">
+          <div class="form-group">
+            <label for="lms-enable">Load management system (LMS)</label>
+            <select id="lms-enable">
               <option value="no" selected>No</option>
               <option value="yes">Yes</option>
             </select>
+            <span class="input-hint">
+              If enabled, we count the sum of unmanaged + the <em>largest</em> managed item for each category (general, HVAC, EV).
+            </span>
+          </div>
+          
+          <div
+            id="lms-section"
+            data-open="0"
+            class="collapsible-content"
+            style="margin-top: 0.75rem; border: 1px solid #e6ebf2; border-radius: 10px;"
+          >
+            <div style="padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+              <div class="lbl" style="margin: 0;">
+                LMS items — <span id="lms-summary">No LMS items selected</span>
+              </div>
+              <button
+                id="toggle-lms"
+                type="button"
+                class="btn-text"
+                aria-controls="lms-panel"
+                aria-expanded="false"
+              >
+                Show details ▾
+              </button>
+            </div>
+            <div id="lms-panel" style="padding: 0.5rem 0.75rem 0.75rem;">
+              <small class="input-hint">
+                Select items to manage (shed/sequence). Only the <em>largest</em> managed item per category is counted
+                along with unmanaged loads.
+              </small>
+              <div id="lms-list" class="appliance-grid" style="margin-top: 0.5rem;"></div>
+              <div class="mini-cards" style="margin-top: 0.5rem;">
+                <div class="mini-card">
+                  <div class="mini-label">Managed count</div>
+                  <div class="mini-val" id="lms-count">0</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-label">Largest managed (Appl.)</div>
+                  <div class="mini-val" id="lms-max-general">0 W</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-label">Largest managed (AC/EV)</div>
+                  <div class="mini-val" id="lms-max-others">0 W</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <small class="muted">Used to adjust peak (surge) amps for the recommendation.</small>
-      </div>
-
-      <!-- LMS -->
-      <div class="controls-row" style="margin-top:1.25rem;grid-template-columns: 1fr 1fr;">
-        <div>
-          <label for="lms-enable" class="lbl">Load Management System (LMS)</label>
-          <select id="lms-enable">
-            <option value="no" selected>No</option>
-            <option value="yes">Yes</option>
-          </select>
-          <small class="muted">If enabled, we count the sum of unmanaged + the <em>largest</em> managed item for each category.</small>
-        </div>
-        <div></div>
-      </div>
-
-      <div id="lms-section" data-open="0" style="overflow:hidden;max-height:0;transition:max-height .28s ease;will-change:max-height;margin-top:.5rem;border:1px solid #e6ebf2;border-radius:10px;">
-        <div style="padding:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;">
-          <div class="lbl" style="margin:0">LMS items — <span id="lms-summary">No LMS items selected</span></div>
-          <button id="toggle-lms" type="button" aria-controls="lms-panel" aria-expanded="false" style="border:0;background:transparent;color:#0a7e51;font-weight:600;cursor:pointer;">Show details ▾</button>
-        </div>
-        <div id="lms-panel" style="padding:.5rem .75rem .75rem">
-          <small class="muted">Select items to manage (shed/sequence). Only the <em>largest</em> managed item per category is counted with unmanaged.</small>
-          <div id="lms-list" style="margin-top:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem"></div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.5rem;">
-            <div class="mini-card"><div class="mini-label">Managed count</div><div class="mini-val" id="lms-count">0</div></div>
-            <div class="mini-card"><div class="mini-label">Largest managed (Appl.)</div><div class="mini-val" id="lms-max-general">0 W</div></div>
-            <div class="mini-card"><div class="mini-label">Largest managed (AC/EV)</div><div class="mini-val" id="lms-max-others">0 W</div></div>
+      </section>
+      
+      <div class="divider"></div>
+      
+      <!-- Step 5: Settings -->
+      <section id="step-5-settings">
+        <div class="section" id="settings-section">
+          <div class="section-header">
+            <div class="section-title">Settings &amp; safety margin</div>
+            <div class="section-step">Step 5 of 5</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fuelType">Fuel type</label>
+              <select id="fuelType">
+                <option value="lp" selected>LP (Propane)</option>
+                <option value="ng">Natural gas</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="label-row">
+                <label for="bufferPct">Headroom buffer (%)</label>
+                <span
+                  class="help-icon"
+                  title="Extra safety margin above your expected running load. Most homes use 10–30%."
+                >?</span>
+              </div>
+              <input id="bufferPct" type="number" min="0" max="50" step="1" value="20" />
+              <span class="input-hint" id="bufferHint">
+                Default is 20%. Most homes use 10–30% headroom.
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Fuel & buffer -->
-      <div class="controls-row">
-        <label for="fuelType" class="lbl">Fuel type</label>
-        <select id="fuelType">
-          <option value="lp" selected>LP (propane)</option>
-          <option value="ng">Natural gas</option>
-        </select>
-      </div>
-      <div class="controls-row">
-        <label for="bufferPct" class="lbl">Headroom buffer (%)</label>
-        <input id="bufferPct" type="number" min="0" max="50" step="1" value="20" class="fld">
-      </div>
-
-      <hr>
+      </section>
     </div>
 
-    <aside class="summary-card" aria-live="polite">
-      <div id="results">
-        <h3 class="summary-title" style="margin:.25rem 0 .5rem">Recommended generator size</h3>
-        <p class="summary-big" style="font-size:1.4rem;line-height:1.2;margin:.25rem 0 .75rem"><span id="rec">—</span></p>
-        <div id="lc-alert" style="display:none;margin:.5rem 0;padding:.5rem .75rem;border-left:4px solid #b45309;background:#FFF7ED;color:#92400E;border-radius:6px;">
-          Consider a load management system to reduce recommended generator size.
-        </div>
-        <p style="margin:.25rem 0"><strong>Planning load:</strong> <span id="runW">0</span> W</p>
-        <p style="margin:.25rem 0"><strong>Needed amps (with buffer):</strong> <span id="needA">0</span> A</p>
-        <p style="margin:.25rem 0"><strong>Peak amps (with max-start):</strong> <span id="peakA">0</span> A</p>
-        <small id="assumption-note" style="color:#666;display:block;margin-top:.25rem">
-          Running amps = watts ÷ 240. Needed amps = running amps ÷ (1 − headroom%). Peak includes max-start swap (soft starter cuts start amps ~50%).
-        </small>
-        <small id="env-note" style="color:#666;display:block;margin-top:.25rem"></small>
+    <!-- Summary Card (right on desktop) -->
+    <aside class="summary-card" id="summary-card" aria-live="polite">
+      <div class="summary-title">Recommended Size</div>
+      <div class="summary-result" id="rec">—</div>
+      <p class="summary-copy">
+        Sized with NEC-style diversity and headroom for motor starting.
+        Always have a licensed electrician verify before purchase.
+      </p>
+      
+      <div id="lc-alert" class="alert alert-warning" style="display: none;">
+        💡 Consider a load management system to reduce required generator size.
       </div>
+      
+      <div class="summary-details">
+        <div class="detail-row">
+          <span class="detail-label">
+            Planning load
+            <span
+              class="help-icon"
+              title="Your estimated running load after NEC-style demand factors and managed loads."
+            >?</span>
+          </span>
+          <span class="detail-value"><span id="runW">0</span> W</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">
+            Needed amps (with buffer)
+            <span
+              class="help-icon"
+              title="Continuous amps the generator must support, including your chosen headroom margin."
+            >?</span>
+          </span>
+          <span class="detail-value"><span id="needA">0</span> A</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">
+            Peak amps (with max-start)
+            <span
+              class="help-icon"
+              title="Estimated surge amps when your largest motor/compressor starts."
+            >?</span>
+          </span>
+          <span class="detail-value"><span id="peakA">0</span> A</span>
+        </div>
+      </div>
+      
+      <div class="alert alert-info" style="margin-top: 1.5rem;">
+        Running amps = watts ÷ 240. Needed amps = running amps ÷ (1 − headroom%). Peak amps include the max-start swap
+        (soft starter reduces start amps).
+      </div>
+      
+      <small id="env-note" style="display: block; margin-top: 0.75rem; font-size: 0.8rem; opacity: 0.8;"></small>
     </aside>
   </div>
 
-  <p style="margin-top:1rem;color:#555">
-    Heads up: This calculator is for general information only. Always consult a licensed electrician before buying or installing a generator.
-  </p>
-</div>
+  <!-- Bottom stepper nav -->
+  <nav class="flow-steps" aria-label="Calculator steps">
+    <button type="button" data-step-target="#step-1-coverage">1</button>
+    <button type="button" data-step-target="#step-2-appliances">2</button>
+    <button type="button" data-step-target="#step-3-hvac">3</button>
+    <button type="button" data-step-target="#step-4-ev">4</button>
+    <button type="button" data-step-target="#step-5-settings">5</button>
+  </nav>
 
-<style>
-  .box { background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 3px 14px rgba(0,0,0,.06); max-width:720px; margin:0 auto 1.5rem; }
-  label { display:block; margin-top:1rem; font-weight:600; }
-  input, select { width:100%; padding:.6rem .7rem; margin-top:.35rem; border:1px solid #cfd6df; border-radius:8px; font-size:1rem; background:#fff; }
-  .controls-row { display:grid; grid-template-columns:1fr 1fr; gap:.5rem .75rem; margin-top:1rem; align-items:center; }
-  @media (max-width:560px){ .controls-row { grid-template-columns:1fr; } }
-  .watt-input { width:7ch; min-width:7ch; text-align:right; padding:.35rem .5rem; margin:0; }
-  .appliance-row { display:flex; align-items:center; gap:.5rem; }
-  .appliance-row .name { flex:1 1 auto; min-width:0; }
-  .calc-grid{display:grid;gap:1rem}
-  @media(min-width:900px){.calc-grid{grid-template-columns:1fr 320px}}
-  .summary-card{position:sticky;top:1rem;align-self:start;background:#fff;border:1px solid #e6ebf2;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.06);padding:1rem}
-  .summary-card p{margin:.25rem 0}
-  #toggle-appliances{color:#0a7e51}
-  #toggle-appliances:hover{text-decoration:underline}
-  .muted{ color:#6b7280 }
-  .ac-subgrid{ display:grid; grid-template-columns: 1fr; gap:.5rem .75rem; margin-top:.35rem; }
-  .ac-subgrid input{ width:9ch; text-align:right; }
-  .mini-card{background:#fff;border:1px solid #eef2f6;border-radius:10px;padding:.5rem}
-  .mini-label{font-size:.75rem;color:#6b7280}
-  .mini-val{font-weight:700}
-</style>
+  <!-- How to Use Section (below calculator) -->
+  <div class="how-to-use">
+    <h2>How to use this calculator</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Choose your coverage level</h3>
+          <p>Select whether you want to power essentials only, most of your house, or everything during an outage.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Enter your home details</h3>
+          <p>Provide your ZIP code (for elevation/temperature adjustments) and square footage for accurate calculations.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Review &amp; adjust appliances</h3>
+          <p>We'll pre-select common appliances based on your coverage level. You can customize the list and wattages as needed.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Add HVAC, heating &amp; EV chargers</h3>
+          <p>Include any air conditioning units, heating systems, or electric vehicle chargers you want to power.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Get your recommendation</h3>
+          <p>Use the summary card to see planning load, needed amps and peak surge, then talk to a licensed electrician.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="appliance-tag-guide">
+      <h3>Finding appliance wattage &amp; starting amps</h3>
+      <div class="tag-tips">
+        <div class="tag-tip">Look for the metal nameplate or data tag on your appliance (usually on the back or bottom).</div>
+        <div class="tag-tip">Find "Watts" or "W" — this is the running wattage you'll enter here.</div>
+        <div class="tag-tip">If only Amps and Volts are listed: Watts = Amps × Volts (e.g., 5A × 120V = 600W).</div>
+        <div class="tag-tip">For motors/compressors, look for "LRA" or "Starting Amps" to use in the Max Starting Load section.</div>
+        <div class="tag-tip">📸 <em>Video tutorial and photo examples coming soon!</em></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="disclaimer">
+    Heads up: This calculator is for general information only and does not replace a site visit or detailed load study.
+    Always consult a licensed electrician and follow local codes before purchasing or installing a generator.
+  </div>
+</div>
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
@@ -345,7 +1295,6 @@ window.addEventListener('DOMContentLoaded', () => {
           const tempVal = parseFloat(tempRaw);
           if (!Number.isFinite(elevVal) || !Number.isFinite(tempVal)) return;
 
-          // If elevation_m present, convert meters -> feet; otherwise assume feet
           const elevFt = iElevM >= 0 ? elevVal * 3.28084 : elevVal;
 
           ZIP_TABLE.set(zipStr, {
@@ -405,6 +1354,8 @@ window.addEventListener('DOMContentLoaded', () => {
         lmsCountEl=el('lms-count'),
         lmsMaxGeneralEl=el('lms-max-general'),
         lmsMaxOthersEl=el('lms-max-others');
+
+  const bufferHintEl = el('bufferHint');
 
   // --------- Build Appliance rows ----------
   APPLIANCES.forEach(a=>{
@@ -540,31 +1491,55 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Collapsible helpers
   let open=false;
-  function setPanel(on){ open=on; panel.setAttribute('data-open',on?'1':'0'); toggleBtn.setAttribute('aria-expanded',on?'true':'false'); panel.style.maxHeight=on?panel.scrollHeight+'px':'0'; toggleBtn.textContent=on?'Hide details ▴':'Show details ▾'; }
-  function setSection(panelEl,toggleEl,on){ if(!panelEl||!toggleEl) return; panelEl.setAttribute('data-open',on?'1':'0'); toggleEl.setAttribute('aria-expanded',on?'true':'false'); panelEl.style.maxHeight=on?panelEl.scrollHeight+'px':'0'; toggleEl.textContent=on?'Hide details ▴':'Show details ▾'; }
+  function setPanel(on){
+    open=on;
+    panel.setAttribute('data-open',on?'1':'0');
+    toggleBtn.setAttribute('aria-expanded',on?'true':'false');
+    panel.style.maxHeight=on?panel.scrollHeight+'px':'0';
+    toggleBtn.textContent=on?'Hide appliance details ▴':'Show appliance details ▾';
+  }
+  function setSection(panelEl,toggleEl,on, labelBase){
+    if(!panelEl||!toggleEl) return;
+    panelEl.setAttribute('data-open',on?'1':'0');
+    toggleEl.setAttribute('aria-expanded',on?'true':'false');
+    panelEl.style.maxHeight=on?panelEl.scrollHeight+'px':'0';
+    if (labelBase) {
+      toggleEl.textContent = on ? `Hide ${labelBase} ▴` : `Show ${labelBase} ▾`;
+    }
+  }
   toggleBtn.addEventListener('click', ()=>setPanel(!open));
-  toggleAc?.addEventListener('click', ()=>setSection(acPanel,toggleAc,(acPanel?.getAttribute('data-open')!=='1')));
-  toggleHeat?.addEventListener('click', ()=>setSection(heatPanel,toggleHeat,(heatPanel?.getAttribute('data-open')!=='1')));
-  toggleEv?.addEventListener('click', ()=>setSection(evPanel,toggleEv,(evPanel?.getAttribute('data-open')!=='1')));
-  lmsToggleEl?.addEventListener('click', ()=>setSection(lmsPanelEl,lmsToggleEl,(lmsSectionEl?.getAttribute('data-open')!=='1')));
+  toggleAc?.addEventListener('click', ()=>setSection(acPanel,toggleAc,(acPanel?.getAttribute('data-open')!=='1'),'details'));
+  toggleHeat?.addEventListener('click', ()=>setSection(heatPanel,toggleHeat,(heatPanel?.getAttribute('data-open')!=='1'),'details'));
+  toggleEv?.addEventListener('click', ()=>setSection(evPanel,toggleEv,(evPanel?.getAttribute('data-open')!=='1'),'details'));
+  lmsToggleEl?.addEventListener('click', ()=>setSection(lmsSectionEl,lmsToggleEl,(lmsSectionEl?.getAttribute('data-open')!=='1'),'details'));
 
   // --------- AC rows ----------
-  function prefillRunAmps(tons,type){ const runW=Math.max(0,tons)*(RUN_W_PER_TON[type]||RUN_W_PER_TON.standard); return Math.round((runW/AC_VOLTS)*10)/10; }
+  function prefillRunAmps(tons,type){
+    const runW=Math.max(0,tons)*(RUN_W_PER_TON[type]||RUN_W_PER_TON.standard);
+    return Math.round((runW/AC_VOLTS)*10)/10;
+  }
   function addAcRow(preset={tons:2.5,type:'standard'}){
     if (acRowsEl.children.length>=3) return;
-    const row=document.createElement('div'); row.className='ac-row';
-    row.style.display='grid'; row.style.gridTemplateColumns='1fr 1fr auto'; row.style.gap='.5rem'; row.style.alignItems='center';
-    row.style.padding='.25rem .25rem .5rem'; row.style.border='1px solid #eef2f6'; row.style.borderRadius='8px';
+    const row=document.createElement('div'); row.className='ac-row dynamic-row';
+    row.style.gridTemplateColumns='1fr 1fr auto';
 
     const tonSel=document.createElement('select');
-    [1.5,2,2.5,3,3.5,4,5].forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=`${t} ton`; tonSel.appendChild(o); });
+    [1.5,2,2.5,3,3.5,4,5].forEach(t=>{
+      const o=document.createElement('option');
+      o.value=t; o.textContent=`${t} ton`;
+      tonSel.appendChild(o);
+    });
     tonSel.value=preset.tons;
 
     const typeSel=document.createElement('select');
-    [{v:'standard',n:'Standard (single-stage)'},{v:'inverter',n:'High-efficiency (inverter)'}].forEach(o=>{ const op=document.createElement('option'); op.value=o.v; op.textContent=o.n; typeSel.appendChild(op); });
+    [{v:'standard',n:'Standard (single-stage)'},{v:'inverter',n:'High-efficiency (inverter)'}].forEach(o=>{
+      const op=document.createElement('option');
+      op.value=o.v; op.textContent=o.n;
+      typeSel.appendChild(op);
+    });
     typeSel.value=preset.type;
 
-    const delBtn=document.createElement('button'); delBtn.type='button'; delBtn.textContent='✕'; delBtn.title='Remove'; delBtn.style.minWidth='2rem';
+    const delBtn=document.createElement('button'); delBtn.type='button'; delBtn.textContent='✕'; delBtn.title='Remove'; delBtn.className='btn-remove';
 
     const sub=document.createElement('div'); sub.className='ac-subgrid'; sub.style.gridColumn='1 / -1';
     const runLbl=document.createElement('label'); runLbl.textContent='Running amps';
@@ -585,14 +1560,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // --------- EV rows ----------
   function addEvRow(preset={amps:40}){
-    const row=document.createElement('div'); row.className='ev-row';
-    row.style.display='grid'; row.style.gridTemplateColumns='auto auto 1fr auto'; row.style.gap='.5rem'; row.style.alignItems='center';
-    row.style.padding='.25rem .5rem'; row.style.border='1px solid #eef2f6'; row.style.borderRadius='8px';
+    const row=document.createElement('div'); row.className='ev-row dynamic-row';
+    row.style.gridTemplateColumns='auto auto 1fr auto';
 
     const ampsLbl=document.createElement('label'); ampsLbl.textContent='Charger amps (240 V)';
     const ampsInp=document.createElement('input'); ampsInp.type='number'; ampsInp.step='1'; ampsInp.min='6'; ampsInp.value=String(preset.amps); ampsInp.style.width='7ch'; ampsInp.style.textAlign='right';
     const spacer=document.createElement('div');
-    const delBtn=document.createElement('button'); delBtn.type='button'; delBtn.textContent='✕'; delBtn.title='Remove'; delBtn.style.minWidth='2rem';
+    const delBtn=document.createElement('button'); delBtn.type='button'; delBtn.textContent='✕'; delBtn.title='Remove'; delBtn.className='btn-remove';
 
     row.append(ampsLbl,ampsInp,spacer,delBtn);
     evPanel.querySelector('#ev-rows').appendChild(row);
@@ -623,10 +1597,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (scope==='most'){ ['waterHeater','elecDryer','elecRange'].forEach(id=>{ const c=el('cb_'+id); if (c) c.checked=false; }); }
     { const c=el('cb_hottub'); if (c) c.checked=false; }
 
-    acRowsEl.innerHTML=''; setSection(acPanel,toggleAc,false);
-    setSection(heatPanel,toggleHeat,false);
+    acRowsEl.innerHTML=''; setSection(acPanel,toggleAc,false,'details');
+    setSection(heatPanel,toggleHeat,false,'details');
     const evRowsEl=el('ev-rows'); if (evRowsEl) evRowsEl.innerHTML='';
-    setSection(evPanel,toggleEv,false);
+    setSection(evPanel,toggleEv,false,'details');
 
     if (smallQtyEl) smallQtyEl.value='2';
     if (laundryQtyEl) laundryQtyEl.value='1';
@@ -644,17 +1618,17 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function computeAirFactor(elevFt, tempF){
-    const altTerm = elevFt > 0 ? (elevFt / 1000) * 0.035 : 0; // 3.5% per 1000 ft above sea level
+    const altTerm = elevFt > 0 ? (elevFt / 1000) * 0.035 : 0;
     const tempExcess = Math.max(0, (tempF || 0) - 60);
-    const tempTerm = (tempExcess / 10) * 0.01;                // 1% per 10°F above 60
+    const tempTerm = (tempExcess / 10) * 0.01;
     return 1 + altTerm + tempTerm;
   }
 
   function computeLiquidFactor(elevFt, tempF){
     const altExcessFt = Math.max(0, elevFt - 600);
-    const altTerm = (altExcessFt / 1000) * 0.03;              // 3% per 1000 ft above 600 ft
+    const altTerm = (altExcessFt / 1000) * 0.03;
     const tempExcess = Math.max(0, (tempF || 0) - 77);
-    const tempTerm = (tempExcess / 10) * 0.0165;              // 1.65% per 10°F above 77
+    const tempTerm = (tempExcess / 10) * 0.0165;
     return 1 + altTerm + tempTerm;
   }
 
@@ -742,9 +1716,25 @@ window.addEventListener('DOMContentLoaded', () => {
     const runningWatts = weightedGeneral + seasonalEffective + evEffective;
 
     // Continuous amps BEFORE buffer, BEFORE derating
-    const buffer=Math.max(0, Math.min(50, parseInt(bufferPctEl?.value||'20',10) || 20));
+    const rawBuf = parseFloat(bufferPctEl?.value || '20');
+    const bufferVal = Number.isFinite(rawBuf) ? rawBuf : 20;
+    const buffer=Math.max(0, Math.min(50, bufferVal));
     const bufferFrac = buffer / 100;
     const baseRunningAmps = runningWatts / 240;
+
+    // Inline headroom hint
+    if (bufferHintEl) {
+      if (!Number.isFinite(rawBuf)) {
+        bufferHintEl.textContent = 'Default is 20%. Most homes use 10–30% headroom.';
+        bufferHintEl.style.color = '#6b7280';
+      } else if (rawBuf > 40) {
+        bufferHintEl.textContent = 'Most homes use 10–30% headroom. Values above 40% are rarely needed.';
+        bufferHintEl.style.color = '#b91c1c';
+      } else {
+        bufferHintEl.textContent = 'Default is 20%. Most homes use 10–30% headroom.';
+        bufferHintEl.style.color = '#6b7280';
+      }
+    }
 
     // Surge amps via max-start swap (baseline, before derating)
     const msStartA=parseFloat(msStartAmpsEl?.value||'0')||0;
@@ -764,9 +1754,8 @@ window.addEventListener('DOMContentLoaded', () => {
         ? computeLiquidFactor(elevFt, tempF)
         : computeAirFactor(elevFt, tempF);
 
-      // Apply derating as a multiplier on required amps BEFORE buffer
       const deratedRunAmps = baseRunningAmps * factor;
-      const deratedSurgeAmps = baseSurgeAmps * factor; // conservative: apply same factor to surge
+      const deratedSurgeAmps = baseSurgeAmps * factor;
 
       const neededAmps = deratedRunAmps / (1 - bufferFrac);
       const choice = pickGenerator(neededAmps, deratedSurgeAmps, fuel);
@@ -809,16 +1798,22 @@ window.addEventListener('DOMContentLoaded', () => {
     peakAEl.textContent = Math.ceil(surgeAmps).toString();
     recEl.textContent = `${choice.label} (${fuel==='lp'?'LP':'NG'})${coolingNote}`;
 
-        // LMS summary tiles
+    // LMS summary tiles
     lmsMaxGeneralEl.textContent = `${largestManagedGeneral.toLocaleString()} W`;
     lmsMaxOthersEl.textContent  = `${Math.max(acManagedMax, evManagedMax).toLocaleString()} W`;
 
-    // Maintain panel heights when open
-    if (panel?.getAttribute('data-open')==='1') panel.style.maxHeight=panel.scrollHeight+'px';
-    if (acPanel?.getAttribute('data-open')==='1') acPanel.style.maxHeight=acPanel.scrollHeight+'px';
-    if (heatPanel?.getAttribute('data-open')==='1') heatPanel.style.maxHeight=heatPanel.scrollHeight+'px';
-    if (lmsSectionEl?.getAttribute('data-open')==='1') lmsSectionEl.style.maxHeight=lmsSectionEl.scrollHeight+'px';
-
+    // Env note (optional display)
+    if (envNoteEl) {
+      if (env.source === 'zip') {
+        envNoteEl.textContent = `Derated for approx. elevation ${Math.round(env.elevFt)} ft and typical summer high ${Math.round(env.tempF)}°F.`;
+      } else if (env.source === 'zip-missing') {
+        envNoteEl.textContent = `ZIP not found in table. Using default sea level and 60°F.`;
+      } else if (env.source === 'table-missing') {
+        envNoteEl.textContent = `ZIP-based derating table not loaded. Using default sea level and 60°F.`;
+      } else {
+        envNoteEl.textContent = '';
+      }
+    }
 
     // Maintain panel heights when open
     if (panel?.getAttribute('data-open')==='1') panel.style.maxHeight=panel.scrollHeight+'px';
@@ -836,8 +1831,8 @@ window.addEventListener('DOMContentLoaded', () => {
   sqftEl?.addEventListener('input', recalc);
   smallQtyEl?.addEventListener('input', recalc);
   laundryQtyEl?.addEventListener('input', recalc);
-  addAcBtn.addEventListener('click', ()=>{ addAcRow(); setSection(acPanel,toggleAc,true); buildLmsList(); recalc(); });
-  addEvBtn?.addEventListener('click', ()=>{ addEvRow(); setSection(evPanel,toggleEv,true); buildLmsList(); recalc(); });
+  addAcBtn.addEventListener('click', ()=>{ addAcRow(); setSection(acPanel,toggleAc,true,'details'); buildLmsList(); recalc(); });
+  addEvBtn?.addEventListener('click', ()=>{ addEvRow(); setSection(evPanel,toggleEv,true,'details'); buildLmsList(); recalc(); });
   bufferPctEl?.addEventListener('input', recalc);
   fuelEl?.addEventListener('change', recalc);
   heatTypeEl?.addEventListener('change', ()=>{ buildLmsList(); recalc(); });
@@ -859,6 +1854,24 @@ window.addEventListener('DOMContentLoaded', () => {
     lmsSectionEl.style.maxHeight = on ? (lmsSectionEl.scrollHeight + 'px') : '0';
     lmsToggleEl.textContent = on ? 'Hide details ▴' : 'Show details ▾';
     refreshLmsListDisabled(); recalc();
+  });
+
+  // Stepper scroll behavior
+  document.querySelectorAll('.flow-steps [data-step-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetSelector = btn.getAttribute('data-step-target');
+      const target = targetSelector ? document.querySelector(targetSelector) : null;
+      if (!target) return;
+
+      const headerOffset = 80;
+      const rect = target.getBoundingClientRect();
+      const scrollTop = window.scrollY + rect.top - headerOffset;
+
+      window.scrollTo({
+        top: scrollTop,
+        behavior: 'smooth',
+      });
+    });
   });
 
   // --------- Init ----------

@@ -1,15 +1,35 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 import Calculator from "../components/Calculator.astro";
-const title = "Size My Generator | Home Generator Sizing Calculator";
-const desc  = "Quickly find out what size generator you need.";
+
+const title = "Generator Sizing Calculator | Size My Generator";
+const desc =
+  "Find the perfect backup generator for your home in about 60 seconds. No email required.";
 ---
 
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/">
-  <section class="page-hero">
-    <h1>Size My Generator</h1>
-    <p class="lead">Enter a few details. We’ll estimate running & startup load and round up to a safe recommendation.</p>
+  <!-- Hero -->
+  <section class="home-hero">
+    <div class="home-hero-inner">
+      <h1 class="home-hero-title">
+        <span class="home-hero-bolt" aria-hidden="true">⚡</span>
+        Generator Sizing Calculator
+      </h1>
+
+      <p class="home-hero-subtitle">
+        Find the perfect backup generator for your home
+      </p>
+
+      <p class="home-hero-meta">
+        Takes about 60 seconds • No email required
+      </p>
+    </div>
   </section>
 
-  <Calculator preset="essentials" client:visible />
+  <!-- Calculator body -->
+  <div class="home-calculator-shell">
+    <div id="calculator">
+      <Calculator preset="essentials" client:visible />
+    </div>
+  </div>
 </SiteLayout>
