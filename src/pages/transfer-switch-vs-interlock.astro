@@ -1,15 +1,53 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 
-const title = "Transfer Switch vs Interlock: Safety, Code & Cost";
-const desc  = "When you need a transfer switch, when an interlock is acceptable, and the real costs: hardware, labor, permit, gas/electric. Includes a safety decision tree.";
+const title = "Transfer Switch vs Interlock: Safety, Code & Cost in 2025";
+const desc  = "When you need a transfer switch, when an interlock is acceptable, what code actually requires, and real-world costs in 2025. Includes a safety decision tree and side-by-side comparison table.";
 const canonical = "https://sizemygenerator.com/transfer-switch-vs-interlock/";
 const lastReviewed = "October 20, 2025";
 
+// Core FAQs (hybrid of your original + best of long-form draft)
 const faqs = [
-  { q: "Do I legally need a transfer switch?", a: "For standby/whole-home systems, yes. For portable generators, some jurisdictions allow listed panel interlocks. Always verify local code and utility requirements." },
-  { q: "What size transfer switch do I need?", a: "Match the generator feeder and conductors (e.g., 30 A, 50 A, 100 A), not the main service rating. Consider managed sub-panels for critical loads." },
-  { q: "How much does a transfer switch install cost?", a: "Typical ranges: $400–$900 hardware (30–100 A manual), $800–$2,500+ installed depending on wiring distance, permitting, and ATS vs manual." }
+  {
+    q: "Do I legally need a transfer switch?",
+    a: `For permanently installed standby or whole-home generators, a listed transfer switch (usually automatic) is the standard. For portable generators, many jurisdictions allow listed panel interlock kits that prevent backfeed. Local adoption and interpretation of the NEC vary, so always verify with your Authority Having Jurisdiction (AHJ) and utility.`
+  },
+  {
+    q: "Is a generator interlock kit as safe as a transfer switch?",
+    a: `When properly listed for the panel and installed by a licensed electrician, an interlock kit is designed to achieve the same core safety objective as a transfer switch: preventing simultaneous connection of the utility and generator and avoiding dangerous backfeed into utility lines. Both approaches rely on listed devices and correct installation to be safe.`
+  },
+  {
+    q: "What size transfer switch or interlock breaker do I need?",
+    a: `You size the transfer equipment to the generator feeder and conductors, not to your main service rating. Common sizes are 30 A, 50 A, and 100 A. For example, a 7,500 W–8,500 W portable generator often uses a 30 A or 50 A inlet and breaker. Many 200 A homes use a 100 A transfer switch feeding a managed “critical loads” sub-panel.`
+  },
+  {
+    q: "How much does a transfer switch install cost in 2025?",
+    a: `Typical installed ranges (parts + labor + permit): around $800–$1,800 for smaller (100 A) services and $1,200–$3,500 for 200 A services, depending on brand, distance to inlet, panel space, and local labor rates. Whole-home / high-amp or service-upgrade projects can run $2,500–$5,000+.`
+  },
+  {
+    q: "How much does an interlock kit install cost in 2025?",
+    a: `For most homes, a professionally installed interlock kit lands roughly in the $350–$1,000 range depending on service size, brand, panel compatibility, and local labor rates. The interlock plate itself is usually $100–$350, plus a generator breaker, inlet box, wiring, permit, and labor.`
+  },
+  {
+    q: "Will my insurance company accept a generator interlock instead of a transfer switch?",
+    a: `Many major insurers accept both transfer switches and listed interlock kits, as long as they’re installed by a licensed electrician with proper permits and inspection. Some carriers may offer small discounts (often in the low single-digits) for professionally installed backup power systems. Always confirm with your insurer before installation.`
+  },
+  {
+    q: "Can I install a generator interlock or transfer switch myself?",
+    a: `In most places, work inside the main electrical panel and installation of transfer equipment require a licensed electrician and an electrical permit. Even if DIY were technically allowed where you live, unpermitted work can create problems with insurance and future home sales. The safest, simplest path is to have a licensed electrician handle the installation.`
+  },
+  {
+    q: "Can an interlock kit work with a whole-house standby generator?",
+    a: `No. Permanently installed standby generators (Generac, Kohler, etc.) are designed to work with automatic transfer switches (ATS). The system monitors utility power and transfers automatically. Interlock kits are meant for portable generator applications where you manually start the generator and manage loads.`
+  },
+  {
+    q: "Can I power my whole house with an interlock kit?",
+    a: `An interlock gives you access to every circuit in the panel, but your generator’s wattage still sets the ceiling. In practice, you run “whole house, but not whole house at once”: you selectively enable and disable circuits so you don’t overload the generator. High-draw loads (like electric ranges or large AC units) are often run one at a time.`
+  },
+  {
+    q: "Are interlock kits really code-compliant?",
+    a: `The NEC allows listed transfer equipment that physically prevents the utility and generator from being connected at the same time. Listed interlock kits that are specifically approved for your panel fall into this category. Local interpretation can differ, so your AHJ has the final say on what is acceptable in your area.`
+  }
 ];
 
 const articleJsonLd = {
@@ -37,10 +75,26 @@ const howToJsonLd = {
   "@type":"HowTo",
   "name":"Choose between a transfer switch and an interlock",
   "step":[
-    {"@type":"HowToStep","name":"Identify generator type","text":"Standby/whole-home or portable?"},
-    {"@type":"HowToStep","name":"Check local code/utility rules","text":"Confirm if interlocks are permitted; standby requires a listed transfer switch."},
-    {"@type":"HowToStep","name":"Size the feeder","text":"Choose 30 A / 50 A / 100 A based on generator output and conductor sizes."},
-    {"@type":"HowToStep","name":"Decide panel strategy","text":"Whole-home vs managed sub-panel for critical circuits."}
+    {
+      "@type":"HowToStep",
+      "name":"Identify your generator type",
+      "text":"Are you installing a permanent standby/whole-home generator or using a portable unit?"
+    },
+    {
+      "@type":"HowToStep",
+      "name":"Check local code and utility rules",
+      "text":"Confirm with your Authority Having Jurisdiction (AHJ) and utility whether listed interlock kits are allowed for portable generators, or whether a transfer switch is required."
+    },
+    {
+      "@type":"HowToStep",
+      "name":"Size the feeder and transfer equipment",
+      "text":"Choose 30 A / 50 A / 100 A based on generator output and conductor sizes—not the full service rating."
+    },
+    {
+      "@type":"HowToStep",
+      "name":"Decide panel strategy",
+      "text":"For larger homes, decide between a whole-home transfer switch and a critical-loads sub-panel fed through a 60–100 A transfer switch."
+    }
   ]
 };
 
@@ -55,81 +109,662 @@ const crumbJsonLd = {
 ---
 
 <SiteLayout {title} {desc} canonical={canonical}>
-  <section class="page-hero">
-    <h1>Transfer Switch vs Interlock</h1>
-    <p class="lead">Backfeed is dangerous. Here’s when an interlock is OK, when a transfer switch is mandatory, and how to size it right.</p>
-    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
-  </section>
+  {/* Content shell for all non-calculator pages */}
+  <div class="content-shell">
+    <section class="page-hero">
+      <h1>Transfer Switch vs Interlock (2025)</h1>
+      <p class="lead">
+        Backfeed is dangerous. This guide shows when an interlock is acceptable, when a transfer switch is mandatory,
+        what current code expects, and how much each option really costs.
+      </p>
+      <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
+    </section>
 
-  <section class="answer-box">
-    <strong>Quick answer:</strong>
-    <p>Standby/whole-home → <strong>use a listed transfer switch</strong>. Portable → an <strong>interlock may be allowed</strong> in some jurisdictions. Size to your generator feeder (30/50/100 A), not your main service.</p>
-  </section>
+    <section class="answer-box" aria-label="Quick answer">
+      <strong>Quick answer:</strong>
+      <p>
+        <strong>Standby / whole-home systems → use a listed transfer switch (usually automatic).</strong><br />
+        <strong>Portable generators → a listed panel interlock kit is often the best value</strong> where local code and your panel
+        listing allow it. In both cases, size the equipment to your generator feeder (30 / 50 / 100 A), not the full main service.
+      </p>
+    </section>
 
-  <nav class="toc" aria-label="On this page">
-    <strong>On this page</strong>
-    <ul>
-      <li><a href="#decision">Decision tree</a></li>
-      <li><a href="#costs">Cost line-items</a></li>
-      <li><a href="#sizing">Sizing (30A / 50A / 100A)</a></li>
-      <li><a href="#faqs">FAQs</a></li>
-    </ul>
-  </nav>
+    <nav class="toc" aria-label="On this page">
+      <strong>On this page</strong>
+      <ul>
+        <li><a href="#decision">1. Safety decision tree</a></li>
+        <li><a href="#comparison">2. Side-by-side comparison</a></li>
+        <li><a href="#costs">3. Real-world cost ranges</a></li>
+        <li><a href="#pros-cons">4. Pros &amp; cons of each option</a></li>
+        <li><a href="#code">5. Code, insurance &amp; DIY reality</a></li>
+        <li><a href="#faqs">6. FAQs</a></li>
+      </ul>
+    </nav>
 
-  <section id="decision">
-    <h2>Decision tree</h2>
-    <ol class="decision">
-      <li>Is this a standby/whole-home system? → <strong>Transfer switch</strong>.</li>
-      <li>Portable feeding select circuits? → Check local rules; if allowed, <strong>listed interlock</strong> + inlet + breaker.</li>
-      <li>Utility/AHJ prohibits interlocks? → <strong>Transfer switch</strong> only.</li>
-    </ol>
-    <p class="micro-note">New to sizing? See the <a href="/generator-sizing-guide/">Home Generator Sizing Guide</a>.</p>
-  </section>
+    <section id="decision">
+      <h2>1. Safety decision tree</h2>
+      <ol class="decision">
+        <li>
+          <strong>What type of generator?</strong><br />
+          If it’s a <strong>standby / whole-home generator</strong>, you’ll be using an <strong>automatic transfer switch (ATS)</strong>
+          or a listed manual transfer switch designed for that system.
+        </li>
+        <li>
+          <strong>Portable generator feeding your home?</strong><br />
+          If you want to feed selected circuits or a whole panel with a portable generator:
+          <ul>
+            <li>If your AHJ and utility allow listed interlocks and your panel has a listed kit → an <strong>interlock kit</strong> is usually the most flexible and cost-effective choice.</li>
+            <li>If interlocks are not accepted or your panel has no listed kit → use a <strong>manual transfer switch</strong> or consider a panel upgrade.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Critical-loads vs whole panel?</strong><br />
+          <ul>
+            <li>Want simple “flip one switch and go” behavior for a few essential circuits? → <strong>Transfer switch with critical-loads sub-panel.</strong></li>
+            <li>Want the ability to power any circuit as needed (but not all at once)? → <strong>Interlock kit.</strong></li>
+          </ul>
+        </li>
+      </ol>
+      <p class="micro-note">
+        New to sizing the generator itself? See the
+        <a href="/generator-sizing-guide/">Home Generator Sizing Guide</a> or jump right to the
+        <a href="/generator-sizing-guide/#calculator">interactive calculator</a>.
+      </p>
+    </section>
 
-  <section id="costs">
-    <h2>Cost line-items</h2>
-    <ul>
-      <li>Hardware: manual 30–100 A switch $400–$900; ATS $700–$1,800+</li>
-      <li>Labor: $500–$1,500+ (distance, panel space, trenching if remote)</li>
-      <li>Permits/inspection: $100–$400+</li>
-      <li>Accessories: inlet box, whip, conductors, labeling</li>
-    </ul>
-    <p class="micro-conclusion"><strong>So…</strong> plan $800–$2,500+ installed, more with service upgrades or long runs.</p>
-  </section>
+    <section id="comparison">
+      <h2>2. Transfer switch vs interlock: side-by-side</h2>
+      <p>
+        Both approaches can be safe and code-compliant when correctly installed. The biggest differences show up in
+        cost, flexibility, and how many circuits you can control.
+      </p>
 
-  <section id="sizing">
-    <h2>Switch sizing (30A / 50A / 100A)</h2>
-    <p>Match generator output and conductors. Many 200-A homes use a <strong>100-A switch feeding a managed sub-panel</strong>. Coordinate breakers and wire gauges; balance phases to minimize nuisance trips when motors start.</p>
-    <div class="cta-row">
-      <a href="/200-amp-generator-size/" class="btn">200-A Examples</a>
-      <a href="/generator-sizing-guide/#calculator" class="btn btn-secondary">Open the Calculator</a>
-    </div>
-  </section>
+      <div
+        class="table-wrapper"
+        role="region"
+        aria-label="Transfer switch versus generator interlock comparison"
+        tabindex="0"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">Manual transfer switch</th>
+              <th scope="col">Generator interlock kit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Typical installed cost*</th>
+              <td>
+                <strong>100 A service:</strong> ≈ $800–$1,800<br />
+                <strong>200 A service:</strong> ≈ $1,200–$3,500<br />
+                <strong>400 A service:</strong> ≈ $2,500–$5,000+
+              </td>
+              <td>
+                <strong>100 A service:</strong> ≈ $350–$700<br />
+                <strong>200 A service:</strong> ≈ $500–$1,000<br />
+                <strong>400 A service:</strong> ≈ $800–$1,600
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Circuits available</th>
+              <td>Limited to switch capacity (often 6–10 critical circuits).</td>
+              <td>Entire panel available; you manage which breakers are on at any time.</td>
+            </tr>
+            <tr>
+              <th scope="row">Installation complexity</th>
+              <td>Higher. Separate enclosure, multiple circuits re-routed.</td>
+              <td>Moderate. Panel cover modification, generator breaker, and inlet wiring.</td>
+            </tr>
+            <tr>
+              <th scope="row">Typical install time</th>
+              <td>~4–8 hours.</td>
+              <td>~1–3 hours.</td>
+            </tr>
+            <tr>
+              <th scope="row">NEC compliance</th>
+              <td>Widely recognized, long-standing solution.</td>
+              <td>Code-compliant when using a listed kit approved for your panel and installed per manufacturer instructions.</td>
+            </tr>
+            <tr>
+              <th scope="row">Insurance acceptance</th>
+              <td>Generally accepted; often qualifies for small discounts.</td>
+              <td>Typically accepted when properly permitted and inspected. Check with your carrier for discount details.</td>
+            </tr>
+            <tr>
+              <th scope="row">Backfeed prevention</th>
+              <td>Break-before-make switching between utility and generator.</td>
+              <td>Mechanical interlock physically prevents both main and generator breakers from being on at the same time.</td>
+            </tr>
+            <tr>
+              <th scope="row">Generator location flexibility</th>
+              <td>Inlet can often be placed where convenient relative to loads.</td>
+              <td>Inlet is usually located near the main panel; generator typically sits nearby outside.</td>
+            </tr>
+            <tr>
+              <th scope="row">Panel upgrade required?</th>
+              <td>Not typically, unless capacity or condition issues are found.</td>
+              <td>Sometimes, if the existing panel is full or lacks a listed interlock kit.</td>
+            </tr>
+            <tr>
+              <th scope="row">Resale value impact</th>
+              <td>Positive—clearly labeled backup power for critical circuits.</td>
+              <td>Positive—flexible whole-panel backup with a simple operating sequence.</td>
+            </tr>
+            <tr>
+              <th scope="row">DIY installation legal?</th>
+              <td>Usually requires a licensed electrician and permit.</td>
+              <td>Same—work inside the main panel typically requires a licensed electrician and permit.</td>
+            </tr>
+            <tr>
+              <th scope="row">Best fit</th>
+              <td>
+                Homeowners who want pre-selected critical circuits, simple operation, or are planning toward a future
+                automatic standby system.
+              </td>
+              <td>
+                Homeowners using portable generators who want maximum flexibility and lower installed cost, and who are
+                comfortable managing which loads run at the same time.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <section id="faqs" class="faq-block">
-    <h2>FAQs</h2>
-    {faqs.map(f => (
-      <details><summary>{f.q}</summary><div innerHTML={f.a} /></details>
-    ))}
-  </section>
+      <p class="micro-note">
+        *Cost ranges are typical for professionally installed systems with permits and inspections in 2025 and will vary
+        by region, labor rates, wiring distance, and equipment brand.
+      </p>
+    </section>
 
-  <section class="cta-row">
-    <a href="/generator-sizing-guide/" class="btn">Back to the Pillar</a>
-    <a href="/well-pump-starting-watts/" class="btn btn-secondary">Well Pump Surge</a>
-  </section>
+    <section id="costs">
+      <h2>3. Real-world cost ranges (2025)</h2>
+      <p>
+        Below are more detailed ranges by service size. These are ballpark estimates but useful for planning and
+        comparing the two approaches.
+      </p>
+
+      <h3>100-amp service</h3>
+      <ul>
+        <li><strong>Transfer switch total:</strong> ~<strong>$800–$1,800</strong></li>
+        <li>Parts (6-circuit manual switch): ≈ $300–$500</li>
+        <li>Inlet box and wiring: ≈ $80–$120</li>
+        <li>Licensed electrician labor (3–5 hours): ≈ $400–$1,000</li>
+        <li>Permit and inspection: ≈ $50–$180</li>
+      </ul>
+      <ul>
+        <li><strong>Interlock kit total:</strong> ~<strong>$350–$700</strong></li>
+        <li>Interlock kit: ≈ $100–$250</li>
+        <li>Generator breaker (30 A typical): ≈ $30–$60</li>
+        <li>Inlet box and wiring: ≈ $80–$120</li>
+        <li>Licensed electrician labor (1–2 hours): ≈ $140–$350</li>
+        <li>Permit and inspection: ≈ $50–$180</li>
+      </ul>
+
+      <h3>200-amp service</h3>
+      <ul>
+        <li><strong>Transfer switch total:</strong> ~<strong>$1,200–$3,500</strong></li>
+        <li>Parts (8–10 circuit switch): ≈ $500–$900</li>
+        <li>Inlet box and wiring: ≈ $100–$180</li>
+        <li>Licensed electrician labor (4–8 hours): ≈ $500–$1,600</li>
+        <li>Permit and inspection: ≈ $75–$250</li>
+        <li>Possible panel/service upgrades: $0–$1,200+</li>
+      </ul>
+      <ul>
+        <li><strong>Interlock kit total:</strong> ~<strong>$500–$1,000</strong></li>
+        <li>Interlock kit: ≈ $150–$350</li>
+        <li>Generator breaker (50 A typical): ≈ $40–$90</li>
+        <li>Inlet box and wiring: ≈ $100–$180</li>
+        <li>Licensed electrician labor (1.5–3 hours): ≈ $210–$550</li>
+        <li>Permit and inspection: ≈ $75–$250</li>
+      </ul>
+
+      <h3>400-amp service</h3>
+      <ul>
+        <li><strong>Transfer switch total:</strong> ~<strong>$2,500–$5,000+</strong></li>
+        <li>High-capacity transfer switch: ≈ $1,200–$2,000</li>
+        <li>Inlet box and heavier-gauge wiring: ≈ $200–$400</li>
+        <li>Licensed electrician labor (6–12 hours): ≈ $1,000–$2,400</li>
+        <li>Permit and inspection: ≈ $100–$300</li>
+      </ul>
+      <ul>
+        <li><strong>Interlock kit total:</strong> ~<strong>$800–$1,600</strong></li>
+        <li>Interlock kit for large panel: ≈ $250–$500</li>
+        <li>Generator breaker (50 A typical): ≈ $40–$90</li>
+        <li>Inlet box and wiring: ≈ $200–$400</li>
+        <li>Licensed electrician labor (2–4 hours): ≈ $280–$800</li>
+        <li>Permit and inspection: ≈ $100–$300</li>
+      </ul>
+
+      <p class="micro-conclusion">
+        <strong>Takeaway:</strong> The larger your service, the more absolute dollars an interlock kit can save compared
+        with a transfer switch—often in the <strong>$700–$2,500+</strong> range for typical 200 A homes.
+      </p>
+    </section>
+
+    <section id="pros-cons">
+      <h2>4. Pros &amp; cons of each option</h2>
+
+      <h3>Transfer switch: advantages</h3>
+      <ul>
+        <li>
+          <strong>Pre-wired critical circuits.</strong> You and your family always know exactly which loads will run during
+          an outage.
+        </li>
+        <li>
+          <strong>Clean separation.</strong> A dedicated device clearly separates utility and generator power, which some
+          homeowners and inspectors find reassuring.
+        </li>
+        <li>
+          <strong>Future-proof for standby.</strong> A manual transfer switch can be a stepping stone toward an automatic
+          standby generator later.
+        </li>
+        <li>
+          <strong>Fits older or incompatible panels.</strong> Because transfer switches live outside the main panel, they
+          work even when no listed interlock exists for your panel.
+        </li>
+      </ul>
+
+      <h3>Transfer switch: drawbacks</h3>
+      <ul>
+        <li><strong>Higher upfront cost.</strong> Typically several hundred to a couple thousand dollars more than an interlock.</li>
+        <li>
+          <strong>Limited circuits.</strong> Often 6–10 circuits only, so you may have to make hard choices about what’s
+          “critical.”
+        </li>
+        <li>
+          <strong>More wall space and wiring.</strong> The extra enclosure and wiring runs can be challenging in tight
+          utility rooms.
+        </li>
+      </ul>
+
+      <h3>Interlock kit: advantages</h3>
+      <ul>
+        <li>
+          <strong>Lower cost with strong flexibility.</strong> You can usually power any circuit in the home, as long as
+          you respect the generator’s limits.
+        </li>
+        <li>
+          <strong>Whole-panel access.</strong> You are not locked into a fixed set of “emergency” circuits.
+        </li>
+        <li>
+          <strong>Compact installation.</strong> No extra wall box—everything happens at the existing panel.
+        </li>
+        <li>
+          <strong>Fast professional installs.</strong> Many jobs can be completed in one to three hours by an experienced electrician.
+        </li>
+      </ul>
+
+      <h3>Interlock kit: drawbacks</h3>
+      <ul>
+        <li>
+          <strong>Requires basic load management.</strong> You must understand that you can’t run every high-draw load at
+          once on a modest portable generator.
+        </li>
+        <li>
+          <strong>Panel compatibility matters.</strong> You need a listed kit specifically approved for your panel model.
+        </li>
+        <li>
+          <strong>Panel space.</strong> A dedicated generator breaker slot must be available or created.
+        </li>
+      </ul>
+
+      <p class="micro-conclusion">
+        For most portable-generator setups in modern homes with compatible panels, a listed interlock kit offers the best
+        balance of safety, flexibility, and cost. Transfer switches still shine where panel compatibility or simplicity for
+        the end user is the top priority.
+      </p>
+    </section>
+
+    <section id="code">
+      <h2>5. Code, insurance &amp; DIY reality</h2>
+
+      <h3>Code and NEC considerations</h3>
+      <ul>
+        <li>
+          The National Electrical Code (NEC) requires a means of transfer that prevents the utility and generator from
+          being connected at the same time.
+        </li>
+        <li>
+          Listed generator interlock kits that are specifically approved for your panel are one way to meet this
+          requirement. Manual and automatic transfer switches are another.
+        </li>
+        <li>
+          Local adoption and enforcement vary. Your AHJ (building department, electrical inspector) has final say on
+          what’s acceptable in your area.
+        </li>
+        <li>
+          Generator neutral and grounding configurations can be tricky. Your electrician should confirm whether the
+          generator neutral is switched or unswitched and how that interacts with the main bonding jumper at your service.
+        </li>
+      </ul>
+
+      <h3>Insurance and documentation</h3>
+      <ul>
+        <li>
+          Some insurers offer modest discounts (often in the 2–5% range) for professionally installed backup power
+          systems that reduce the risk of frozen pipes, sump pump failures, and food spoilage.
+        </li>
+        <li>
+          Whether you choose a transfer switch or interlock, insurers typically care most about permits, inspections, and
+          professional installation—not the specific device.
+        </li>
+        <li>
+          A quick call before you start the project can clarify eligibility, what documentation you’ll need, and whether
+          your carrier has any preferences.
+        </li>
+      </ul>
+
+      <h3>DIY vs hiring an electrician</h3>
+      <ul>
+        <li>
+          Work inside the main panel and installation of transfer equipment usually require a licensed electrician and
+          permit. This protects you, the next homeowner, and your electrician.
+        </li>
+        <li>
+          You can still save by doing legwork: confirming panel model numbers, choosing the right kit, and getting
+          multiple quotes. Many electricians are happy to install homeowner-supplied hardware if it’s properly listed.
+        </li>
+        <li>
+          Paying for a professional install also protects you with their licensing, bonding, and liability coverage if
+          something goes wrong.
+        </li>
+      </ul>
+    </section>
+
+    <section id="faqs" class="faq-block">
+      <h2>6. FAQs</h2>
+      {faqs.map((f, idx) => (
+        <div class="faq-item">
+          <button
+            type="button"
+            class="faq-question"
+            aria-expanded="false"
+            aria-controls={`faq-${idx}`}
+          >
+            <span class="faq-question-text">{f.q}</span>
+            <span class="faq-icon" aria-hidden="true">+</span>
+          </button>
+          <div
+            class="faq-answer"
+            id={`faq-${idx}`}
+            hidden
+          >
+            <div set:html={f.a} />
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <section class="cta-row">
+      <a href="/generator-sizing-guide/" class="btn">Back to the Generator Sizing Guide</a>
+      <a href="/generator-sizing-guide/#calculator" class="btn btn-secondary">Open the Generator Calculator</a>
+      <a href="/well-pump-starting-watts/" class="btn btn-secondary">Well pump starting watts</a>
+    </section>
+  </div>
 
   <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
   <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
   <script type="application/ld+json">{JSON.stringify(howToJsonLd)}</script>
   <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
 
+  <script>
+    // Simple FAQ accordion
+    document.addEventListener("DOMContentLoaded", () => {
+      const items = document.querySelectorAll(".faq-item");
+
+      items.forEach((item) => {
+        const button = item.querySelector(".faq-question");
+        const answer = item.querySelector(".faq-answer");
+        const icon = item.querySelector(".faq-icon");
+
+        if (!button || !answer) return;
+
+        button.addEventListener("click", () => {
+          const isHidden = answer.hasAttribute("hidden");
+
+          if (isHidden) {
+            answer.removeAttribute("hidden");
+            button.setAttribute("aria-expanded", "true");
+            if (icon) icon.textContent = "−";
+          } else {
+            answer.setAttribute("hidden", "true");
+            button.setAttribute("aria-expanded", "false");
+            if (icon) icon.textContent = "+";
+          }
+        });
+      });
+    });
+  </script>
+
   <style>
-    .answer-box{background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:.75rem;margin:.75rem 0}
-    .toc{border-left:3px solid var(--border);padding-left:.75rem;margin:1rem 0}
-    .decision{margin:.4rem 0 .2rem}
-    .micro-note{opacity:.9}
-    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;background:var(--card)}
-    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
-    .cta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+    /* Content shell: shared pattern you can reuse on all non-calculator pages */
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+
+    /* Override the global purple-hero styles just inside this shell */
+    .content-shell .page-hero {
+      padding: 0 0 1.25rem;
+      color: #111827;
+    }
+
+    .content-shell .page-hero h1 {
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      margin-bottom: 0.4rem;
+      color: #111827;
+    }
+
+    .content-shell .page-hero .lead {
+      max-width: 42rem;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: #4b5563;
+    }
+
+    .content-shell .meta {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    /* Typography inside the white card */
+    .content-shell h2 {
+      margin-top: 1.75rem;
+      margin-bottom: 0.35rem;
+      font-size: 1.3rem;
+      color: #111827;
+    }
+
+    .content-shell h3 {
+      margin-top: 1.1rem;
+      margin-bottom: 0.25rem;
+      font-size: 1.05rem;
+      color: #111827;
+    }
+
+    .content-shell p {
+      margin: 0.4rem 0;
+    }
+
+    .content-shell a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* Lists: give them breathing room and consistent indent */
+    .content-shell ul,
+    .content-shell ol {
+      margin: 0.35rem 0 0.9rem;
+      padding-left: 1.4rem;
+    }
+
+    .content-shell li + li {
+      margin-top: 0.18rem;
+    }
+
+    .answer-box {
+      background: #f7f7f7;
+      border: 1px solid #e5e7eb;
+      padding: 1rem;
+      border-radius: .75rem;
+      margin: .75rem 0 1.25rem;
+      color: #111827;
+    }
+
+    .toc {
+      border-left: 3px solid #e5e7eb;
+      padding-left: .75rem;
+      margin: 1rem 0 1.5rem;
+      color: #111827;
+    }
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+      margin: .5rem 0 0;
+    }
+    .toc li {
+      margin: .15rem 0;
+    }
+
+    .decision {
+      margin: .4rem 0 .2rem;
+      padding-left: 1.25rem;
+    }
+    .decision ul {
+      margin-top: .35rem;
+    }
+
+    .micro-note {
+      opacity: .9;
+      font-size: .9rem;
+      margin-top: .5rem;
+      color: #4b5563;
+    }
+
+    .micro-conclusion {
+      border: 1px dashed #e5e7eb;
+      padding: .6rem;
+      border-radius: .5rem;
+      background: #f9fafb;
+      margin-top: .5rem;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+
+    /* FAQ accordion */
+    .faq-block {
+      margin-top: 1.75rem;
+    }
+
+    .faq-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      background: #f9fafb;
+      margin: 0.5rem 0;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      padding: 0.6rem 0.85rem;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111827;
+      cursor: pointer;
+    }
+
+    .faq-question-text {
+      flex: 1;
+    }
+
+    .faq-icon {
+      font-size: 1.1rem;
+      width: 1.25rem;
+      text-align: center;
+    }
+
+    .faq-answer {
+      padding: 0 0.85rem 0.75rem;
+      font-size: 0.96rem;
+      color: #374151;
+    }
+
+    .faq-answer p {
+      margin: 0.35rem 0;
+    }
+
+    /* Responsive comparison table */
+    .table-wrapper {
+      width: 100%;
+      margin: 1rem 0;
+      padding-bottom: .25rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #e5e7eb;
+      border-radius: .75rem;
+      background: #f9fafb;
+    }
+    .table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+      font-size: .95rem;
+    }
+    .table-wrapper th,
+    .table-wrapper td {
+      padding: .6rem .75rem;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+      text-align: left;
+    }
+    .table-wrapper thead th {
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      z-index: 1;
+    }
+    .table-wrapper tbody tr:last-child th,
+    .table-wrapper tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .table-wrapper th[scope="row"] {
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: 1.25rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+
+      .table-wrapper table {
+        font-size: .9rem;
+        min-width: 520px;
+      }
+    }
   </style>
 </SiteLayout>

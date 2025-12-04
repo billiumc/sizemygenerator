@@ -266,7 +266,9 @@ const pageTitle = "Generator Sizing Calculator";
     background: #fcc;
   }
 
+  /* Custom tooltip icons */
   .help-icon {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -278,6 +280,52 @@ const pageTitle = "Generator Sizing Calculator";
     color: #4b5563;
     cursor: help;
     background: #f9fafb;
+  }
+
+  /* Tooltip bubble */
+  .help-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    top: 130%;
+    transform: translateX(-50%) translateY(4px);
+    background: #111827;
+    color: #f9fafb;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    white-space: normal;
+    width: max-content;
+    max-width: 16rem;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 40;
+  }
+
+  /* Tooltip arrow */
+  .help-icon::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 122%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #111827 transparent transparent transparent;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 39;
+  }
+
+  .help-icon:hover::after,
+  .help-icon:hover::before,
+  .help-icon:focus-visible::after,
+  .help-icon:focus-visible::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(2px);
   }
   
   /* Collapsible Sections */
@@ -1059,7 +1107,10 @@ const pageTitle = "Generator Sizing Calculator";
                 <label for="bufferPct">Headroom buffer (%)</label>
                 <span
                   class="help-icon"
-                  title="Extra safety margin above your expected running load. Most homes use 10–30%."
+                  tabindex="0"
+                  role="button"
+                  aria-label="Extra safety margin above your expected running load. Most homes use 10–30%."
+                  data-tooltip="Extra safety margin above your expected running load. Most homes use 10–30%."
                 >?</span>
               </div>
               <input id="bufferPct" type="number" min="0" max="50" step="1" value="20" />
@@ -1091,7 +1142,10 @@ const pageTitle = "Generator Sizing Calculator";
             Planning load
             <span
               class="help-icon"
-              title="Your estimated running load after NEC-style demand factors and managed loads."
+              tabindex="0"
+              role="button"
+              aria-label="Your estimated running load after NEC-style demand factors and managed loads."
+              data-tooltip="Your estimated running load after NEC-style demand factors and managed loads."
             >?</span>
           </span>
           <span class="detail-value"><span id="runW">0</span> W</span>
@@ -1101,7 +1155,10 @@ const pageTitle = "Generator Sizing Calculator";
             Needed amps (with buffer)
             <span
               class="help-icon"
-              title="Continuous amps the generator must support, including your chosen headroom margin."
+              tabindex="0"
+              role="button"
+              aria-label="Continuous amps the generator must support, including your chosen headroom margin."
+              data-tooltip="Continuous amps the generator must support, including your chosen headroom margin."
             >?</span>
           </span>
           <span class="detail-value"><span id="needA">0</span> A</span>
@@ -1111,7 +1168,10 @@ const pageTitle = "Generator Sizing Calculator";
             Peak amps (with max-start)
             <span
               class="help-icon"
-              title="Estimated surge amps when your largest motor/compressor starts."
+              tabindex="0"
+              role="button"
+              aria-label="Estimated surge amps when your largest motor or compressor starts."
+              data-tooltip="Estimated surge amps when your largest motor or compressor starts."
             >?</span>
           </span>
           <span class="detail-value"><span id="peakA">0</span> A</span>
