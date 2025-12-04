@@ -24,7 +24,18 @@ const {
           <span class="brand-text">SizeMyGenerator</span>
         </a>
 
-        <nav class="site-nav" aria-label="Primary">
+        <!-- Mobile menu button -->
+        <button
+          class="mobile-nav-toggle"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+        >
+          ☰
+        </button>
+
+        <nav class="site-nav" aria-label="Primary" id="primary-nav">
           <a href="/#calculator" class="nav-link">Calculator</a>
 
           <div class="nav-link nav-link-dropdown">
@@ -74,6 +85,20 @@ const {
       </div>
     </footer>
 
+    <script>
+      // Simple mobile nav toggle
+      document.addEventListener("DOMContentLoaded", () => {
+        const btn = document.querySelector(".mobile-nav-toggle");
+        const nav = document.querySelector(".site-nav");
+        if (!btn || !nav) return;
+
+        btn.addEventListener("click", () => {
+          const isOpen = nav.classList.toggle("is-open");
+          btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      });
+    </script>
+
     <style is:global>
       * {
         box-sizing: border-box;
@@ -110,6 +135,7 @@ const {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        position: relative;
       }
 
       .brand {
@@ -127,6 +153,17 @@ const {
         font-weight: 700;
         font-size: 1.1rem;
         color: #16a34a;
+      }
+
+      .mobile-nav-toggle {
+        display: none;
+        margin-left: auto;
+        padding: 0.25rem 0.7rem;
+        border-radius: 999px;
+        border: 1px solid rgba(15, 23, 42, 0.3);
+        background: rgba(239, 246, 255, 0.9);
+        font-size: 1.1rem;
+        cursor: pointer;
       }
 
       .site-nav {
@@ -265,21 +302,20 @@ const {
         text-align: center; /* center H1 and both subheadings */
       }
 
-     .home-hero-title {
-  display: flex;               /* put bolt + text on one row */
-  justify-content: center;     /* center the whole row */
-  align-items: center;
-  gap: 0.6rem;                 /* space between bolt and text */
-  font-size: clamp(2.6rem, 4vw, 3.4rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-}
+      .home-hero-title {
+        display: flex; /* bolt + text on one row */
+        justify-content: center;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: clamp(2.6rem, 4vw, 3.4rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
 
-.home-hero-bolt {
-  font-size: clamp(2.2rem, 3vw, 2.8rem);
-}
-
+      .home-hero-bolt {
+        font-size: clamp(2.2rem, 3vw, 2.8rem);
+      }
 
       .home-hero-subtitle,
       .home-hero-meta {
@@ -308,18 +344,66 @@ const {
         margin: 0 auto;
       }
 
+      /* ---------- Responsive ---------- */
+
       @media (max-width: 768px) {
         .site-header-inner {
           padding-inline: 1rem;
         }
 
+        .mobile-nav-toggle {
+          display: inline-flex;
+        }
+
         .site-nav {
-          gap: 0.75rem;
-          font-size: 0.85rem;
+          position: absolute;
+          top: 100%;
+          right: 0;
+          left: 0;
+          background: rgba(148, 163, 253, 0.98);
+          border-bottom: 1px solid rgba(129, 140, 248, 0.5);
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.6rem;
+          padding: 0.75rem 1rem 1rem;
+          font-size: 0.95rem;
+          display: none;
+        }
+
+        .site-nav.is-open {
+          display: flex;
+        }
+
+        .nav-link::after {
+          display: none; /* keep mobile menu clean */
+        }
+
+        /* Make Guides submenu always visible and stacked on mobile */
+        .nav-link-dropdown {
+          width: 100%;
+        }
+
+        .nav-link-dropdown > span {
+          display: block;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+
+        .nav-dropdown-menu {
+          position: static;
+          box-shadow: none;
+          background: transparent;
+          padding: 0;
+          display: block;
+          margin-left: 0.75rem;
+        }
+
+        .nav-dropdown-item {
+          padding: 0.25rem 0;
         }
 
         .nav-cta {
-          display: none; /* keep header compact on small screens */
+          margin-top: 0.5rem;
         }
 
         .home-hero {
