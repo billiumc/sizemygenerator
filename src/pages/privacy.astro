@@ -5,43 +5,110 @@ const desc  = "What we collect, how we use it, and your choices.";
 ---
 
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/privacy">
-  <section class="page-hero">
-    <h1>Privacy Policy</h1>
-    <p class="lead"><em>Last updated: 2025-10-11</em></p>
-  </section>
+  <div class="content-shell">
+    <section class="page-hero">
+      <h1>Privacy Policy</h1>
+      <p class="lead"><em>Last updated: 2025-10-11</em></p>
+    </section>
 
-  <main style="max-width: 720px; margin: 0 auto; padding: 1rem;">
-    <h2>Overview</h2>
-    <p>We collect only the information needed to operate this website and improve the calculator experience.</p>
+    <main>
+      <h2>Overview</h2>
+      <p>We collect only the information needed to operate this website and improve the calculator experience.</p>
 
-    <h2>Information we collect</h2>
-    <ul>
-      <li><strong>Usage & analytics:</strong> Anonymous data such as pages visited, device type, and time on page (via tools like Google Analytics).</li>
-      <li><strong>Voluntary submissions:</strong> If you email us or submit a form, we use the information only to respond to your request.</li>
-      <li><strong>Cookies:</strong> Third-party services (analytics/ads) may set their own cookies. You can disable cookies in your browser.</li>
-    </ul>
+      <h2>Information we collect</h2>
+      <ul>
+        <li>
+          <strong>Usage &amp; analytics:</strong> Anonymous data such as pages visited, device type, and time on page
+          (via tools like Google Analytics).
+        </li>
+        <li>
+          <strong>Voluntary submissions:</strong> If you email us or submit a form, we use the information only to respond
+          to your request.
+        </li>
+        <li>
+          <strong>Cookies:</strong> Third-party services (analytics/ads) may set their own cookies. You can disable cookies
+          in your browser.
+        </li>
+      </ul>
 
-    <h2>How we use information</h2>
-    <ul>
-      <li>Operate and maintain the site.</li>
-      <li>Understand aggregate usage to make improvements.</li>
-      <li>Respond to inquiries you send us.</li>
-    </ul>
+      <h2>How we use information</h2>
+      <ul>
+        <li>Operate and maintain the site.</li>
+        <li>Understand aggregate usage to make improvements.</li>
+        <li>Respond to inquiries you send us.</li>
+      </ul>
 
-    <h2>Sharing</h2>
-    <p>We do not sell personal information. Limited data may be processed by trusted third parties that help us run the site (e.g., analytics). They may only use it to provide their service to us.</p>
+      <h2>Sharing</h2>
+      <p>
+        We do not sell personal information. Limited data may be processed by trusted third parties that help us run the
+        site (e.g., analytics). They may only use it to provide their service to us.
+      </p>
 
-    <h2>Your choices</h2>
-    <ul>
-      <li>Disable or clear cookies in your browser settings.</li>
-      <li>Use browser add-ons to block analytics if you prefer.</li>
-      <li>Contact us to ask questions about this policy.</li>
-    </ul>
+      <h2>Your choices</h2>
+      <ul>
+        <li>Disable or clear cookies in your browser settings.</li>
+        <li>Use browser add-ons to block analytics if you prefer.</li>
+        <li>Contact us to ask questions about this policy.</li>
+      </ul>
 
-    <h2>Contact</h2>
-    <p>Email: <a class="link" href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a></p>
-    <p>PA HIC License # PA 073102</p>
+      <h2>Contact</h2>
+      <p>Email: <a class="link" href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a></p>
+      <p>PA HIC License # PA 073102</p>
 
-    <p><a class="link" href="/">← Back to home</a></p>
-  </main>
+      <p><a class="link" href="/">← Back to home</a></p>
+    </main>
+  </div>
+
+  <style>
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+    .content-shell .page-hero {
+      padding-bottom: 1rem;
+      color: #111827;
+    }
+    .content-shell h1 {
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      margin-bottom: 0.4rem;
+      color: #111827;
+    }
+    .content-shell .lead {
+      font-size: 1.02rem;
+      color: #4b5563;
+    }
+    .content-shell h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.3rem;
+      font-size: 1.25rem;
+    }
+    .content-shell p {
+      margin: 0.4rem 0;
+    }
+    .content-shell ul {
+      margin: 0.35rem 0 0.9rem;
+      padding-left: 1.4rem;
+    }
+    .content-shell li + li {
+      margin-top: 0.18rem;
+    }
+    .content-shell a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: 1.25rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+    }
+  </style>
 </SiteLayout>

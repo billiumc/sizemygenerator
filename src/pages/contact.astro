@@ -5,73 +5,75 @@ const desc  = "Get in touch with the Size My Generator team.";
 ---
 
 <SiteLayout {title} {desc} canonical="https://sizemygenerator.com/contact">
-  <section class="page-hero">
-    <h1>Contact</h1>
-    <p class="lead">
-      Questions, feedback, or a bug to report? Send a note—we read everything.
-    </p>
-  </section>
-
-  <main class="page-main">
-    <div class="card">
-      <h2>Email</h2>
-      <p>
-        Prefer your email client? Write us at
-        <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>.
+  <div class="content-shell">
+    <section class="page-hero">
+      <h1>Contact</h1>
+      <p class="lead">
+        Questions, feedback, or a bug to report? Send a note—we read everything.
       </p>
-      <p class="muted">PA HIC License # PA 073102</p>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2>Contact form</h2>
-      <form
-        method="POST"
-        action="https://formsubmit.co/bill@atacamahvac.com"
-        class="form"
-        aria-label="Contact form"
-      >
-        <label for="name">Name</label>
-        <input id="name" name="name" type="text" required autocomplete="name" />
-
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" required autocomplete="email" />
-
-        <label for="topic">Topic</label>
-        <select id="topic" name="topic" required>
-          <option value="">Select a topic…</option>
-          <option value="calculator-question">Calculator question</option>
-          <option value="bug-report">Bug report</option>
-          <option value="feature-request">Feature request</option>
-          <option value="partnership">Partnership / affiliate</option>
-          <option value="other">Other</option>
-        </select>
-
-        <label for="message">Message</label>
-        <textarea id="message" name="message" rows="6" required></textarea>
-
-        <!-- Redirect + options -->
-        <input type="hidden" name="_next" value="https://sizemygenerator.com/contact?sent=1" />
-        <input type="hidden" name="_subject" value="Size My Generator contact form" />
-        <input type="hidden" name="_template" value="table" />
-
-        <!-- Honeypot anti-spam (keep hidden) -->
-        <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" />
-
-        <button type="submit">Send message</button>
-        <p class="help">
-          Rather email directly?
-          <a href="mailto:bill@atacamahvac.com?subject=Size%20My%20Generator%20contact">
-            Click here
-          </a>.
+    <main class="page-main">
+      <div class="card">
+        <h2>Email</h2>
+        <p>
+          Prefer your email client? Write us at
+          <a href="mailto:bill@atacamahvac.com">bill@atacamahvac.com</a>.
         </p>
-      </form>
-    </div>
+        <p class="muted">PA HIC License # PA 073102</p>
+      </div>
 
-    <!-- Success / status message via URL param ?sent=1 -->
-    <div id="sent" class="notice" hidden role="status" aria-live="polite">
-      ✅ Thanks! Your message was sent.
-    </div>
-  </main>
+      <div class="card">
+        <h2>Contact form</h2>
+        <form
+          method="POST"
+          action="https://formsubmit.co/bill@atacamahvac.com"
+          class="form"
+          aria-label="Contact form"
+        >
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" required autocomplete="name" />
+
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required autocomplete="email" />
+
+          <label for="topic">Topic</label>
+          <select id="topic" name="topic" required>
+            <option value="">Select a topic…</option>
+            <option value="calculator-question">Calculator question</option>
+            <option value="bug-report">Bug report</option>
+            <option value="feature-request">Feature request</option>
+            <option value="partnership">Partnership / affiliate</option>
+            <option value="other">Other</option>
+          </select>
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="6" required></textarea>
+
+          <!-- Redirect + options -->
+          <input type="hidden" name="_next" value="https://sizemygenerator.com/contact?sent=1" />
+          <input type="hidden" name="_subject" value="Size My Generator contact form" />
+          <input type="hidden" name="_template" value="table" />
+
+          <!-- Honeypot anti-spam (keep hidden) -->
+          <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" />
+
+          <button type="submit">Send message</button>
+          <p class="help">
+            Rather email directly?
+            <a href="mailto:bill@atacamahvac.com?subject=Size%20My%20Generator%20contact">
+              Click here
+            </a>.
+          </p>
+        </form>
+      </div>
+
+      <!-- Success / status message via URL param ?sent=1 -->
+      <div id="sent" class="notice" hidden role="status" aria-live="polite">
+        ✅ Thanks! Your message was sent.
+      </div>
+    </main>
+  </div>
 
   <script>
     // Show a success message if redirected back with ?sent=1
@@ -83,4 +85,115 @@ const desc  = "Get in touch with the Size My Generator team.";
       }
     })();
   </script>
+
+    <style>
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+
+    .content-shell .page-hero {
+      padding-bottom: 1rem;
+      color: #111827;
+    }
+
+    .content-shell h1 {
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      margin-bottom: 0.4rem;
+      color: #111827;
+    }
+
+    .content-shell .lead {
+      font-size: 1.02rem;
+      color: #4b5563;
+    }
+
+    .page-main {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: 0.75rem;
+    }
+
+    .card {
+      border-radius: 0.75rem;
+      border: 1px solid #e5e7eb;
+      padding: 1rem 1.25rem;
+      background: #f9fafb;
+      text-align: left;           /* override any global centering */
+    }
+
+    .card h2 {
+      margin: 0 0 0.4rem;
+      font-size: 1.05rem;
+      color: #111827;
+    }
+
+    .muted {
+      font-size: 0.9rem;
+      color: #6b7280;             /* darker, readable on light background */
+    }
+
+    .form {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .form label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .form input,
+    .form select,
+    .form textarea {
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.95rem;
+      background: #ffffff;
+      color: #111827;
+    }
+
+    .form button {
+      margin-top: 0.6rem;
+      border-radius: 0.6rem;
+      border: 1px solid #4f46e5;
+      background: #4f46e5;
+      color: #ffffff;
+      padding: 0.55rem 0.9rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .form button:hover {
+      background: #4338ca;
+    }
+
+    .help {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .content-shell a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: 1.25rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+    }
+  </style>
+
 </SiteLayout>
