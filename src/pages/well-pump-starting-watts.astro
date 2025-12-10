@@ -1,132 +1,427 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
 
-const title = "Well Pump Starting Watts & Generator Sizing (Charts + Examples)";
-const desc  = "HP→LRA table, 2-wire vs 3-wire, soft-start options, and worked examples for sizing a generator with a deep-well pump.";
-const canonical = "https://sizemygenerator.com/well-pump-starting-watts/";
-const lastReviewed = "October 20, 2025";
+const title = "Well Pump Starting Watts Guide | Size My Generator";
+const desc =
+  "A clear, fact-based guide to well pump running and starting watts, how to estimate surge loads, and how to choose the right generator for your well system.";
 
+const canonical = "https://sizemygenerator.com/well-pump-starting-watts";
+
+// FAQ schema entries – pulled from major Q&A sections below
 const faqs = [
-  { q: "How many starting watts does a 1 HP well pump need?", a: "Running is ~1 kW; starting can be 2.5–3.5 kW or more depending on head pressure, depth, and control box. Soft-start can lower inrush." },
-  { q: "Do 2-wire and 3-wire pumps start differently?", a: "Yes. 3-wire with a control box can have different start characteristics; consult nameplate/LRA. Either way, size for worst-case inrush plus concurrent loads." },
-  { q: "Can a soft-start help with a generator?", a: "Yes. Soft-start kits reduce inrush so you can use a smaller generator or keep more headroom for other loads." }
+  {
+    q: "How many starting watts does a well pump need?",
+    a: "Most residential well pumps require 2–3 times their running watts at startup. A 1/2 HP pump may start around 2,000–4,000 W, a 3/4 HP pump around 3,000–5,000 W, and a 1 HP pump around 4,000–6,000 W depending on motor type and wiring distance."
+  },
+  {
+    q: "What affects well pump starting watts?",
+    a: "Pump horsepower, motor design (2-wire vs 3-wire), locked-rotor amps (LRA), wire length, voltage drop, and pump age all influence starting surge. Larger horsepower and longer wire runs generally increase starting VA."
+  },
+  {
+    q: "Can a portable generator run a well pump?",
+    a: "Yes, if the generator has enough surge capacity and the pump is connected through a listed transfer switch or interlock. Many 4,000–7,500 W portables can run a typical 1/2–1 HP pump when other large loads are limited."
+  },
+  {
+    q: "How do I size a generator for my well pump?",
+    a: "Use the pump nameplate to identify running amps and locked-rotor amps, convert to watts using volts × amps, add the largest starting load to other expected running loads, and then add 20–30% headroom."
+  },
+  {
+    q: "Do well pumps and sump pumps require separate starting watt calculations?",
+    a: "Yes. Each motor has its own running and starting demand. If both pumps might start together, the generator must handle both surges or use load management."
+  }
 ];
 
+// Article schema
 const articleJsonLd = {
-  "@context":"https://schema.org",
-  "@type":"Article",
-  "headline": title,
-  "description": desc,
-  "dateModified":"2025-10-20",
-  "datePublished":"2025-10-20",
-  "mainEntityOfPage": canonical
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description: desc,
+  url: canonical,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical
+  },
+  author: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  }
 };
 
+// FAQPage schema
 const faqJsonLd = {
-  "@context":"https://schema.org",
-  "@type":"FAQPage",
-  "mainEntity": faqs.map(f => ({
-    "@type":"Question",
-    "name": f.q,
-    "acceptedAnswer": { "@type":"Answer", "text": f.a }
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a
+    }
   }))
 };
 
+// Breadcrumb schema
 const crumbJsonLd = {
-  "@context":"https://schema.org",
-  "@type":"BreadcrumbList",
-  "itemListElement":[
-    {"@type":"ListItem","position":1,"name":"Home","item":"https://sizemygenerator.com/"},
-    {"@type":"ListItem","position":2,"name":"Well Pump Starting Watts","item":canonical}
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/"
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Well Pump Starting Watts Guide",
+      item: canonical
+    }
   ]
 };
 ---
 
 <SiteLayout {title} {desc} canonical={canonical}>
-  <section class="page-hero">
-    <h1>Well Pump Starting Watts & Generator Sizing</h1>
-    <p class="lead">Use the HP→surge table below, then model it in the calculator to size your generator with confidence.</p>
-    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
-  </section>
 
-  <section class="answer-box">
-    <strong>Quick answer:</strong>
-    <p>A 1 HP deep-well pump typically needs ~1 kW running and <strong>2.5–3.5 kW</strong> of starting surge. Add this to your essentials overlap and size up to the nearest generator rating.</p>
-  </section>
-
-  <nav class="toc" aria-label="On this page">
-    <strong>On this page</strong>
-    <ul>
-      <li><a href="#table">HP → surge kW table</a></li>
-      <li><a href="#examples">Worked examples</a></li>
-      <li><a href="#faqs">FAQs</a></li>
-    </ul>
-  </nav>
-
-  <section id="table">
-    <h2>HP → surge kW (rule-of-thumb)</h2>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Pump HP</th><th>Run kW</th><th>Typical surge kW</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>0.5 HP</td><td>0.5–0.6</td><td>1.5–2.2</td><td>Shallow wells; modest head</td></tr>
-          <tr><td>0.75 HP</td><td>0.7–0.8</td><td>2.0–2.8</td><td>—</td></tr>
-          <tr><td>1.0 HP</td><td>~1.0</td><td>2.5–3.5</td><td>Common; depth & head vary</td></tr>
-          <tr><td>1.5 HP</td><td>1.3–1.6</td><td>3.5–5.0</td><td>High head pressure</td></tr>
-          <tr><td>2.0 HP</td><td>1.8–2.1</td><td>5.0–7.0</td><td>Deep wells / long runs</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="micro-note">Numbers are typical; always check nameplate amps/LRA. Soft-start can reduce the surge band.</p>
-    <div class="cta-row">
-      <a href="/generator-sizing-guide/#calculator" class="btn">Add pump surge in the Calculator</a>
-      <a href="/200-amp-generator-size/" class="btn btn-secondary">See 200-A Examples</a>
+  <!-- ====================== HERO ====================== -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Well Pump Starting Watts Guide</h1>
+      <p class="subtitle">
+        Understand running watts, starting watts, locked-rotor amps, and how to size
+        a generator that can reliably start and run your well pump.
+      </p>
     </div>
   </section>
 
-  <section id="examples">
-    <h2>Worked examples</h2>
+  <!-- ====================== CONTENT ====================== -->
+  <div class="content-shell">
 
-    <h3>Example A: Essentials + 1 HP pump</h3>
+    <!-- TOC -->
+    <nav class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li><a href="#what-are-starting-watts">What Are Well Pump Starting Watts?</a></li>
+        <li><a href="#running-vs-starting">Running Watts vs. Starting Watts</a></li>
+        <li><a href="#typical-watts">Typical Starting Watts by Pump Horsepower</a></li>
+        <li><a href="#submersible-vs-jet">Submersible vs. Jet Pump Starting Load</a></li>
+        <li><a href="#why-surge-varies">Why Starting Surge Varies</a></li>
+        <li><a href="#reduce-surge">How to Reduce Starting Surge</a></li>
+        <li><a href="#generator-sizing">How to Size a Generator for a Well Pump</a></li>
+        <li><a href="#mistakes">Common Mistakes to Avoid</a></li>
+        <li><a href="#examples">Example Calculations</a></li>
+        <li><a href="#conclusion">Final Thoughts</a></li>
+      </ul>
+    </nav>
+
+    <!-- ====================== SECTION 1 ====================== -->
+    <h2 id="what-are-starting-watts">What Are Well Pump Starting Watts?</h2>
+    <p>
+      Well pumps require two different wattage values: the <strong>running watts</strong>
+      needed once the motor is up to speed, and the <strong>starting watts</strong> required
+      to overcome initial inertia. Starting watts are typically the larger number and are
+      the main factor in generator sizing.
+    </p>
+    <p>
+      Starting watts are closely tied to the motor’s <strong>locked-rotor amps (LRA)</strong>. 
+      You can often find LRA on the pump’s nameplate or control box. If not, the pump 
+      manufacturer may publish typical values for the horsepower and motor type.
+    </p>
+
+    <h2 id="running-vs-starting">Running Watts vs. Starting Watts</h2>
+    <p>
+      Residential well pumps commonly operate at <strong>240 volts</strong>. To estimate
+      watts, use the basic formula:
+    </p>
+    <pre><code>Watts = Volts × Amps</code></pre>
+    <p>
+      If a pump draws 8 amps running at 240 volts:
+    </p>
+    <pre><code>Running watts ≈ 8 A × 240 V = 1,920 W</code></pre>
+    <p>
+      If the same pump has an LRA of 24 amps:
+    </p>
+    <pre><code>Starting watts ≈ 24 A × 240 V = 5,760 W</code></pre>
+
+    <!-- ====================== SECTION 2 ====================== -->
+    <h2 id="typical-watts">Typical Starting Watts by Pump Horsepower</h2>
+    <p>
+      These ranges align with common residential pump nameplates:
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Pump HP</th>
+          <th>Running Watts (Approx.)</th>
+          <th>Starting Watts (Approx.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1/2 HP</td>
+          <td>700–1,100 W</td>
+          <td>2,000–4,000 W</td>
+        </tr>
+        <tr>
+          <td>3/4 HP</td>
+          <td>1,000–1,600 W</td>
+          <td>3,000–5,000 W</td>
+        </tr>
+        <tr>
+          <td>1 HP</td>
+          <td>1,500–2,000 W</td>
+          <td>4,000–6,000 W</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      These values vary by motor design, manufacturer specifications, and wiring distance.
+      Always verify with the pump nameplate when possible.
+    </p>
+
+    <!-- ====================== SECTION 3 ====================== -->
+    <h2 id="submersible-vs-jet">Submersible vs. Jet Pump Starting Load</h2>
+    <p>
+      <strong>Submersible pumps</strong> typically have higher starting surge than 
+      <strong>jet pumps</strong> of similar horsepower due to motor type and pumping head.
+      However, both types can require 2–3 times running watts at startup.
+    </p>
+    <p>
+      For example, a typical <strong>3/4 HP jet pump</strong> might require:
+    </p>
     <ul>
-      <li>Essentials overlap ≈ 2.0–2.5 kW</li>
-      <li>Pump run ≈ 1.0 kW; surge ≈ 3.0 kW</li>
+      <li>Running: ~1,200–1,600 W</li>
+      <li>Starting: ~3,000–4,500 W</li>
     </ul>
-    <p class="micro-conclusion"><strong>So…</strong> 10–14 kW covers typical overlap + surge.</p>
 
-    <h3>Example B: 1 HP pump + 3-ton AC (soft-start)</h3>
+    <!-- ====================== SECTION 4 ====================== -->
+    <h2 id="why-surge-varies">Why Starting Surge Varies</h2>
+    <p>Starting surge depends on:</p>
     <ul>
-      <li>AC run 3–4 kW; surge 5–6 kW (soft-start)</li>
-      <li>Pump surge not simultaneous (sequenced)</li>
+      <li>Motor horsepower</li>
+      <li>Locked-rotor amps (LRA)</li>
+      <li>Wire length to the pump (voltage drop increases surge VA)</li>
+      <li>Motor age and friction</li>
+      <li>Control box type (2-wire vs. 3-wire)</li>
+      <li>Pressure tank cycling frequency</li>
     </ul>
-    <p class="micro-conclusion"><strong>So…</strong> 18–22 kW with proper load management; higher without soft-start.</p>
-  </section>
+    <p>
+      If your pump is aging or the well is far from your home’s electrical panel,
+      lean toward the upper end of typical generator sizing ranges.
+    </p>
 
-  <section id="faqs" class="faq-block">
-    <h2>FAQs</h2>
-    {faqs.map(f => (
-      <details><summary>{f.q}</summary><div innerHTML={f.a} /></details>
-    ))}
-  </section>
+    <!-- ====================== SECTION 5 ====================== -->
+    <h2 id="reduce-surge">How to Reduce Starting Surge</h2>
+    <p>Some options may help reduce starting demand:</p>
+    <ul>
+      <li><strong>Soft-start modules</strong> (when compatible with the pump model)</li>
+      <li><strong>Proper wire sizing</strong> to minimize voltage drop</li>
+      <li><strong>Pressure tank maintenance</strong> to reduce short cycling</li>
+      <li><strong>Replacing older motors</strong> whose LRA has increased with age</li>
+    </ul>
 
-  <section class="cta-row">
-    <a href="/generator-sizing-guide/" class="btn">Back to the Sizing Guide</a>
-    <a href="/transfer-switch-vs-interlock/" class="btn btn-secondary">Switch vs Interlock</a>
-  </section>
+    <!-- ====================== SECTION 6 ====================== -->
+    <h2 id="generator-sizing">How to Size a Generator for a Well Pump</h2>
+    <p>
+      The safest sizing method is to calculate running and starting watts, then
+      choose a generator where expected peak load is about <strong>70–80%</strong> of
+      total rated output. This mirrors best practices for residential optional
+      standby systems under <strong>NEC Article 702</strong>.
+    </p>
 
-  <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
-  <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
-  <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
+    <h3>Step 1: Determine Running Amps</h3>
+    <p>Check the nameplate for full-load amps (FLA). Convert to watts:</p>
+    <pre><code>Running W = FLA × 240 V</code></pre>
 
+    <h3>Step 2: Determine Starting (Surge) Amps</h3>
+    <p>If you see “LRA,” multiply by 240 volts:</p>
+    <pre><code>Starting W = LRA × 240 V</code></pre>
+
+    <h3>Step 3: Add Your Other Running Loads</h3>
+    <p>
+      Include only the circuits you intend to power during an outage. For a full
+      analysis, try the 
+      <a href="/#calculator">generator sizing calculator</a>.
+    </p>
+
+    <h3>Step 4: Add Headroom</h3>
+    <p>
+      Add roughly <strong>20–30% headroom</strong> to account for temperature,
+      aging equipment, and measurement uncertainty.
+    </p>
+
+    <p>
+      For a step-by-step example, see the 
+      <a href="/generator-sizing-guide">Home Generator Sizing Guide</a>.
+    </p>
+
+    <!-- ====================== SECTION 7 ====================== -->
+    <h2 id="mistakes">Common Mistakes to Avoid</h2>
+    <ul>
+      <li>Assuming HP alone determines starting watts</li>
+      <li>Ignoring wire length and voltage drop</li>
+      <li>Using running watts instead of starting watts for generator sizing</li>
+      <li>Trying to start multiple pumps simultaneously without load management</li>
+      <li>Backfeeding without a transfer switch (dangerous and illegal)</li>
+    </ul>
+    <p>
+      For safe installation practices, see your local electrical code authority and
+      the <a 
+        href="https://www.nfpa.org/codes-and-standards" 
+        target="_blank" 
+        rel="noopener noreferrer"
+      >National Fire Protection Association</a>, publisher of NEC (NFPA 70).
+    </p>
+    <p>
+      For portable generator safety, including CO risk, see the 
+      <a 
+        href="https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/Portable-Generator-Safety"
+        target="_blank"
+        rel="noopener noreferrer"
+      >U.S. Consumer Product Safety Commission</a>.
+    </p>
+
+    <!-- ====================== SECTION 8 ====================== -->
+    <h2 id="examples">Example Calculations</h2>
+    <p>Example for a <strong>3/4 HP submersible pump</strong>:</p>
+
+    <pre><code>Running: 6.5 A × 240 V ≈ 1,560 W
+Starting: 22 A × 240 V ≈ 5,280 W
+Other loads during outage: 1,200 W (fridge, lights)
+Peak load = 5,280 + 1,200 = 6,480 W
+Recommended generator = ~9–10 kW for 20–30% headroom</code></pre>
+
+    <p>
+      For your exact numbers, enter your pump details into the 
+      <a href="/#calculator">generator sizing calculator</a>.
+    </p>
+
+    <!-- ====================== SECTION 9 ====================== -->
+    <h2 id="conclusion">Final Thoughts</h2>
+    <p>
+      Well pumps are one of the reasons generator sizing is not purely based on
+      square footage. Their starting surge can be several times running wattage, so
+      a generator must be chosen with real-world peak load in mind.
+    </p>
+    <p>
+      For broader context, you may also want to read:
+    </p>
+    <ul>
+      <li><a href="/well-pump">Well Pump FAQs</a></li>
+      <li><a href="/faqs/general">General Generator FAQs</a></li>
+      <li><a href="/technical">Technical &amp; Electrical FAQs</a></li>
+      <li><a href="/transfer-switch-vs-interlock">Transfer Switch vs. Interlock</a></li>
+      <li><a href="/200-amp-generator-size">Generator Size for 200 Amp Service</a></li>
+    </ul>
+
+    <p><a class="link" href="/">← Back to Home</a></p>
+
+  </div>
+
+  <!-- ====================== SCHEMA ====================== -->
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(faqJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(crumbJsonLd)}
+  </script>
+
+  <!-- ====================== STYLES ====================== -->
   <style>
-    .answer-box{background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:.75rem;margin:.75rem 0}
-    .toc{border-left:3px solid var(--border);padding-left:.75rem;margin:1rem 0}
-    .table-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid var(--border);padding:.6rem;text-align:left}
-    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
-    .cta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
-    .micro-note{opacity:.9}
-    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;background:var(--card)}
+    .hero {
+      background: #4b2aad;
+      padding: 3rem 1rem;
+      text-align: center;
+      color: white;
+    }
+    .hero-inner {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      font-size: 1.15rem;
+      opacity: 0.95;
+    }
+
+    .content-shell {
+      max-width: 820px;
+      margin: -2rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: white;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15,23,42,0.12);
+      line-height: 1.7;
+    }
+
+    .toc h2 {
+      margin-top: 0;
+    }
+    .toc ul {
+      padding-left: 1.25rem;
+    }
+    .toc a {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+
+    h2 {
+      margin-top: 1.5rem;
+      font-size: 1.45rem;
+    }
+    h3 {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 0.6rem;
+      text-align: left;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+    a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    pre {
+      background: #f3f4f6;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: -1.5rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+      }
+    }
   </style>
+
 </SiteLayout>
