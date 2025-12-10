@@ -1,244 +1,332 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
-import Calculator from "../components/Calculator.astro";
-
-const title = "Home Generator Sizing Guide (+ Free Calculator)";
-const desc  = "Practical sizing with real-world tradeoffs: install cost, running cost, maintenance, rating-plate math, soft-start, and load management—plus a free calculator.";
-const canonical = "https://sizemygenerator.com/generator-sizing-guide/";
-const lastReviewed = "October 20, 2025";
-
-/** Optional: drop in your YouTube video ID when it’s live (e.g., 'dQw4w9WgXcQ') */
-const videoId = ""; // <- set this later
-const videoUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : "";
-const videoEmbed = videoId ? `https://www.youtube.com/embed/${videoId}` : "";
-
-/** FAQs for on-page + JSON-LD */
-const faqs = [
-  { q: "Should I size for whole-house or just essentials?", a: "It depends on budget, fuel, and comfort expectations. Essentials (7–12 kW) are cheaper to install, fuel, and maintain. Whole-house (14–26 kW) runs more circuits and ACs but costs more up front and per hour." },
-  { q: "How do I read an appliance nameplate to get watts?", a: "Look for volts (V) and amps (A). Use: Watts = Volts × Amps × Power Factor (≈0.9 for many motors if PF isn’t listed). For 240 V split-phase loads, use 240 V; for 120 V receptacles, use 120 V." },
-  { q: "What about starting (surge) watts?", a: "Motors can draw 2–6× their running amps for a few cycles. Use the largest likely surge plus concurrent running loads. Soft-start kits and load management can cut inrush and allow a smaller generator." },
-  { q: "Do soft-start kits really help?", a: "Yes. On AC condensers and well pumps, soft-start can drop inrush by 30–60% so you can either step down a size or keep more headroom for other loads." },
-  { q: "What is load management?", a: "Devices or controller logic that prevent big loads from starting at the same time (e.g., shedding water heater while AC starts). This reduces peak demand and required generator kW." },
-  { q: "How much does it cost to run a generator?", a: "Fuel burn depends on size and load. As a rule of thumb, larger units burn more at idle and per kWh. Right-sizing, soft-start, and management reduce runtime fuel spend." }
-];
-
-/** JSON-LD blocks */
-const articleJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": title,
-  "description": desc,
-  "dateModified": "2025-10-20",
-  "datePublished": "2025-10-20",
-  "author": {
-    "@type": "Person",
-    "name": "Bil C.",
-    "description": "HVAC contractor in PA and site owner"
-  },
-  "mainEntityOfPage": canonical
-};
-
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": faqs.map(f => ({
-    "@type": "Question",
-    "name": f.q,
-    "acceptedAnswer": { "@type": "Answer", "text": f.a }
-  }))
-};
-
-const crumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    { "@type":"ListItem","position":1,"name":"Home","item":"https://sizemygenerator.com/"},
-    { "@type":"ListItem","position":2,"name":"Generator Sizing Guide","item":canonical}
-  ]
-};
-
-/** Calculator preset deep link support (no extra UI shown here) */
-const preset = Astro.url.searchParams.get("preset") ?? "essentials";
-
-/** Optional video schema (only if videoId is set) */
-const videoJsonLd = videoId ? {
-  "@context": "https://schema.org",
-  "@type": "VideoObject",
-  "name": "How to Size a Home Generator (Walkthrough)",
-  "description": "Live walkthrough: reading rating plates, calculating running and surge watts, and choosing essentials vs whole-house with soft-start and load management.",
-  "uploadDate": "2025-10-20",
-  "thumbnailUrl": [`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`],
-  "embedUrl": videoEmbed,
-  "contentUrl": videoUrl
-} : null;
+const title = "Home Generator Sizing Guide | Size My Generator";
+const desc =
+  "Learn how to size a home generator safely and correctly using real-world wattage ranges, starting loads, and practical standby generator considerations.";
 ---
 
-<SiteLayout {title} {desc} canonical={canonical}>
+<SiteLayout
+  {title}
+  {desc}
+  canonical="https://sizemygenerator.com/generator-sizing-guide"
+>
+  <!-- Purple hero -->
   <section class="page-hero">
-    <h1 class="mb-2">Home Generator Sizing Guide <span class="text-accent">(+ Free Calculator)</span></h1>
-    <p class="lead">A practical way to size your generator—price tradeoffs, rating-plate math, and tools to reduce required kW.</p>
-    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
-  </section>
-
-  <!-- Answer box aimed at featured snippet -->
-  <section class="answer-box">
-    <strong>Quick answer:</strong>
-    <p>
-      Start with <strong>essentials-only</strong> to minimize install and fuel costs, then add AC/well pump <em>only</em> if comfort/health requires it. Use the calculator below,
-      confirm running vs surge, and consider <strong>soft-start</strong> and <strong>load management</strong> before upsizing.
+    <h1>Home Generator Sizing Guide</h1>
+    <p class="lead">
+      A clear, practical guide to choosing the right standby or portable
+      generator for your home—based on accurate wattage needs, starting loads,
+      and safe National Electrical Code (NEC) principles.
     </p>
   </section>
 
-  <!-- Above-the-fold calculator (no duplicate preset chips) -->
-  <section class="calc-wrap" id="calculator">
-    <div class="calculator-panel">
-      <Calculator preset={preset} />
-    </div>
-    <div class="cta-row">
-      <a href="/200-amp-generator-size/" class="btn">200-Amp Examples</a>
-      <a href="/transfer-switch-vs-interlock/" class="btn btn-secondary">Transfer Switch vs Interlock</a>
-      <a href="/well-pump-starting-watts/" class="btn btn-secondary">Well Pump Surge</a>
-    </div>
-  </section>
+  <!-- White card content -->
+  <div class="content-shell">
+    <main>
+      <!-- TABLE OF CONTENTS -->
+      <nav class="toc" aria-label="Table of contents">
+        <h2 class="toc-title">On this page</h2>
+        <ul>
+          <li><a href="#why-generator-sizing-matters">Why generator sizing matters</a></li>
+          <li><a href="#key-factors">Key factors that influence generator size</a></li>
+          <li><a href="#typical-wattage">Typical wattage ranges for home appliances</a></li>
+          <li><a href="#estimate-size">How to estimate generator size</a></li>
+          <li><a href="#recommended-sizes">Recommended generator sizes by home type</a></li>
+          <li><a href="#generator-types">Generator types to consider</a></li>
+          <li><a href="#common-mistakes">Common sizing mistakes to avoid</a></li>
+          <li><a href="#when-to-consult">When to consult a professional</a></li>
+          <li><a href="#conclusion">Conclusion</a></li>
+        </ul>
+      </nav>
 
-  <!-- Cost tradeoffs -->
-  <section id="cost-tradeoffs">
-    <h2>Cost tradeoffs: install, run, maintain</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Choice</th><th>Install cost impact</th><th>Run cost (fuel/hr)</th><th>Maintenance</th><th>Notes</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Essentials-only (7–12 kW)</td>
-            <td>Lower (smaller unit, smaller switch, simpler gas line)</td>
-            <td>Lower idle & load burn</td>
-            <td>Smaller oil/filter, less stress</td>
-            <td>Great ROI; add soft-start to include 1 AC if needed</td>
-          </tr>
-          <tr>
-            <td>Most of house (10–18 kW)</td>
-            <td>Moderate</td>
-            <td>Moderate</td>
-            <td>Standard intervals</td>
-            <td>Use management to avoid range + dryer + AC overlap</td>
-          </tr>
-          <tr>
-            <td>Whole-house (18–26 kW+)</td>
-            <td>Higher (bigger unit, 100 A ATS, heavier conductors)</td>
-            <td>Higher idle & load burn</td>
-            <td>Heavier use items; fuel matters more</td>
-            <td>Comfort-focused; consider sequencing/EV charging pause</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="micro-conclusion"><strong>So…</strong> price out both options. Many households prefer Essentials + soft-start/load management over jumping a whole size class.</p>
-  </section>
+      <!-- SECTION 1 -->
+      <h2 id="why-generator-sizing-matters">Why generator sizing matters</h2>
+      <p>
+        Choosing the correct generator size helps ensure your home remains safe,
+        comfortable, and functional during an outage. A properly sized generator
+        helps prevent overloads, avoids unnecessary fuel cost, and supports the
+        appliances you depend on.
+      </p>
+      <p>
+        For residential use, generator sizing generally falls under
+        <strong>optional standby systems</strong> described in
+        <strong>NEC Article 702</strong>—systems intended to supply selected
+        loads, not entire premises by default.
+        For more on scope and limitations, see our
+        <a href="/disclaimer">calculator disclaimer</a>.
+      </p>
+      <p>
+        This guide gives you a practical, step-by-step framework to size a
+        generator correctly. For a fast personalized estimate, try our
+        <a href="/#calculator">free home generator calculator</a>.
+      </p>
 
-  <!-- How to read rating plates -->
-  <section id="rating-plates">
-    <h2>How to read rating plates (and turn them into watts)</h2>
-    <ol class="steps">
-      <li>Find <strong>Voltage (V)</strong> and <strong>Amps (A)</strong> on the nameplate (or the breaker size as a proxy).</li>
-      <li>If PF (power factor) isn’t listed, assume ~<strong>0.9</strong> for many motors; resistive loads ≈ 1.0.</li>
-      <li>Use <code>Watts = Volts × Amps × PF</code>. For 240 V loads, use 240; for 120 V, use 120.</li>
-      <li>For motors, estimate surge at <strong>2–6×</strong> running amps unless you have LRA (Locked Rotor Amps).</li>
-      <li>Enter running and surge into the calculator; model realistic overlap.</li>
-    </ol>
+      <!-- SECTION 2 -->
+      <h2 id="key-factors">Key factors that influence generator size</h2>
 
-    <div class="examples">
-      <h3>Mini-examples</h3>
+      <h3>1. Running watts vs. starting watts</h3>
+      <p>
+        Many appliances draw significantly more power when starting than when
+        running. Motors—found in refrigerators, AC compressors, well pumps, and
+        blower motors—often require <strong>2–3×</strong> their running wattage
+        for a few seconds during startup.
+      </p>
       <ul>
-        <li><strong>3-ton AC condenser</strong>: nameplate 240 V, 15 A run, PF≈0.9 → run ≈ 240×15×0.9 ≈ <strong>3.2 kW</strong>. Surge (no soft-start) ≈ 2.5–3× → <strong>8–10 kW</strong>.</li>
-        <li><strong>Well pump 1 HP</strong>: run ≈ <strong>1.0 kW</strong>; typical surge <strong>2.5–3.5 kW</strong> (check LRA/control box).</li>
-        <li><strong>Microwave</strong>: 120 V, 12.5 A → 120×12.5 ≈ <strong>1.5 kW</strong> (resistive-ish; surge minimal).</li>
-        <li><strong>Gas furnace blower</strong>: 120 V, 5 A → 0.6 kW running; short surge modest (fan motor).</li>
+        <li>The total <strong>running watts</strong> of everything operating</li>
+        <li>The <strong>highest starting watts</strong> of the largest motor load</li>
       </ul>
-    </div>
-  </section>
+      <p>
+        A generator that cannot support an appliance’s inrush current may allow
+        it to run but fail to start it reliably.
+      </p>
 
-  <!-- Soft-start & load management -->
-  <section id="start-management">
-    <h2>Soft-start & load management (shrink the peak)</h2>
-    <p>
-      Two levers reduce the generator size you need:
-    </p>
-    <ul>
-      <li><strong>Soft-start kits</strong> for AC/well pumps: lower inrush by ~30–60% so the generator doesn’t see a big spike.</li>
-      <li><strong>Load management</strong>: shed water heater/range while the AC starts; prevent two condensers from starting at once.</li>
-    </ul>
-    <p class="micro-conclusion"><strong>So…</strong> apply soft-start to your largest motor and sequence big loads. Re-run the calculator—many homes drop an entire size tier.</p>
-  </section>
+      <h3>2. Essential vs. optional loads</h3>
+      <p>
+        Most homeowners focus on a core set of essential circuits:
+      </p>
+      <ul>
+        <li>Heating or cooling equipment</li>
+        <li>Refrigerator and freezer</li>
+        <li>Well pump or sump pump</li>
+        <li>Basic lighting and outlets</li>
+        <li>Internet/Wi-Fi</li>
+        <li>Select kitchen appliances</li>
+      </ul>
+      <p>
+        For deeper guidance on one of the most common high-surge loads, see
+        <a href="/well-pump-starting-watts">well pump starting watts</a>.
+      </p>
 
-  <!-- Your walkthrough video (optional, appears when videoId is set) -->
-  {videoId ? (
-    <section id="walkthrough">
-      <h2>Watch: sizing a house, step by step</h2>
-      <div class="video-wrap">
-        <iframe
-          width="560"
-          height="315"
-          src={videoEmbed}
-          title="YouTube video player"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen>
-        </iframe>
-      </div>
-      <p class="micro-note">In this video: read rating plates, calculate watts, estimate surge, and decide on essentials vs whole-house with soft-start and load management.</p>
-    </section>
-  ) : null}
+      <h3>3. Fuel type and power output</h3>
+      <ul>
+        <li><strong>Natural gas (NG):</strong> usually 8–15% lower output</li>
+        <li><strong>Propane (LP):</strong> full rated output, long storage life</li>
+        <li><strong>Gasoline:</strong> portable units; limited storage life</li>
+      </ul>
+      <p>
+        Always check whether the kW rating is listed for NG, LP, or both—this
+        affects sizing.
+      </p>
 
-  <!-- Transfer switching (short) -->
-  <section id="transfer-switching">
-    <h2>Transfer switching & safety (short version)</h2>
-    <p>Backfeed is dangerous and illegal. Use a listed transfer switch sized to your generator feeder (30 A / 50 A / 100 A). Interlocks may be allowed for portables—always follow code and utility rules. Details: <a href="/transfer-switch-vs-interlock/">Transfer Switch vs Interlock</a>.</p>
-  </section>
+      <h3>4. Climate and startup loads</h3>
+      <p>
+        Cold weather increases demand on furnace blowers and well pumps; hot
+        weather increases AC compressor load. Allowing a modest buffer helps
+        account for these seasonal conditions.
+      </p>
 
-  <!-- FAQs -->
-  <section id="faqs" class="faq-block">
-    <h2>FAQs</h2>
-    {faqs.map(f => (
-      <details>
-        <summary>{f.q}</summary>
-        <div innerHTML={f.a} />
-      </details>
-    ))}
-  </section>
+      <h3>5. Panel and installation considerations</h3>
+      <p>
+        Your generator must match both your load and your electrical equipment.
+        NEC&nbsp;702 requires a listed transfer switch or interlock device to
+        safely isolate generator power.
+      </p>
+      <p>
+        For a comparison of safe switching options, see
+        <a href="/transfer-switch-vs-interlock">transfer switch vs. interlock</a>.
+      </p>
 
-  <!-- Author box -->
-  <section class="author-box">
-    <h3>About the reviewer</h3>
-    <p>Bil C. — HVAC contractor in PA and site owner. This guide is reviewed periodically for accuracy.</p>
-    <div class="meta text-sm text-muted">Last reviewed: {lastReviewed}</div>
-  </section>
+      <!-- SECTION 3 -->
+      <h2 id="typical-wattage">Typical wattage ranges for common home appliances</h2>
+      <p>
+        These are typical <strong>running (R)</strong> and
+        <strong>starting (S)</strong> wattage ranges:
+      </p>
+      <ul>
+        <li>Refrigerator: 600–800 R / 1,200–2,400 S</li>
+        <li>Freezer: 500–700 R / 1,200–1,800 S</li>
+        <li>Gas furnace blower: 400–900 R / 1,000–1,600 S</li>
+        <li>Well pump (½ HP): 800–1,000 R / 2,000–3,000 S</li>
+        <li>Well pump (1 HP): 1,500–2,000 R / 4,000–6,000 S</li>
+        <li>Sump pump (⅓ HP): 600–900 R / ~1,300 S</li>
+        <li>Window AC (10k BTU): 900–1,200 R / 2,000–3,600 S</li>
+        <li>Central AC (3-ton): ~3,500 R / 10,000–15,000 S</li>
+        <li>Electric range: 3,000–5,000 W</li>
+        <li>Electric dryer: 3,500–5,000 W</li>
+      </ul>
 
-  <!-- JSON-LD -->
-  <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
-  <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
-  <script type="application/ld+json">{JSON.stringify(crumbJsonLd)}</script>
-  {videoJsonLd ? <script type="application/ld+json">{JSON.stringify(videoJsonLd)}</script> : null}
+      <!-- SECTION 4 -->
+      <h2 id="estimate-size">How to estimate generator size</h2>
+
+      <h3>1. List the loads you want to operate</h3>
+      <p>
+        Start with essential loads only. Many homeowners skip high-draw loads
+        like electric dryers and ovens.
+      </p>
+
+      <h3>2. Identify running and starting watts</h3>
+      <p>If an appliance lists amps only:</p>
+      <ul>
+        <li>120&nbsp;V → watts = 120 × amps</li>
+        <li>240&nbsp;V → watts = 240 × amps</li>
+      </ul>
+
+      <h3>3. Add total running watts</h3>
+      <p>Example essentials:</p>
+      <ul>
+        <li>Refrigerator: 700 W</li>
+        <li>Freezer: 600 W</li>
+        <li>Furnace blower: 700 W</li>
+        <li>Lights + electronics: 200 W</li>
+      </ul>
+      <p><strong>Total running watts = 2,200 W</strong></p>
+
+      <h3>4. Add general lighting and small appliance allowances</h3>
+      <ul>
+        <li>Lighting: ~3 W per sq ft</li>
+        <li>Two small appliance circuits: 1,500 W each</li>
+        <li>Laundry circuit: 1,500 W</li>
+      </ul>
+      <p>
+        For a 2,000 sq ft home, this adds:
+        <strong>6,000 + 4,500 = 10,500 W</strong> to your plan.
+      </p>
+
+      <h3>5. Determine peak starting watts</h3>
+      <p>
+        Refrigerator example: 2,100 W start / 700 W run.  
+        Peak:
+      </p>
+      <ul>
+        <li>12,700 W total running load</li>
+        <li>Subtract fridge running: 12,000 W</li>
+        <li>Add fridge start: 14,100 W</li>
+      </ul>
+
+      <h3>6. Add a safety buffer</h3>
+      <p>
+        A 20–25% buffer allows for seasonal variation and small future loads.
+        14,100 ÷ 0.8 ≈ <strong>17.6 kW</strong>, so most homeowners would choose
+        an <strong>18 kW standby generator</strong>.
+      </p>
+
+      <!-- SECTION 5 -->
+      <h2 id="recommended-sizes">Recommended generator sizes by home type</h2>
+      <ul>
+        <li>1,000–2,000 sq ft: 7–12 kW</li>
+        <li>2,000–3,000 sq ft: 12–18 kW</li>
+        <li>3,000–4,500 sq ft: 18–22 kW</li>
+        <li>4,500+ sq ft: 22–26 kW</li>
+      </ul>
+
+      <p>
+        If your home has 200-amp service, see our dedicated guide:
+        <a href="/200-amp-generator-size">what size generator is needed for 200 amps</a>.
+      </p>
+
+      <!-- SECTION 6 -->
+      <h2 id="generator-types">Generator types to consider</h2>
+
+      <h3>Portable generators (≈2–12 kW)</h3>
+      <p>Basic backup, manual fueling, outdoor-only operation.</p>
+
+      <h3>Inverter generators (≈1–7 kW)</h3>
+      <p>
+        Clean, stable power; good for electronics; quieter; typically smaller
+        capacity.
+      </p>
+
+      <h3>Standby generators (≈7–26 kW)</h3>
+      <p>
+        Automatic NG or LP systems powering selected or whole-home loads.
+      </p>
+
+      <h3>Solar + battery systems</h3>
+      <p>
+        Silent and fuel-free but limited by battery capacity. Often best for
+        partial-home backup.
+      </p>
+
+      <!-- SECTION 7 -->
+      <h2 id="common-mistakes">Common sizing mistakes to avoid</h2>
+      <ul>
+        <li>Sizing only by square footage instead of wattage</li>
+        <li>Ignoring starting watts for motors</li>
+        <li>Assuming everything will run at once</li>
+        <li>Not adjusting for NG derate</li>
+        <li>Undersized transfer switch selection</li>
+        <li>Oversizing leading to low-load inefficiency</li>
+        <li>Not planning for future additions (EV charger, hot tub, etc.)</li>
+      </ul>
+
+      <!-- SECTION 8 -->
+      <h2 id="when-to-consult">When to consult a professional</h2>
+      <p>
+        A licensed electrician should evaluate panel capacity, transfer
+        equipment, grounding, clearances, and local codes. Every home’s motor
+        loads behave differently.
+      </p>
+      <p>
+        For broader generator safety guidance, see the
+        <a href="https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/Portable-Generator-Safety"
+           target="_blank" rel="noopener noreferrer">U.S. Consumer Product Safety Commission</a>.
+        Installation requirements may also be influenced by standards from the
+        <a href="https://www.nfpa.org/codes-and-standards"
+           target="_blank" rel="noopener noreferrer">National Fire Protection Association (NFPA)</a>.
+      </p>
+
+      <!-- SECTION 9 -->
+      <h2 id="conclusion">Conclusion</h2>
+      <p>
+        Generator sizing starts with understanding your wattage needs,
+        accounting for starting loads, and selecting a system that supports your
+        home safely with a reasonable buffer.
+      </p>
+      <p>
+        For an instant personalized estimate, use our
+        <a href="/#calculator">free generator sizing calculator</a>.
+      </p>
+      <p>
+        Still have questions? Visit our <a href="/faqs">Generator FAQs</a>.
+      </p>
+      <p><a href="/">← Back to home</a></p>
+    </main>
+  </div>
 
   <style>
-    .page-hero { margin-bottom: 1.1rem; }
-    .lead { font-size: 1.05rem; }
-    .answer-box { background: var(--card); border: 1px solid var(--border); padding: 1rem; border-radius: .75rem; margin: 1rem 0; }
-    .calc-wrap { margin-top: 1rem; }
-    .calculator-panel { border:1px solid var(--border); border-radius:.75rem; padding:.75rem; background: var(--panel); }
-    .cta-row { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.75rem; }
-    .btn { display:inline-block; padding:.55rem .9rem; border-radius:.6rem; border:1px solid var(--border); text-decoration:none; }
-    .btn:hover { text-decoration:underline; }
-    .table-wrap{overflow-x:auto;margin:.3rem 0}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid var(--border);padding:.6rem;text-align:left}
-    .micro-conclusion{border:1px dashed var(--border);padding:.6rem;border-radius:.5rem;background:var(--card);margin-top:.5rem}
-    .steps{margin:.4rem 0 .2rem}
-    .examples ul{margin:.4rem 0}
-    .video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:.75rem;border:1px solid var(--border);background:#000}
-    .video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%}
-    details{border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;margin:.5rem 0;background:var(--card)}
-    .author-box{border-top:1px solid var(--border);margin-top:1.25rem;padding-top:.75rem}
+    /* Match About/Disclaimer card styling */
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+    .content-shell h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.3rem;
+      font-size: 1.25rem;
+    }
+    .content-shell h3 {
+      margin-top: 1.1rem;
+      margin-bottom: 0.25rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    .toc {
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.25rem;
+      background: #f3f4ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 0.65rem;
+    }
+    .toc-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #4b5563;
+    }
+    .toc a {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+    .toc a:hover {
+      text-decoration: underline;
+    }
   </style>
 </SiteLayout>
