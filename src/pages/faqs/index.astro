@@ -4,9 +4,96 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 const title = "Generator FAQs | Size My Generator";
 const desc =
   "Browse frequently asked questions about generator sizing, AC loads, portable generators, well pumps, technical calculations, and more.";
+
+const canonical = "https://sizemygenerator.com/faqs";
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description: desc,
+  url: canonical,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical,
+  },
+  author: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/",
+  },
+};
+
+const crumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Generator FAQs",
+      item: canonical,
+    },
+  ],
+};
+
+const itemListJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Generator FAQ categories",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "General generator sizing",
+      url: "https://sizemygenerator.com/faqs/general",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "AC & HVAC generator sizing",
+      url: "https://sizemygenerator.com/faqs/ac-units",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Portable generator FAQs",
+      url: "https://sizemygenerator.com/faqs/portable",
+    },
+    {
+      "@type": "ListItem",
+      position: 4,
+      name: "Well & sump pump sizing",
+      url: "https://sizemygenerator.com/faqs/well-pump",
+    },
+    {
+      "@type": "ListItem",
+      position: 5,
+      name: "Technical & electrical questions",
+      url: "https://sizemygenerator.com/faqs/technical",
+    },
+    {
+      "@type": "ListItem",
+      position: 6,
+      name: "Costs, runtime & maintenance",
+      url: "https://sizemygenerator.com/faqs/costs",
+    },
+  ],
+};
 ---
 
-<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs">
+<SiteLayout {title} {desc} canonical={canonical}>
   <div class="content-shell">
     <section class="page-hero">
       <h1>Generator FAQs</h1>
@@ -96,6 +183,16 @@ const desc =
     </main>
   </div>
 
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(itemListJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(crumbJsonLd)}
+  </script>
+
   <style>
     .content-shell {
       max-width: 820px;
@@ -150,21 +247,21 @@ const desc =
       text-decoration: none;
     }
 
-    .faq-category-list a:hover {
+    .faq-category-list a:hover,
+    .faq-category-list a:focus-visible {
       text-decoration: underline;
-      text-underline-offset: 2px;
     }
 
     .faq-category-list p {
-      margin: 0.2rem 0 0;
-      font-size: 0.95rem;
+      margin: 0;
+      font-size: 0.96rem;
       color: #4b5563;
     }
 
     .small-print {
       margin-top: 1.5rem;
-      font-size: 0.9rem;
-      color: #4b5563;
+      font-size: 0.85rem;
+      color: #6b7280;
     }
 
     @media (max-width: 768px) {
@@ -172,6 +269,10 @@ const desc =
         margin: 1.25rem 0 2rem;
         padding: 1.4rem 1rem 2rem;
         box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+
+      .faq-category-list li {
+        padding: 0.8rem 0.7rem;
       }
     }
   </style>

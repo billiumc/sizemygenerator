@@ -1,15 +1,68 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
+
 const title = "Home Generator Sizing Guide | Size My Generator";
 const desc =
   "Learn how to size a home generator safely and correctly using real-world wattage ranges, starting loads, and practical standby generator considerations.";
+
+const canonical = "https://sizemygenerator.com/generator-sizing-guide";
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Home Generator Sizing Guide",
+  description: desc,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical,
+  },
+  author: {
+    "@type": "Organization",
+    name: "SizeMyGenerator",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "SizeMyGenerator",
+  },
+  url: canonical,
+  inLanguage: "en",
+  about: [
+    "home generator sizing",
+    "standby generator size",
+    "portable generator size",
+    "generator wattage",
+    "backup power",
+  ],
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Generator sizing guide",
+      item: canonical,
+    },
+  ],
+};
 ---
 
-<SiteLayout
-  {title}
-  {desc}
-  canonical="https://sizemygenerator.com/generator-sizing-guide"
->
+<SiteLayout {title} {desc} canonical={canonical}>
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(breadcrumbJsonLd)}
+  </script>
+
   <!-- Purple hero -->
   <section class="page-hero">
     <h1>Home Generator Sizing Guide</h1>
@@ -51,8 +104,8 @@ const desc =
         For residential use, generator sizing generally falls under
         <strong>optional standby systems</strong> described in
         <strong>NEC Article 702</strong>—systems intended to supply selected
-        loads, not entire premises by default.
-        For more on scope and limitations, see our
+        loads, not entire premises by default. For more on scope and
+        limitations, see our
         <a href="/disclaimer">calculator disclaimer</a>.
       </p>
       <p>
@@ -184,7 +237,7 @@ const desc =
 
       <h3>5. Determine peak starting watts</h3>
       <p>
-        Refrigerator example: 2,100 W start / 700 W run.  
+        Refrigerator example: 2,100 W start / 700 W run.
         Peak:
       </p>
       <ul>
@@ -258,11 +311,19 @@ const desc =
       </p>
       <p>
         For broader generator safety guidance, see the
-        <a href="https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/Portable-Generator-Safety"
-           target="_blank" rel="noopener noreferrer">U.S. Consumer Product Safety Commission</a>.
+        <a
+          href="https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/Portable-Generator-Safety"
+          target="_blank"
+          rel="noopener noreferrer"
+          >U.S. Consumer Product Safety Commission</a
+        >.
         Installation requirements may also be influenced by standards from the
-        <a href="https://www.nfpa.org/codes-and-standards"
-           target="_blank" rel="noopener noreferrer">National Fire Protection Association (NFPA)</a>.
+        <a
+          href="https://www.nfpa.org/codes-and-standards"
+          target="_blank"
+          rel="noopener noreferrer"
+          >National Fire Protection Association (NFPA)</a
+        >.
       </p>
 
       <!-- SECTION 9 -->
@@ -295,17 +356,30 @@ const desc =
       box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
       line-height: 1.7;
     }
+
     .content-shell h2 {
       margin-top: 1.5rem;
       margin-bottom: 0.3rem;
       font-size: 1.25rem;
     }
+
     .content-shell h3 {
       margin-top: 1.1rem;
       margin-bottom: 0.25rem;
       font-size: 1.05rem;
       font-weight: 600;
     }
+
+    .content-shell p {
+      margin: 0.4rem 0;
+    }
+
+    .content-shell a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
     .toc {
       padding: 0.85rem 1rem;
       margin-bottom: 1.25rem;
@@ -313,6 +387,7 @@ const desc =
       border: 1px solid #c7d2fe;
       border-radius: 0.65rem;
     }
+
     .toc-title {
       font-size: 0.95rem;
       font-weight: 600;
@@ -321,10 +396,12 @@ const desc =
       letter-spacing: 0.04em;
       color: #4b5563;
     }
+
     .toc a {
       color: #1d4ed8;
       text-decoration: none;
     }
+
     .toc a:hover {
       text-decoration: underline;
     }
