@@ -4,9 +4,111 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 const title = "Generator Costs, Runtime & Maintenance FAQs | Size My Generator";
 const desc =
   "Answers to common questions about how long generators can run, how much fuel they use, typical operating costs, permits, and maintenance.";
+
+const canonical = "https://sizemygenerator.com/faqs/costs";
+
+// Short Q/A versions for FAQ schema
+const faqs = [
+  {
+    q: "How long can a standby generator run continuously?",
+    a: "Most residential standby generators are designed to run for extended periods during an outage as long as they have adequate fuel, operate within their rated load and temperature limits, and receive oil and filter changes at the intervals specified in the manual."
+  },
+  {
+    q: "How much fuel does a typical standby generator use?",
+    a: "For many 18–24 kW air-cooled residential units, fuel use at typical loads is roughly 0.9–1.7 therms/hour of natural gas or 0.7–1.3 gallons/hour of propane at light load, and higher at heavier loads. Actual consumption depends on model, load, and conditions."
+  },
+  {
+    q: "How much does it cost per day to run a standby generator?",
+    a: "Daily cost depends on fuel price and load. Using rough averages, natural gas standby generators often land around a few dollars per hour in fuel, while propane generators can be several dollars per hour. Over 24 hours that typically means tens to low hundreds of dollars per day."
+  },
+  {
+    q: "How big should my propane tank be for a whole-house generator?",
+    a: "Tank size depends on how long you want to run without refilling, how much the generator uses per hour, and whether other appliances share the tank. Many whole-house systems use a 500-gallon tank to provide meaningful runtime buffer during extended outages."
+  },
+  {
+    q: "Do I need a permit to install a standby generator?",
+    a: "In many jurisdictions, yes. Electrical, gas, and sometimes site or zoning permits are required. A licensed installer typically handles permits and inspections, but requirements vary by city, county, and state."
+  },
+  {
+    q: "How loud are standby generators?",
+    a: "Most residential air-cooled standby generators list sound levels roughly in the 60–75 dB(A) range at a specified distance, depending on model and load. Placement, orientation, and nearby structures all affect perceived noise."
+  },
+  {
+    q: "What maintenance does a standby generator need?",
+    a: "Typical maintenance includes periodic oil and filter changes, air filter service, spark plug checks, battery inspection, visual inspections for leaks or damage, and verification that automatic exercise runs occur as scheduled."
+  },
+  {
+    q: "How often should my generator exercise?",
+    a: "Most residential standby generators are set to exercise automatically once a week or once a month for a short duration to keep the engine lubricated and confirm that the unit can start and run. The installer can tune frequency and timing."
+  },
+  {
+    q: "How much does a whole-house generator system cost to install?",
+    a: "Installed whole-house systems often fall in the several-thousand to low five-figure dollar range depending on size, fuel type, installation complexity, and local labor and permitting costs. Essentials-only portable setups with a transfer switch usually cost less."
+  }
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description: desc,
+  url: canonical,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical
+  },
+  author: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  }
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a
+    }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/"
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Generator FAQs",
+      item: "https://sizemygenerator.com/faqs"
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Generator Costs, Runtime & Maintenance FAQs",
+      item: canonical
+    }
+  ]
+};
 ---
 
-<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/costs">
+<SiteLayout {title} {desc} canonical={canonical}>
   <div class="content-shell">
     <section class="page-hero">
       <h1>Costs, Runtime &amp; Maintenance FAQs</h1>
@@ -18,6 +120,13 @@ const desc =
     </section>
 
     <main>
+      <p>
+        If you haven’t sized your system yet, it can help to read the
+        <a href="/generator-sizing-guide">Home Generator Sizing Guide</a> and the
+        <a href="/faqs/general">General Generator FAQs</a> first. Once you have a
+        rough kW in mind, the costs and runtime numbers below will make more sense.
+      </p>
+
       <h2>How long can a standby generator run continuously?</h2>
       <p>
         Most residential standby generators are designed to run for
@@ -42,6 +151,18 @@ const desc =
         <li>Maintenance intervals and service access.</li>
         <li>Local regulations on noise in residential areas.</li>
       </ul>
+      <p>
+        As with any engine-driven equipment, always follow the maintenance and
+        safety guidance in your manufacturer’s manual. For broader safety guidance
+        on generator use and carbon monoxide, see the
+        <a
+          href="https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/Portable-Generator-Safety"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          U.S. Consumer Product Safety Commission’s generator safety information
+        </a>.
+      </p>
 
       <h2>How much fuel does a typical standby generator use?</h2>
       <p>
@@ -72,7 +193,15 @@ const desc =
       </ul>
       <p>
         Always check the manufacturer’s spec sheets for your specific unit to get
-        more precise fuel consumption numbers.
+        more precise fuel consumption numbers. For context on current fuel prices,
+        you can also review data from the
+        <a
+          href="https://www.eia.gov/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          U.S. Energy Information Administration
+        </a>.
       </p>
 
       <h2>How much does it cost per day to run a standby generator?</h2>
@@ -101,6 +230,9 @@ const desc =
         Those numbers are intentionally broad; your actual cost may be lower or higher.
         For accurate estimates in your area, plug in your utility’s gas rate or your
         current propane price and the manufacturer’s fuel-use table for your model.
+        A quick way to ground your assumptions is to size your system with the
+        <a href="/#calculator">generator sizing calculator</a> first, then look up
+        fuel use for that specific kW range.
       </p>
 
       <h2>How big should my propane tank be for a whole-house generator?</h2>
@@ -240,7 +372,6 @@ const desc =
         a few local licensed installers. Your load profile, existing gas service,
         and panel location can all move the number up or down significantly.
       </p>
-
       <p>
         If you haven’t sized your system yet, start with the
         <a href="/#calculator" class="link">generator sizing calculator</a> to estimate
@@ -251,6 +382,16 @@ const desc =
       <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
     </main>
   </div>
+
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(faqJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(crumbJsonLd)}
+  </script>
 
   <style>
     .content-shell {

@@ -4,9 +4,115 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 const title = "Technical & Electrical Generator FAQs | Size My Generator";
 const desc =
   "In-depth answers to technical questions about kW, amps, power factor, NEC-style load calculations, and how electricians think about generator sizing.";
+
+const canonical = "https://sizemygenerator.com/faqs/technical";
+
+// Short Q/A versions for FAQ schema (page content below is more detailed)
+const faqs = [
+  {
+    q: "How do I convert amps to kW for my house?",
+    a: "For single-phase loads, kW = (Volts × Amps × Power factor) ÷ 1000. In a typical 120/240 V home, most large appliances are 240 V loads. You add up individual kW values, then apply diversity factors because not everything runs at full draw at the same time."
+  },
+  {
+    q: "My home has 200 A service. Does that mean I need a 48 kW generator?",
+    a: "No. A 200 A, 240 V service can theoretically deliver about 48 kW, but generator sizing is based on the loads you expect to run during an outage, not the maximum service rating. Many 200 A homes are well served by a 16–24 kW standby generator when heavy electric heat is not being backed up."
+  },
+  {
+    q: "What does power factor mean and why does it matter?",
+    a: "Power factor describes the relationship between real power (kW) and apparent power (kVA). Many residential loads are near 1.0 power factor, while motors are often around 0.8–0.95. Generators are often rated in kVA at a given power factor; poor power factor on large motor loads can stress a marginally sized generator."
+  },
+  {
+    q: "What do standby, prime, and continuous generator ratings mean?",
+    a: "Standby rating is for typical residential backup use with limited hours per year. Prime rating is for applications where the generator is a main power source with varying load. Continuous rating is for running at a constant load for long periods, and is typically the lowest rating."
+  },
+  {
+    q: "Why do people say to size a generator for 70–80% load?",
+    a: "Targeting peak load at about 70–80% of the generator’s rating leaves room for motor starting surges, unplanned extra loads, and derating in heat or altitude. It improves reliability and gives some headroom for future loads."
+  },
+  {
+    q: "How do temperature and altitude affect generator output?",
+    a: "Generators lose output at higher temperatures and higher elevations because warm, thin air has less oxygen. Manufacturers publish derating curves, but in general you can expect some reduction above roughly 3,000 ft or in very hot conditions, and you may want to choose a slightly larger unit or manage loads more aggressively."
+  },
+  {
+    q: "How do electricians calculate load for sizing a generator?",
+    a: "Electricians use NEC-based load calculations, distinguishing continuous and non-continuous loads, applying demand factors, and accounting for large appliances. For optional standby systems under NEC Article 702, the generator does not have to match full service size as long as load management and transfer equipment are designed correctly."
+  },
+  {
+    q: "Do I need a generator that matches my service size?",
+    a: "No. Service size (100 A, 150 A, 200 A) does not dictate generator kW. Generator size is based on the loads you plan to support, while transfer switches and load management keep the generator from being overloaded."
+  },
+  {
+    q: "Can I oversize my generator too much?",
+    a: "On the residential side, oversizing is mostly about cost and practicality. Larger units cost more and can be less efficient at very light loads, but modest oversizing is common and generally not harmful when installation is done correctly."
+  },
+  {
+    q: "What’s the difference between kW, kVA, and kWh?",
+    a: "kW is real power, kVA is apparent power, and kWh is energy over time. Generator sizing focuses on kW and kVA at a given moment. Fuel use over hours or days is essentially a question of kWh consumed."
+  }
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description: desc,
+  url: canonical,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical
+  },
+  author: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  }
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a
+    }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/"
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Generator FAQs",
+      item: "https://sizemygenerator.com/faqs"
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Technical & Electrical Generator FAQs",
+      item: canonical
+    }
+  ]
+};
 ---
 
-<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/technical">
+<SiteLayout {title} {desc} canonical={canonical}>
   <div class="content-shell">
     <section class="page-hero">
       <h1>Technical &amp; Electrical Generator FAQs</h1>
@@ -18,6 +124,14 @@ const desc =
     </section>
 
     <main>
+      <p>
+        If you’re just getting started, it can help to read the
+        <a href="/generator-sizing-guide">Home Generator Sizing Guide</a> and the
+        <a href="/faqs/general">General Generator FAQs</a> first. This page is aimed at
+        homeowners who want a more technical view of how electricians and designers
+        think about generator sizing.
+      </p>
+
       <h2>How do I convert amps to kW for my house?</h2>
       <p>
         The basic formula for single-phase loads is:
@@ -37,14 +151,20 @@ const desc =
       <p>
         Household load is the <strong>sum</strong> of individual loads, adjusted for
         diversity (everything is not on at full draw at the same time). That’s why
-        a 200&nbsp;A service (up to 48&nbsp;kW theoretical at 240&nbsp;V) can often be
+        a 200&nbsp;A service (up to ~48&nbsp;kW theoretical at 240&nbsp;V) can often be
         backed up reasonably well with a 16–24&nbsp;kW generator: we’re sizing to
         what you actually expect to run during an outage, not the absolute maximum
         your service can deliver.
       </p>
+      <p>
+        If you’d like a structured walkthrough, you can plug your loads into the
+        <a href="/#calculator">generator sizing calculator</a> and let it do the math.
+      </p>
 
       <h2>My home has 200 A service. Does that mean I need a 48 kW generator?</h2>
-      <p><strong>No.</strong> A 200&nbsp;A, 120/240&nbsp;V service can theoretically deliver up to:</p>
+      <p>
+        <strong>No.</strong> A 200&nbsp;A, 120/240&nbsp;V service can theoretically deliver up to:
+      </p>
       <pre><code>kW = (240 V × 200 A) ÷ 1000 ≈ 48 kW</code></pre>
       <p>
         That is a <strong>maximum service rating</strong>, not a requirement for generator size.
@@ -60,6 +180,10 @@ const desc =
         when outages are infrequent and heavy electric heat is not being backed up.
         If you have a large, all-electric home and want true “everything on” capacity,
         a larger unit may be appropriate, but that’s the exception, not the rule.
+      </p>
+      <p>
+        For a deeper dive on this topic, see
+        <a href="/200-amp-generator-size">What size generator is needed for 200 amps?</a>
       </p>
 
       <h2>What does “power factor” mean and why does it matter?</h2>
@@ -145,7 +269,7 @@ const desc =
         publish <strong>derating curves</strong>, but a rough guideline is:
       </p>
       <ul>
-        <li>Expect some reduction above 3,000&nbsp;ft elevation.</li>
+        <li>Expect some reduction above ~3,000&nbsp;ft elevation.</li>
         <li>High ambient temperatures (for example, 100&nbsp;°F+) can further reduce output.</li>
       </ul>
       <p>
@@ -176,6 +300,22 @@ const desc =
         load management and transfer equipment are designed appropriately. Your local
         electrician will follow the version of the code adopted in your area and any
         local amendments.
+      </p>
+      <p>
+        For background on NEC and related standards, see the
+        <a
+          href="https://www.nfpa.org/codes-and-standards"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          National Fire Protection Association (publisher of NFPA 70, the National Electrical Code)
+        </a>. Always defer to your local licensed electrician and inspector for how these
+        rules apply to your specific installation.
+      </p>
+      <p>
+        For more on how transfer equipment choices affect sizing and load management, you
+        can also review
+        <a href="/transfer-switch-vs-interlock">Transfer Switch vs. Interlock</a>.
       </p>
 
       <h2>Do I need a generator that matches my service size (100 A, 150 A, 200 A)?</h2>
@@ -235,12 +375,24 @@ const desc =
       <p>
         If you’d like to estimate your own kW from loads and breakers,
         <a href="/#calculator" class="link">open the generator sizing calculator</a>
-        and plug in your home’s details for a structured walkthrough.
+        and plug in your home’s details for a structured walkthrough. You can also
+        cross-check high-level concepts in the
+        <a href="/generator-sizing-guide">Home Generator Sizing Guide</a>.
       </p>
 
       <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
     </main>
   </div>
+
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(faqJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(crumbJsonLd)}
+  </script>
 
   <style>
     .content-shell {

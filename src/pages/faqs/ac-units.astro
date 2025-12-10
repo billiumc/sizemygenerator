@@ -4,9 +4,102 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 const title = "AC & HVAC Generator FAQs | Size My Generator";
 const desc =
   "Answers to common questions about running central air, heat pumps, and multiple AC units on a generator.";
+
+const canonical = "https://sizemygenerator.com/faqs/ac-units";
+
+const faqs = [
+  {
+    q: "What size generator do I need to run a house with two AC units?",
+    a: "Two central AC systems are usually the limiting factor in residential backup. Typical homes with two 2–3 ton systems and gas heat often land in the mid-20 kW standby range, while larger or less efficient systems may need 26–30 kW or more. The safest approach is to pull nameplate data for both systems, estimate running and starting kW, then confirm with a load calculator and a licensed electrician."
+  },
+  {
+    q: "Will a 10,000 watt generator run central air?",
+    a: "Sometimes. A 10 kW portable can sometimes run a smaller, efficient 2–2.5 ton system with a good surge rating, soft-start kit, and careful load management. Larger or older systems, or homes with other heavy loads, often push beyond what a 10 kW portable can comfortably handle."
+  },
+  {
+    q: "How many watts does it take to start a 4-ton AC unit?",
+    a: "Many 4-ton single-stage systems draw roughly 4,000–6,500 W running, but can need 10,000–18,000 W of short-term starting capacity without a soft-start kit. The best indicator is the condenser’s locked-rotor amps (LRA) multiplied by 240 V."
+  },
+  {
+    q: "What size generator do I need to run a 5-ton AC unit?",
+    a: "A 5-ton AC is a large residential load. Running draw is often in the 5,000–7,500 W range, with starting demand that can exceed 15,000 W. Most homes that truly need a 5-ton system are in standby-generator territory, often in the mid-20 kW and up range depending on other loads and whether load management and soft-start modules are used."
+  },
+  {
+    q: "How many watts does a typical whole-house AC system use?",
+    a: "A rough rule of thumb: 2 ton ≈ 2,000–3,500 W, 3 ton ≈ 3,000–4,500 W, 4 ton ≈ 4,000–6,500 W, and 5 ton ≈ 5,000–7,500 W running. Actual draw varies with efficiency, design, and blower size, and starting watts can be 2–3× those running values without soft-start or inverter technology."
+  },
+  {
+    q: "What size generator do I need to run a window AC unit?",
+    a: "Smaller window units (5,000–8,000 BTU) often run on 400–800 W with 1,200–2,000 W starting, while larger 10,000–12,000 BTU units may draw 800–1,400 W with up to ~3,000 W starting. A 2,000–3,000 W inverter often handles one small-to-medium unit plus lights, while 3,000–4,000 W can support a larger unit and a refrigerator with careful management."
+  },
+  {
+    q: "Do I need soft-start kits if I plan to run AC on a generator?",
+    a: "Soft-start or hard-start kits are not always required, but often make the difference between marginal and reliable performance. They reduce compressor inrush current, help prevent nuisance trips, and can allow a smaller generator to handle a system that would otherwise be out of reach when installed and matched correctly by HVAC and electrical pros."
+  }
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description: desc,
+  url: canonical,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical
+  },
+  author: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  }
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a
+    }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/"
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Generator FAQs",
+      item: "https://sizemygenerator.com/faqs"
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "AC & HVAC Generator FAQs",
+      item: canonical
+    }
+  ]
+};
 ---
 
-<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/ac-units">
+<SiteLayout {title} {desc} canonical={canonical}>
   <div class="content-shell">
     <section class="page-hero">
       <h1>AC &amp; HVAC Generator FAQs</h1>
@@ -18,6 +111,13 @@ const desc =
     </section>
 
     <main>
+      <p>
+        If you’re new to generator sizing, you may want to start with the
+        <a href="/generator-sizing-guide">Home Generator Sizing Guide</a> or
+        the <a href="/faqs/general">General Generator FAQs</a> before diving into
+        AC-specific details.
+      </p>
+
       <h2>What size generator do I need to run a house with two AC units?</h2>
       <p>
         Two central AC systems are almost always the limiting factor in a residential
@@ -223,6 +323,16 @@ const desc =
       <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
     </main>
   </div>
+
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(faqJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(crumbJsonLd)}
+  </script>
 
   <style>
     .content-shell {

@@ -4,9 +4,106 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 const title = "Well & Sump Pump Generator FAQs | Size My Generator";
 const desc =
   "Answers to common questions about running well pumps, jet pumps, and sump pumps on a generator.";
+
+const canonical = "https://sizemygenerator.com/faqs/well-pump";
+
+const faqs = [
+  {
+    q: "What size generator do I need to run a well pump?",
+    a: "The required generator size depends on the pump horsepower, motor type, and what else is running at the same time. Typical residential well pumps range from 1/2 HP to 1 HP, with running demand roughly 700–2,000 W and starting demand commonly 2–3× higher. Many homes with a 1/2–1 HP pump are comfortable in the 4,000–7,500 W generator range if other big loads are limited, while larger homes or pumps may need 7,500–10,000 W or more."
+  },
+  {
+    q: "Can a portable generator run a well pump?",
+    a: "Yes. Most portable generators in the 4,000–7,500 W class can run a typical residential well pump if the generator has adequate surge capacity and you avoid starting other big motor loads at the exact same moment. The pump circuit should be connected through a proper transfer switch or interlock rather than cords."
+  },
+  {
+    q: "How many watts does a typical well pump use?",
+    a: "A typical residential well pump uses around 700–2,000 W running and roughly 2,000–6,000 W starting, depending on horsepower, motor design, and wiring distance. The best way to know for sure is to check the pump’s nameplate or control box and convert the listed full-load amps and locked-rotor amps to watts using watts = amps × volts."
+  },
+  {
+    q: "Can a sump pump and well pump run on the same generator?",
+    a: "Yes, but the generator must handle the combined running and starting demand. Sump pumps also have a significant inrush current, though usually lower than well pumps. When both pumps are mission-critical, many homeowners choose a 7,500–12,000 W portable or a right-sized standby generator and avoid starting both pumps at the exact same instant."
+  },
+  {
+    q: "What size generator do I need for a well pump, sump pump, and fridge?",
+    a: "For a common essentials-only setup with one 1/2–1 HP well pump, one 1/3–1/2 HP sump pump, and a refrigerator/freezer, many homes are well served by a 7,500–10,000 W generator. This assumes you do not start both pumps at the same moment and you’re not adding large additional loads like central AC or electric water heating."
+  },
+  {
+    q: "Can I run a well pump directly off an extension cord?",
+    a: "No. Well pumps are hard-wired appliances and should not be connected via extension cords. To run a well pump from a generator, the pump circuit should be supplied through a listed transfer switch or interlock so the wiring remains protected and there is no risk of backfeeding utility lines."
+  },
+  {
+    q: "Does starting surge increase with pump age or wiring distance?",
+    a: "Yes. Aging pumps often draw more current at startup as bearings wear and efficiency declines, and long wire runs add resistance that can increase the starting VA the generator must supply. If your pump is older or far from the panel, it’s wise to lean toward the higher end of generator sizing ranges or have an electrician confirm the actual load."
+  },
+  {
+    q: "What about jet pumps?",
+    a: "Jet pumps commonly used in shallow wells tend to have similar wattage requirements to submersible pumps of the same horsepower. A typical 3/4 HP jet pump may need roughly 1,000–1,600 W running and 3,000–4,500 W starting. Treat them like any other major motor load in your generator plan."
+  }
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description: desc,
+  url: canonical,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical
+  },
+  author: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Size My Generator",
+    url: "https://sizemygenerator.com/"
+  }
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a
+    }
+  }))
+};
+
+const crumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sizemygenerator.com/"
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Generator FAQs",
+      item: "https://sizemygenerator.com/faqs"
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Well & Sump Pump Generator FAQs",
+      item: canonical
+    }
+  ]
+};
 ---
 
-<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/well-pump">
+<SiteLayout {title} {desc} canonical={canonical}>
   <div class="content-shell">
     <section class="page-hero">
       <h1>Well &amp; Sump Pump FAQs</h1>
@@ -18,11 +115,18 @@ const desc =
     </section>
 
     <main>
+      <p>
+        If you’re new to generator sizing overall, you may want to start with the
+        <a href="/generator-sizing-guide">Home Generator Sizing Guide</a> or the
+        <a href="/faqs/general">General Generator FAQs</a>, then come back here to dial in
+        your pump loads.
+      </p>
+
       <h2>What size generator do I need to run a well pump?</h2>
       <p>
         The required generator size depends on the <strong>horsepower (HP)</strong>
-        of your pump and whether it uses a <strong>2-wire</strong> or
-        <strong>3-wire</strong> motor. Typical residential well pumps range from
+        of your pump, the motor type (2-wire vs. 3-wire), and what else is running
+        at the same time. Typical residential well pumps range from
         <strong>1/2 HP to 1 HP</strong>.
       </p>
       <p>General estimates:</p>
@@ -38,8 +142,12 @@ const desc =
       <p>
         For a typical 1/2–1 HP well pump, a generator in the
         <strong>4,000–7,500 W</strong> range is often sufficient, depending on what
-        else is running at the same time. Larger homes or higher HP pumps may require
-        a 7,500–10,000 W portable or a standby system.
+        else is running at the same time. Larger homes, higher HP pumps, or longer
+        wire runs may require a <strong>7,500–10,000 W portable</strong> or a standby system.
+      </p>
+      <p>
+        To see how your well pump fits into the bigger picture, plug it into the
+        <a href="/#calculator">generator sizing calculator</a> along with your other loads.
       </p>
 
       <h2>Can a portable generator run a well pump?</h2>
@@ -125,8 +233,20 @@ const desc =
       <p>
         To run a well pump from a generator, you need a
         <strong>transfer switch or interlock</strong> so the pump circuit can be powered safely
-        without backfeeding the utility lines. Your electrician will make sure the
-        neutral, grounding, and bonding requirements are correct for your generator type.
+        without backfeeding the utility lines. For an overview of your options, see
+        <a href="/transfer-switch-vs-interlock">Transfer Switch vs. Interlock</a>.
+      </p>
+      <p>
+        Your electrician will make sure the neutral, grounding, and bonding requirements are
+        correct for your generator type. For broader generator safety guidance, including
+        carbon monoxide precautions, see the
+        <a
+          href="https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/Portable-Generator-Safety"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          U.S. Consumer Product Safety Commission’s portable generator safety information
+        </a>.
       </p>
 
       <h2>Does starting surge increase with pump age or wiring distance?</h2>
@@ -142,8 +262,9 @@ const desc =
         </li>
       </ul>
       <p>
-        If your well pump is older than 10–12 years or has a very long wiring run, lean toward
-        the higher end of generator sizing ranges or ask an electrician to confirm the load.
+        If your well pump is older than about a decade or has a very long wiring run, lean
+        toward the higher end of generator sizing ranges or ask an electrician to confirm
+        the load.
       </p>
 
       <h2>What about jet pumps?</h2>
@@ -169,6 +290,16 @@ const desc =
       <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
     </main>
   </div>
+
+  <script type="application/ld+json">
+    {JSON.stringify(articleJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(faqJsonLd)}
+  </script>
+  <script type="application/ld+json">
+    {JSON.stringify(crumbJsonLd)}
+  </script>
 
   <style>
     .content-shell {
