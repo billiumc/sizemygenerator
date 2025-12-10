@@ -1,0 +1,257 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+
+const title = "General Generator FAQs | Size My Generator";
+const desc  = "Clear, practical answers to common questions about sizing a generator for your home.";
+---
+
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/general">
+  <div class="content-shell">
+    <section class="page-hero">
+      <h1>General Generator FAQs</h1>
+      <p class="lead">
+        Big-picture answers to questions like “What size generator do I need?” and
+        “How do I estimate my home’s load?” All focused on typical U.S. homes with
+        residential optional standby generators.
+      </p>
+    </section>
+
+    <main>
+      <h2>How does generator sizing actually work?</h2>
+      <p>
+        Generator sizing comes down to three numbers:
+      </p>
+      <ul>
+        <li><strong>Running load</strong> – the watts (or kW) your home uses while everything is running normally.</li>
+        <li><strong>Starting (surge) load</strong> – the temporary spike when motors start, like AC compressors and pumps.</li>
+        <li><strong>Headroom</strong> – extra capacity (typically 20–30%) so the generator isn’t running at the ragged edge.</li>
+      </ul>
+      <p>
+        A good rule of thumb: add up the <strong>running watts</strong> for everything you plan
+        to use during an outage, then add the <strong>single highest motor starting load</strong>.
+        Choose a generator so your expected peak load is around <strong>70–80% of its rated
+        output</strong>. This gives room for noise in the numbers, future loads, and hot-weather derating.
+      </p>
+      <p>
+        There’s no one-size-fits-all answer. Two homes with the same square footage can
+        have very different electrical loads depending on fuel type (gas vs. electric
+        appliances), number of AC units, well pumps, EV chargers, and so on.
+      </p>
+
+      <h2>What size generator do most homes need?</h2>
+      <p>
+        It depends on whether you want to power <strong>just essentials</strong> or
+        <strong>nearly everything</strong> in the house:
+      </p>
+      <ul>
+        <li>
+          <strong>Essentials-only (via portable or smaller standby)</strong>: Often
+          <strong>7–12&nbsp;kW</strong> is enough to run a smaller central AC or several
+          window units, refrigerator, some lighting, and key outlets — as long as you’re
+          strategic about what runs at the same time.
+        </li>
+        <li>
+          <strong>“Most of the house” with one central AC</strong>: Many typical
+          1,500–2,500&nbsp;sq&nbsp;ft homes with gas heat and gas water heaters end up in the
+          <strong>16–24&nbsp;kW</strong> standby range.
+        </li>
+        <li>
+          <strong>Larger homes or two+ AC systems</strong>: Homes with 3,000+&nbsp;sq&nbsp;ft,
+          multiple large AC units, or significant electric heat often require
+          <strong>24&nbsp;kW and up</strong>, and sometimes 30&nbsp;kW+ depending on priorities.
+        </li>
+      </ul>
+      <p>
+        These are <strong>typical ranges</strong>, not guarantees. The safest approach is to
+        use a load-based calculator (like the one on SizeMyGenerator.com) and then have a
+        licensed electrician confirm the final size and transfer switch setup for your
+        specific home.
+      </p>
+
+      <h2>How do I calculate what size generator I need?</h2>
+      <p>
+        There are two basic approaches: a quick estimate and a more detailed load
+        calculation.
+      </p>
+      <p><strong>Quick estimate:</strong></p>
+      <ol>
+        <li>List the rooms and systems you care about during an outage (HVAC, fridge, well or sump pump, medical equipment, office, etc.).</li>
+        <li>Note the <strong>amps</strong> or <strong>wattage</strong> from labels or manuals for each item.</li>
+        <li>Convert amps to watts using <code>watts = volts × amps</code> (for most household loads, 120&nbsp;V or 240&nbsp;V).</li>
+        <li>Add up all the running watts for the items you plan to run at the same time.</li>
+        <li>Identify the appliance with the highest starting surge (often a central AC, well pump, or large compressor).</li>
+        <li>Add that starting surge to your running total, then add 20–30% headroom.</li>
+      </ol>
+      <p>
+        <strong>More precise method:</strong> electricians follow NEC-style load calculations
+        that account for continuous vs. non-continuous loads, diversity factors, and your
+        actual panel configuration. That’s more work by hand, which is why a calculator plus
+        a quick professional review is usually the most efficient path.
+      </p>
+
+      <h2>What’s the difference between running watts and starting watts?</h2>
+      <p>
+        <strong>Running watts</strong> (sometimes labeled “rated watts” or “continuous kW”)
+        are what an appliance needs to <em>keep</em> running. <strong>Starting watts</strong>
+        (or “surge watts”) are the brief spike when the motor first kicks on.
+      </p>
+      <p>
+        Many motor loads draw <strong>2–3× their running current</strong> for a fraction of a
+        second at startup. For example, a 1,000&nbsp;W well pump might momentarily need
+        2,000–3,000&nbsp;W to start. Modern soft-start kits and variable-speed equipment can
+        reduce this spike, but it still needs to be considered in sizing.
+      </p>
+      <p>
+        Generators are usually rated for a continuous output (for example,
+        <strong>20&nbsp;kW</strong>) plus a slightly higher short-term surge rating. Your goal
+        is to keep combined loads — including the biggest startup event — within what the
+        generator can comfortably deliver.
+      </p>
+
+      <h2>Is it worse to undersize or oversize a generator?</h2>
+      <p>
+        <strong>Undersizing</strong> creates immediate problems: nuisance tripping, brown-outs
+        when large loads start, and in the worst case, damage to sensitive electronics if
+        voltage sags. If your generator is obviously too small for your chosen loads, you’ll
+        be forced into inconvenient manual load shedding (flipping breakers on and off).
+      </p>
+      <p>
+        <strong>Oversizing</strong> is safer electrically but more expensive. A generator that
+        is significantly larger than your loads:
+      </p>
+      <ul>
+        <li>Costs more upfront (equipment and installation).</li>
+        <li>Uses more fuel at low load compared to a right-sized unit.</li>
+        <li>May “wet stack” (in diesel units) if run at very low load for long periods.</li>
+      </ul>
+      <p>
+        For residential natural gas or propane standby units, being somewhat oversized is
+        usually fine. Many installers aim for a design where typical outage usage stays
+        around <strong>40–80% of rated capacity</strong>.
+      </p>
+
+      <h2>Do I need a “whole-house” generator, or can I just back up essentials?</h2>
+      <p>
+        Not everyone needs or wants a whole-house system. You have three main options:
+      </p>
+      <ul>
+        <li>
+          <strong>Portable generator + manual transfer switch</strong> – Lower cost. You
+          select a limited set of circuits (fridge, a few rooms, possibly a smaller AC or
+          window units, pumps). You manually manage loads.
+        </li>
+        <li>
+          <strong>Standby generator with limited-circuit transfer switch</strong> – Automatic
+          startup, but only certain circuits are backed up (often 8–16 circuits).
+        </li>
+        <li>
+          <strong>Whole-house transfer switch with load management</strong> – The generator
+          is connected to your entire panel, and smart modules shed lower-priority circuits
+          automatically when needed.
+        </li>
+      </ul>
+      <p>
+        Many homeowners are happy with a well-planned essentials-only setup, especially if
+        outages are rare. In areas with frequent or extended outages, a properly sized
+        whole-house system can be worth the extra cost and complexity.
+      </p>
+
+      <h2>Can I rely on square footage alone to pick a generator size?</h2>
+      <p>
+        <strong>No.</strong> Square footage is a rough proxy at best. Load is driven much more
+        by:
+      </p>
+      <ul>
+        <li>Number and size of <strong>AC units</strong> and heat pumps.</li>
+        <li>Whether <strong>heat, water heating, and cooking</strong> are gas or electric.</li>
+        <li>Presence of <strong>wells, sump pumps, EV chargers, shop equipment</strong>, or pools.</li>
+        <li>How many rooms you truly need powered during an outage.</li>
+      </ul>
+      <p>
+        Rules like “X&nbsp;kW per Y&nbsp;square feet” can easily be off by 30–50%. They’re
+        useful only as a starting point. A quick load-based calculation or using a generator
+        sizing calculator will always be more accurate.
+      </p>
+
+      <h2>Should I still talk to an electrician if I use an online calculator?</h2>
+      <p>
+        Yes. A calculator is an excellent way to narrow the range quickly and understand
+        trade-offs, but it <strong>doesn’t replace</strong> on-site evaluation. A licensed
+        electrician or generator installer will:
+      </p>
+      <ul>
+        <li>Confirm your loads and priorities.</li>
+        <li>Check panel capacity, grounding, and bonding.</li>
+        <li>Verify gas service capacity for natural gas or tank sizing for propane.</li>
+        <li>Handle permits, inspections, and transfer switch selection.</li>
+      </ul>
+      <p>
+        Think of the calculator as the “research and planning” step and the electrician as
+        the final authority who makes sure everything is safe and code-compliant.
+      </p>
+
+      <p>
+        Ready to see what this looks like with your actual loads?
+        <a href="/#calculator" class="link">Open the generator sizing calculator</a>
+        and plug in your home’s details for a tailored recommendation.
+      </p>
+
+      <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
+    </main>
+  </div>
+
+  <style>
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+    .content-shell .page-hero {
+      padding-bottom: 1rem;
+      color: #111827;
+    }
+    .content-shell h1 {
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      margin-bottom: 0.4rem;
+      color: #111827;
+    }
+    .content-shell .lead {
+      font-size: 1.02rem;
+      color: #4b5563;
+    }
+    .content-shell h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.3rem;
+      font-size: 1.25rem;
+    }
+    .content-shell p {
+      margin: 0.4rem 0;
+    }
+    .content-shell ul,
+    .content-shell ol {
+      padding-left: 1.25rem;
+      margin: 0.5rem 0;
+    }
+    .content-shell li {
+      margin: 0.25rem 0;
+    }
+    .content-shell a,
+    .content-shell .link {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: 1.25rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+    }
+  </style>
+</SiteLayout>

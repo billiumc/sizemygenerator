@@ -1,0 +1,227 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+
+const title = "Well & Sump Pump Generator FAQs | Size My Generator";
+const desc =
+  "Answers to common questions about running well pumps, jet pumps, and sump pumps on a generator.";
+---
+
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/well-pump">
+  <div class="content-shell">
+    <section class="page-hero">
+      <h1>Well &amp; Sump Pump FAQs</h1>
+      <p class="lead">
+        Well pumps and sump pumps create some of the highest starting loads in a
+        typical home. These FAQs explain how many watts they need, what size
+        generator can run them, and how to plan for safe operation during an outage.
+      </p>
+    </section>
+
+    <main>
+      <h2>What size generator do I need to run a well pump?</h2>
+      <p>
+        The required generator size depends on the <strong>horsepower (HP)</strong>
+        of your pump and whether it uses a <strong>2-wire</strong> or
+        <strong>3-wire</strong> motor. Typical residential well pumps range from
+        <strong>1/2 HP to 1 HP</strong>.
+      </p>
+      <p>General estimates:</p>
+      <ul>
+        <li><strong>1/2 HP well pump</strong>: ~1,000 W running, 2,000–4,000 W starting</li>
+        <li><strong>3/4 HP well pump</strong>: ~1,500 W running, 3,000–5,000 W starting</li>
+        <li><strong>1 HP well pump</strong>: ~2,000 W running, 4,000–6,000 W starting</li>
+      </ul>
+      <p>
+        Pumps often draw <strong>2–3× their running watts</strong> at startup. That short surge
+        is what determines whether your generator is large enough.
+      </p>
+      <p>
+        For a typical 1/2–1 HP well pump, a generator in the
+        <strong>4,000–7,500 W</strong> range is often sufficient, depending on what
+        else is running at the same time. Larger homes or higher HP pumps may require
+        a 7,500–10,000 W portable or a standby system.
+      </p>
+
+      <h2>Can a portable generator run a well pump?</h2>
+      <p>
+        Yes—most portable generators in the <strong>4,000–7,500 W</strong> class can run
+        a typical residential well pump, as long as:
+      </p>
+      <ul>
+        <li>You’re not simultaneously starting other big motor loads.</li>
+        <li>The generator has adequate surge capacity.</li>
+        <li>The pump’s electrical circuit is connected via a transfer switch or interlock.</li>
+      </ul>
+      <p>
+        If you have a <strong>larger 1 HP pump</strong>, older equipment, or long wire
+        runs (which increase starting demand), a <strong>larger 7,500–12,000 W
+        portable</strong> may be more reliable.
+      </p>
+
+      <h2>How many watts does a typical well pump use?</h2>
+      <p>
+        It varies by motor type and HP rating, but these ranges cover most homes:
+      </p>
+      <ul>
+        <li><strong>Running watts</strong>: ~700–2,000 W</li>
+        <li><strong>Starting watts</strong>: ~2,000–6,000 W</li>
+      </ul>
+      <p>
+        The best way to know for sure is to check the pump’s nameplate or control box.
+        If it lists <strong>FLA</strong> (full-load amps) and <strong>LRA</strong>
+        (locked-rotor amps), you can convert to watts:
+      </p>
+      <pre><code>Watts = Amps × Volts</code></pre>
+      <p>
+        Example: a pump with 8 A FLA at 240 V uses roughly 1,920 W running.
+      </p>
+
+      <h2>Can a sump pump and well pump run on the same generator?</h2>
+      <p>
+        Yes, but only if the generator can handle the <strong>combined starting load</strong>.
+        Sump pumps also have significant inrush currents, although typically lower than well pumps.
+      </p>
+      <p>
+        Typical sump pump ranges:
+      </p>
+      <ul>
+        <li><strong>1/3 HP</strong>: 600–800 W running, 1,300–2,500 W starting</li>
+        <li><strong>1/2 HP</strong>: 800–1,200 W running, 2,000–3,500 W starting</li>
+      </ul>
+      <p>
+        If both pumps start at the same time, the generator must handle:
+      </p>
+      <ul>
+        <li>Well pump surge (2,000–6,000 W)</li>
+        <li>Plus sump pump surge (1,300–3,500 W)</li>
+      </ul>
+      <p>
+        This is why many homes rely on a <strong>7,500–12,000 W portable</strong> or a
+        right-sized standby unit when both pumps are mission-critical.
+      </p>
+
+      <h2>What size generator do I need for a well pump, sump pump, and fridge?</h2>
+      <p>
+        A very common “essentials-only” setup is:
+      </p>
+      <ul>
+        <li>1/2–1 HP well pump</li>
+        <li>1/3–1/2 HP sump pump</li>
+        <li>Refrigerator/freezer</li>
+      </ul>
+      <p>
+        In many cases, a generator in the <strong>7,500–10,000 W</strong> range works well
+        for this combination, as long as:
+      </p>
+      <ul>
+        <li>The pumps don’t start at the exact same moment.</li>
+        <li>You’re not adding a major load (like a large AC or electric water heater).</li>
+        <li>Your transfer switch wiring keeps these circuits isolated and safe.</li>
+      </ul>
+
+      <h2>Can I run a well pump directly off an extension cord?</h2>
+      <p><strong>No.</strong> Well pumps are hard-wired appliances and should not be connected
+      with an extension cord.</p>
+      <p>
+        To run a well pump from a generator, you need a
+        <strong>transfer switch or interlock</strong> so the pump circuit can be powered safely
+        without backfeeding the utility lines. Your electrician will make sure the
+        neutral, grounding, and bonding requirements are correct for your generator type.
+      </p>
+
+      <h2>Does starting surge increase with pump age or wiring distance?</h2>
+      <p>Yes—both can increase the current required at startup.</p>
+      <ul>
+        <li>
+          <strong>Aging pumps</strong> often draw higher inrush current as bearings wear
+          and efficiency declines.
+        </li>
+        <li>
+          <strong>Longer wire runs</strong> to deep-well pumps add resistance, which can
+          increase the starting VA the generator must supply.
+        </li>
+      </ul>
+      <p>
+        If your well pump is older than 10–12 years or has a very long wiring run, lean toward
+        the higher end of generator sizing ranges or ask an electrician to confirm the load.
+      </p>
+
+      <h2>What about jet pumps?</h2>
+      <p>
+        Jet pumps (commonly used in shallow wells) tend to have similar wattage requirements
+        to submersible pumps of the same horsepower. A standard <strong>3/4 HP jet pump</strong>
+        often needs:
+      </p>
+      <ul>
+        <li>1,000–1,600 W running</li>
+        <li>3,000–4,500 W starting</li>
+      </ul>
+      <p>
+        If your home uses a jet pump for both water supply and pressure boosting, factor
+        that load into your generator plan just like a submersible well pump.
+      </p>
+
+      <p>
+        To estimate total household load—including your well pump—try the
+        <a class="link" href="/#calculator">generator sizing calculator</a>.
+      </p>
+
+      <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
+    </main>
+  </div>
+
+  <style>
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+    .content-shell .page-hero {
+      padding-bottom: 1rem;
+      color: #111827;
+    }
+    .content-shell h1 {
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      margin-bottom: 0.4rem;
+      color: #111827;
+    }
+    .content-shell .lead {
+      font-size: 1.02rem;
+      color: #4b5563;
+    }
+    .content-shell h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.3rem;
+      font-size: 1.25rem;
+    }
+    .content-shell p {
+      margin: 0.4rem 0;
+    }
+    .content-shell ul,
+    .content-shell ol {
+      padding-left: 1.25rem;
+      margin: 0.5rem 0;
+    }
+    .content-shell li {
+      margin: 0.25rem 0;
+    }
+    .content-shell a,
+    .content-shell .link {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: 1.25rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+    }
+  </style>
+</SiteLayout>

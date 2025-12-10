@@ -1,0 +1,299 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+
+const title = "Technical & Electrical Generator FAQs | Size My Generator";
+const desc =
+  "In-depth answers to technical questions about kW, amps, power factor, NEC-style load calculations, and how electricians think about generator sizing.";
+---
+
+<SiteLayout {title} {desc} canonical="https://sizemygenerator.com/faqs/technical">
+  <div class="content-shell">
+    <section class="page-hero">
+      <h1>Technical &amp; Electrical Generator FAQs</h1>
+      <p class="lead">
+        Want to go a level deeper than “X kW for Y square feet”? These FAQs walk
+        through how kW, amps, voltage, and power factor all fit together, and how
+        electricians think about load calculations for residential standby systems.
+      </p>
+    </section>
+
+    <main>
+      <h2>How do I convert amps to kW for my house?</h2>
+      <p>
+        The basic formula for single-phase loads is:
+      </p>
+      <pre><code>kW = (Volts × Amps × Power factor) ÷ 1000</code></pre>
+      <p>
+        In a typical U.S. home with 120/240&nbsp;V split-phase service:
+      </p>
+      <ul>
+        <li>Most 120&nbsp;V circuits feed lighting and receptacles.</li>
+        <li>Most large appliances (ranges, dryers, AC condensers, well pumps) are 240&nbsp;V loads.</li>
+      </ul>
+      <p>
+        For example, a 240&nbsp;V, 30&nbsp;A load with power factor ≈ 1.0:
+      </p>
+      <pre><code>kW ≈ (240 V × 30 A × 1.0) ÷ 1000 ≈ 7.2 kW</code></pre>
+      <p>
+        Household load is the <strong>sum</strong> of individual loads, adjusted for
+        diversity (everything is not on at full draw at the same time). That’s why
+        a 200&nbsp;A service (up to 48&nbsp;kW theoretical at 240&nbsp;V) can often be
+        backed up reasonably well with a 16–24&nbsp;kW generator: we’re sizing to
+        what you actually expect to run during an outage, not the absolute maximum
+        your service can deliver.
+      </p>
+
+      <h2>My home has 200 A service. Does that mean I need a 48 kW generator?</h2>
+      <p><strong>No.</strong> A 200&nbsp;A, 120/240&nbsp;V service can theoretically deliver up to:</p>
+      <pre><code>kW = (240 V × 200 A) ÷ 1000 ≈ 48 kW</code></pre>
+      <p>
+        That is a <strong>maximum service rating</strong>, not a requirement for generator size.
+        In practice:
+      </p>
+      <ul>
+        <li>Most homes rarely use anywhere near 48&nbsp;kW at one time.</li>
+        <li>Generator sizing is based on <strong>expected load during an outage</strong>, not worst-case everything-on-at-once.</li>
+        <li>Load management and circuit selection further reduce what must run simultaneously.</li>
+      </ul>
+      <p>
+        Many 200&nbsp;A homes are well served by a <strong>16–24&nbsp;kW standby generator</strong>
+        when outages are infrequent and heavy electric heat is not being backed up.
+        If you have a large, all-electric home and want true “everything on” capacity,
+        a larger unit may be appropriate, but that’s the exception, not the rule.
+      </p>
+
+      <h2>What does “power factor” mean and why does it matter?</h2>
+      <p>
+        <strong>Power factor (PF)</strong> describes the relationship between
+        real power (kW) and apparent power (kVA). It ranges from 0 to 1:
+      </p>
+      <pre><code>kW = kVA × Power factor</code></pre>
+      <p>
+        Many residential loads are close to unity (PF near 1.0), especially resistance
+        loads like electric heat and incandescent lighting. Motor loads (AC compressors,
+        pumps, fans) often have PF in the <strong>0.8–0.95</strong> range.
+      </p>
+      <p>
+        Generators are frequently rated in kVA with an assumed power factor
+        (for example, “22&nbsp;kVA at 0.8 PF”). If PF is lower, you’ll hit the
+        generator’s current limit sooner for the same real power. For most homeowners,
+        the key takeaways are:
+      </p>
+      <ul>
+        <li>The published kW rating already reflects a reasonable assumed power factor.</li>
+        <li>Large motor loads with poor PF can stress a marginally sized generator.</li>
+      </ul>
+
+      <h2>What does it mean that a generator is rated for “standby,” “prime,” or “continuous”?</h2>
+      <p>
+        Generator manufacturers often publish different ratings depending on how
+        the unit is used:
+      </p>
+      <ul>
+        <li>
+          <strong>Standby rating</strong>: For typical residential standby use
+          during outages. Full rating is available, but only for a limited number
+          of hours per year.
+        </li>
+        <li>
+          <strong>Prime rating</strong>: For applications where the generator is
+          a primary power source and load varies over time. The prime rating is
+          usually lower than the standby rating.
+        </li>
+        <li>
+          <strong>Continuous rating</strong>: For running at a constant load for
+          long periods. This is typically the lowest rating of the three.
+        </li>
+      </ul>
+      <p>
+        Residential whole-house units are generally sized and labeled for
+        <strong>standby</strong> use. When you see “22&nbsp;kW standby” on a common
+        air-cooled unit, that rating is intended for intermittent outage duty,
+        not for industrial continuous use.
+      </p>
+
+      <h2>Why do people say to size a generator for 70–80% load?</h2>
+      <p>
+        Running a generator at or near 100% of its rated capacity for long periods
+        is hard on the equipment and leaves no room for:
+      </p>
+      <ul>
+        <li>Short-term starting surges from motors.</li>
+        <li>Extra loads that may be turned on unexpectedly.</li>
+        <li>Output reductions in extreme heat or at higher altitudes.</li>
+      </ul>
+      <p>
+        A common design target is to keep <strong>expected peak load</strong> in the
+        range of <strong>70–80% of the generator’s rating</strong>. That offers a good
+        balance between:
+      </p>
+      <ul>
+        <li>Fuel efficiency and engine health.</li>
+        <li>Capacity for new loads in the future.</li>
+        <li>Reduced risk of nuisance tripping or voltage sag.</li>
+      </ul>
+      <p>
+        For example, if your calculated peak load is around 14–16&nbsp;kW,
+        a 20&nbsp;kW standby unit is often a sensible choice rather than trying to
+        “force it” onto a 14&nbsp;kW generator.
+      </p>
+
+      <h2>How do temperature and altitude affect generator output?</h2>
+      <p>
+        Engine-driven generators are less powerful at higher temperatures and higher
+        altitudes, because warm, thin air contains less oxygen. Manufacturers often
+        publish <strong>derating curves</strong>, but a rough guideline is:
+      </p>
+      <ul>
+        <li>Expect some reduction above 3,000&nbsp;ft elevation.</li>
+        <li>High ambient temperatures (for example, 100&nbsp;°F+) can further reduce output.</li>
+      </ul>
+      <p>
+        In most residential settings near sea level, derating is modest. But if you live
+        at elevation or in a very hot climate and your load calculation already pushes
+        the generator toward its limit, it’s prudent to:
+      </p>
+      <ul>
+        <li>Choose a slightly larger unit, or</li>
+        <li>Plan more aggressive load management during extreme conditions.</li>
+      </ul>
+
+      <h2>How do electricians calculate load for sizing a generator?</h2>
+      <p>
+        Electricians and designers use methods based on the National Electrical Code
+        (NEC) to estimate total load. The details vary by jurisdiction and code edition,
+        but typical steps include:
+      </p>
+      <ul>
+        <li>Identifying <strong>continuous</strong> vs. <strong>non-continuous</strong> loads.</li>
+        <li>Applying demand factors to general lighting and receptacle loads.</li>
+        <li>Accounting explicitly for large appliances (ranges, dryers, AC, pumps, EV chargers).</li>
+        <li>Considering whether loads are likely to run concurrently.</li>
+      </ul>
+      <p>
+        For residential optional standby systems (NEC Article 702), the generator does
+        not necessarily have to be sized for the entire service rating, as long as
+        load management and transfer equipment are designed appropriately. Your local
+        electrician will follow the version of the code adopted in your area and any
+        local amendments.
+      </p>
+
+      <h2>Do I need a generator that matches my service size (100 A, 150 A, 200 A)?</h2>
+      <p>
+        No. The <strong>amp rating of your service</strong> does not dictate the kW rating
+        of your generator. Instead:
+      </p>
+      <ul>
+        <li>Generator kW is based on the <strong>loads you plan to support</strong> during an outage.</li>
+        <li>Transfer switches and load management equipment make sure the generator is not overloaded.</li>
+      </ul>
+      <p>
+        For example, a home with 200&nbsp;A service might use:
+      </p>
+      <ul>
+        <li>A <strong>100&nbsp;A or 150&nbsp;A service-entrance transfer switch</strong>, if not backing up the full service.</li>
+        <li>Or a <strong>200&nbsp;A service-entrance switch</strong> with load-shedding modules on lower-priority circuits.</li>
+      </ul>
+      <p>
+        In all of these cases, the generator itself might be something like 18–24&nbsp;kW.
+        The key is that the switching and protection equipment keep total connected load
+        within what the generator can safely supply.
+      </p>
+
+      <h2>Can I oversize my generator too much?</h2>
+      <p>
+        On the residential side, “too much” is usually about <strong>cost and practicality</strong>
+        rather than safety, as long as the unit is installed correctly. Downsides of a
+        significantly oversized generator include:
+      </p>
+      <ul>
+        <li>Higher equipment and installation cost.</li>
+        <li>Higher fuel consumption at a given load compared with a right-sized unit.</li>
+        <li>In some cases, less efficient operation at very light loads.</li>
+      </ul>
+      <p>
+        That said, unlike some diesel prime-power applications (where low load can lead
+        to issues like wet stacking), residential air-cooled natural gas/propane standby
+        units are generally tolerant of lighter loading. Being modestly oversized is common.
+      </p>
+
+      <h2>What’s the difference between kW, kVA, and kWh?</h2>
+      <p>
+        These three terms often get mixed up:
+      </p>
+      <ul>
+        <li><strong>kW (kilowatts)</strong> – real power; what most generator ratings use.</li>
+        <li><strong>kVA (kilovolt-amperes)</strong> – apparent power; kW divided by power factor.</li>
+        <li><strong>kWh (kilowatt-hours)</strong> – energy over time; what your utility bills are based on.</li>
+      </ul>
+      <p>
+        When sizing a generator, we focus on <strong>kW and kVA</strong> at a given moment
+        in time (how much power you need right now). When thinking about fuel cost over
+        a day or week of runtime, we’re effectively talking about kWh consumed.
+      </p>
+
+      <p>
+        If you’d like to estimate your own kW from loads and breakers,
+        <a href="/#calculator" class="link">open the generator sizing calculator</a>
+        and plug in your home’s details for a structured walkthrough.
+      </p>
+
+      <p><a class="link" href="/faqs">← Back to all FAQ topics</a></p>
+    </main>
+  </div>
+
+  <style>
+    .content-shell {
+      max-width: 820px;
+      margin: 1.75rem auto 2.5rem;
+      padding: 1.75rem 1.5rem 2.25rem;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      line-height: 1.7;
+    }
+    .content-shell .page-hero {
+      padding-bottom: 1rem;
+      color: #111827;
+    }
+    .content-shell h1 {
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      margin-bottom: 0.4rem;
+      color: #111827;
+    }
+    .content-shell .lead {
+      font-size: 1.02rem;
+      color: #4b5563;
+    }
+    .content-shell h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.3rem;
+      font-size: 1.25rem;
+    }
+    .content-shell p {
+      margin: 0.4rem 0;
+    }
+    .content-shell ul,
+    .content-shell ol {
+      padding-left: 1.25rem;
+      margin: 0.5rem 0;
+    }
+    .content-shell li {
+      margin: 0.25rem 0;
+    }
+    .content-shell a,
+    .content-shell .link {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    @media (max-width: 768px) {
+      .content-shell {
+        margin: 1.25rem 0 2rem;
+        padding: 1.4rem 1rem 2rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+    }
+  </style>
+</SiteLayout>
